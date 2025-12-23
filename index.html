@@ -23,7 +23,6 @@
             color: #2d3436;
         }
 
-        /* Top Header */
         .header {
             background: var(--primary);
             color: white;
@@ -37,7 +36,6 @@
         .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
         .header span { color: var(--accent); font-weight: 300; }
 
-        /* Dashboard Stats */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -56,11 +54,9 @@
             transition: transform 0.3s;
         }
 
-        .stat-box:hover { transform: translateY(-5px); }
         .stat-box h4 { margin: 0; color: #636e72; font-size: 0.8rem; text-transform: uppercase; }
         .stat-box p { margin: 10px 0 0; font-size: 1.8rem; font-weight: 700; color: var(--primary); }
 
-        /* Main Workspace */
         .workspace {
             display: grid;
             grid-template-columns: 420px 1fr;
@@ -75,6 +71,7 @@
             border-radius: 15px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
         }
 
         h3 { 
@@ -86,7 +83,6 @@
             margin-bottom: 20px;
         }
 
-        /* Form Styling */
         label { font-size: 0.75rem; font-weight: 700; color: #b2bec3; display: block; margin-bottom: 5px; }
         input, select, textarea {
             width: 100%;
@@ -98,66 +94,19 @@
             font-size: 0.9rem;
         }
 
-        input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
-
-        .btn {
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            padding: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-        }
-
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-primary:hover { background: #0c1a33; }
-
+        .btn { cursor: pointer; border: none; border-radius: 8px; padding: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
         .btn-gold { background: var(--accent); color: var(--primary); }
 
-        /* Filter Bar */
-        .filter-bar {
-            background: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin: 0 20px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            max-width: 1350px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+        .filter-bar { background: white; padding: 15px 25px; border-radius: 12px; margin: 0 20px 20px; display: flex; align-items: center; gap: 15px; max-width: 1350px; margin: auto; }
 
-        /* Prescription Display */
-        .rx-display {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            margin: 10px 0;
-            border: 1px solid #eee;
-        }
+        .rx-display { background: #f8f9fa; border-radius: 10px; padding: 15px; display: flex; justify-content: space-around; margin: 10px 0; border: 1px solid #eee; }
         .rx-eye { text-align: center; }
         .rx-eye small { display: block; color: var(--accent); font-weight: bold; }
 
-        .order-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f1f1f1;
-            font-size: 0.85rem;
-        }
-
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            background: #f1f2f6;
-        }
+        .order-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f1f1; font-size: 0.85rem; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; background: #f1f2f6; }
     </style>
 </head>
 <body>
@@ -168,24 +117,15 @@
 </div>
 
 <div class="stats-container">
-    <div class="stat-box">
-        <h4>Monthly Sales</h4>
-        <p id="mSales">OMR 0.000</p>
-    </div>
-    <div class="stat-box" style="border-bottom-color: var(--danger)">
-        <h4>Monthly Expenses</h4>
-        <p id="mExp">OMR 0.000</p>
-    </div>
-    <div class="stat-box" style="border-bottom-color: var(--success)">
-        <h4>Current Profit</h4>
-        <p id="mProfit">OMR 0.000</p>
-    </div>
+    <div class="stat-box"><h4>Monthly Sales</h4><p id="mSales">OMR 0.000</p></div>
+    <div class="stat-box" style="border-bottom-color: var(--danger)"><h4>Monthly Expenses</h4><p id="mExp">OMR 0.000</p></div>
+    <div class="stat-box" style="border-bottom-color: var(--success)"><h4>Current Profit</h4><p id="mProfit">OMR 0.000</p></div>
 </div>
 
 <div class="filter-bar">
     <label style="margin:0">DATE FILTER:</label>
     <input type="date" id="filterDate" style="width:180px; margin:0;">
-    <button class="btn btn-gold" style="padding: 8px 20px; font-size: 12px;" onclick="checkDate()">CHECK TOTAL</button>
+    <button class="btn btn-gold" style="width:auto; padding: 8px 20px; font-size: 12px;" onclick="checkDate()">CHECK TOTAL</button>
     <strong id="dateResult" style="color: var(--primary); margin-left: auto;"></strong>
 </div>
 
@@ -193,29 +133,31 @@
     <div class="sidebar">
         <div class="card">
             <h3>New Order Registration</h3>
-            <label>FULL NAME</label><input type="text" id="custName" placeholder="Customer Name">
-            <label>CONTACT</label><input type="text" id="custPhone" placeholder="Mobile">
-            
+            <label>FULL NAME</label><input type="text" id="custName">
+            <label>CONTACT</label><input type="text" id="custPhone">
             <div style="display:flex; gap:10px;">
-                <div style="flex:1"><label>RIGHT EYE (RE)</label><input type="text" id="re" placeholder="Sph/Cyl/Ax"></div>
-                <div style="flex:1"><label>LEFT EYE (LE)</label><input type="text" id="le" placeholder="Sph/Cyl/Ax"></div>
+                <div style="flex:1"><label>RE</label><input type="text" id="re" placeholder="Right Eye"></div>
+                <div style="flex:1"><label>LE</label><input type="text" id="le" placeholder="Left Eye"></div>
             </div>
-
-            <label>ORDER DETAILS</label>
-            <textarea id="items" rows="2" placeholder="Frame brand, lens type, etc."></textarea>
-
+            <label>ORDER DETAILS</label><textarea id="items" rows="2"></textarea>
             <div style="display:flex; gap:10px;">
-                <div style="flex:1"><label>TOTAL (OMR)</label><input type="number" id="total" oninput="math()"></div>
-                <div style="flex:1"><label>ADVANCE (OMR)</label><input type="number" id="advance" oninput="math()"></div>
+                <div style="flex:1"><label>TOTAL</label><input type="number" id="total" oninput="math()"></div>
+                <div style="flex:1"><label>ADVANCE</label><input type="number" id="advance" oninput="math()"></div>
             </div>
-            
-            <label>BALANCE DUE</label>
-            <input type="number" id="balance" readonly style="background:#fff5f5; color:var(--danger); font-weight:bold; font-size:1.2rem;">
-            
-            <button class="btn btn-primary" onclick="save()">FINALISE & SAVE ORDER</button>
+            <label>BALANCE DUE</label><input type="number" id="balance" readonly style="background:#fff5f5; color:var(--danger); font-weight:bold;">
+            <button class="btn btn-primary" onclick="save()">SAVE ORDER</button>
         </div>
 
-        <div class="card" style="margin-top:25px;">
+        <div class="card" style="border-bottom: 4px solid var(--danger);">
+            <h3>Shop Expenses</h3>
+            <label>CATEGORY</label>
+            <select id="expCat"><option>Stock</option><option>Rent</option><option>Bills</option><option>Salary</option><option>Other</option></select>
+            <label>DESCRIPTION</label><input type="text" id="expDesc">
+            <label>AMOUNT (OMR)</label><input type="number" id="expAmount">
+            <button class="btn btn-danger" onclick="saveExpense()">RECORD EXPENSE</button>
+        </div>
+
+        <div class="card">
             <h3>Recent Orders</h3>
             <div id="orderList">Loading...</div>
         </div>
@@ -228,15 +170,13 @@
                 <input type="text" id="sPhone" placeholder="Enter phone number..." style="margin:0;">
                 <button class="btn btn-primary" style="width:120px;" onclick="search()">SEARCH</button>
             </div>
-            <div id="results" style="margin-top:20px;">
-                <p style="text-align:center; color:#ccc; margin-top:50px;">Customer prescriptions and records will appear here.</p>
-            </div>
+            <div id="results" style="margin-top:20px;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwSXBpnVFCfLMdruDIY_qa4mAofMu09Ry3bHuRxWzfxJN_QYK4ezq1xJpzhKCul3fMPhA/exec'; // <--- PUT YOUR DEPLOYMENT URL HERE
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwSXBpnVFCfLMdruDIY_qa4mAofMu09Ry3bHuRxWzfxJN_QYK4ezq1xJpzhKCul3fMPhA/exec';
 
     window.onload = function() {
         fetch(`${scriptURL}?action=getStats`).then(r => r.json()).then(d => {
@@ -250,74 +190,4 @@
     function math() {
         let t = document.getElementById('total').value || 0;
         let a = document.getElementById('advance').value || 0;
-        document.getElementById('balance').value = (t - a).toFixed(3);
-    }
-
-    function checkDate() {
-        let d = document.getElementById('filterDate').value;
-        if(!d) return;
-        document.getElementById('dateResult').innerText = "Checking...";
-        fetch(`${scriptURL}?action=filterDate&date=${d}`).then(r => r.json()).then(data => {
-            document.getElementById('dateResult').innerText = "Total for " + d + ": OMR " + data.total.toFixed(3);
-        });
-    }
-
-    function updateOrderList() {
-        fetch(`${scriptURL}?action=listOrders`).then(r => r.json()).then(data => {
-            let html = '';
-            data.forEach(o => { 
-                html += `<div class="order-row"><span>${o.invoice}</span> <span>${o.name}</span> <span class="status-badge">${o.status}</span></div>`; 
-            });
-            document.getElementById('orderList').innerHTML = html;
-        });
-    }
-
-    function save() {
-        let n = document.getElementById('custName').value;
-        if(!n) return Swal.fire("Required", "Customer Name is required", "warning");
-        
-        let params = `action=saveSale&name=${encodeURIComponent(n)}&phone=${document.getElementById('custPhone').value}&re=${document.getElementById('re').value}&le=${document.getElementById('le').value}&items=${encodeURIComponent(document.getElementById('items').value)}&total=${document.getElementById('total').value}&advance=${document.getElementById('advance').value}&balance=${document.getElementById('balance').value}`;
-        
-        Swal.fire({title:'Processing...', allowOutsideClick:false, didOpen:()=>{Swal.showLoading()}});
-        
-        fetch(`${scriptURL}?${params}`).then(r=>r.json()).then(d=>{
-            Swal.fire("Success", "Invoice " + d.inv + " saved!", "success").then(()=>location.reload());
-        });
-    }
-
-    function search() {
-        let p = document.getElementById('sPhone').value;
-        document.getElementById('results').innerHTML = "Searching...";
-        fetch(`${scriptURL}?phone=${p}`).then(r=>r.json()).then(data=>{
-            let html = '';
-            data.forEach(r => {
-                html += `<div class="card" style="border:1px solid #eee; margin-bottom:15px; background:#fff;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${r.name} (${r.invoice})</strong>
-                        <span style="color:var(--accent); font-weight:bold;">BAL: OMR ${parseFloat(r.balance).toFixed(3)}</span>
-                    </div>
-                    <div class="rx-display">
-                        <div class="rx-eye"><small>RIGHT EYE (RE)</small>${r.re || 'N/A'}</div>
-                        <div class="rx-eye"><small>LEFT EYE (LE)</small>${r.le || 'N/A'}</div>
-                    </div>
-                    <p style="font-size:0.8rem; color:#636e72;">Items: ${r.items}</p>
-                    <select onchange="upd(${r.row}, this.value)" style="width:150px; margin:0;">
-                        <option value="Processing" ${r.status=='Processing'?'selected':''}>Processing</option>
-                        <option value="Ready" ${r.status=='Ready'?'selected':''}>Ready</option>
-                        <option value="Delivered" ${r.status=='Delivered'?'selected':''}>Delivered</option>
-                    </select>
-                </div>`;
-            });
-            document.getElementById('results').innerHTML = html || "No records found.";
-        });
-    }
-
-    function upd(r, s) { 
-        fetch(`${scriptURL}?action=updateStatus&row=${r}&status=${s}`).then(()=>Swal.fire({icon:'success', title:'Updated', toast:true, position:'top-end', showConfirmButton:false, timer:2000})); 
-    }
-
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
-</script>
-
-</body>
-</html>
+        document
