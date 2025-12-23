@@ -190,4 +190,69 @@
     function math() {
         let t = document.getElementById('total').value || 0;
         let a = document.getElementById('advance').value || 0;
-        document
+        document.getElementById('balance').value = (t - a).toFixed(3);
+    }
+
+    function checkDate() {
+        let d = document.getElementById('filterDate').value;
+        if(!d) return;
+        document.getElementById('dateResult').innerText = "Checking...";
+        fetch(`${scriptURL}?action=filterDate&date=${d}`).then(r => r.json()).then(data => {
+            document.getElementById('dateResult').innerText = "Total for " + d + ": OMR " + data.total.toFixed(3);
+        });
+    }
+
+    function save() {
+        let n = document.getElementById('custName').value;
+        if(!n) return Swal.fire("Required", "Name is required", "warning");
+        let params = `action=saveSale&name=${encodeURIComponent(n)}&phone=${document.getElementById('custPhone').value}&re=${document.getElementById('re').value}&le=${document.getElementById('le').value}&items=${encodeURIComponent(document.getElementById('items').value)}&total=${document.getElementById('total').value}&advance=${document.getElementById('advance').value}&balance=${document.getElementById('balance').value}`;
+        Swal.fire({title:'Saving...', didOpen:()=>{Swal.showLoading()}});
+        fetch(`${scriptURL}?${params}`).then(r=>r.json()).then(d=>{
+            Swal.fire("Success", "Invoice " + d.inv + " saved!", "success").then(()=>location.reload());
+        });
+    }
+
+    function saveExpense() {
+        const amt = document.getElementById('expAmount').value;
+        if(!amt) return Swal.fire("Error", "Amount required", "error");
+        const params = `action=saveExpense&category=${document.getElementById('expCat').value}&desc=${encodeURIComponent(document.getElementById('expDesc').value)}&amount=${amt}`;
+        Swal.fire({title: 'Saving Expense...', didOpen: () => { Swal.showLoading() }});
+        fetch(`${scriptURL}?${params}`).then(() => {
+            Swal.fire("Success", "Recorded", "success").then(() => location.reload());
+        });
+    }
+
+    function search() {
+        let p = document.getElementById('sPhone').value;
+        document.getElementById('results').innerHTML = "Searching...";
+        fetch(`${scriptURL}?phone=${p}`).then(r=>r.json()).then(data=>{
+            let html = '';
+            data.forEach(r => {
+                html += `<div class="card" style="border:1px solid #eee; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>${r.name} (${r.invoice})</strong><span>OMR ${parseFloat(r.balance).toFixed(3)}</span></div>
+                    <div class="rx-display"><div class="rx-eye"><small>RE</small>${r.re || '-'}</div><div class="rx-eye"><small>LE</small>${r.le || '-'}</div></div>
+                    <p>Details: ${r.items}</p>
+                    <select onchange="upd(${r.row}, this.value)" style="width:150px; margin:0;">
+                        <option value="Processing" ${r.status=='Processing'?'selected':''}>Processing</option>
+                        <option value="Ready" ${r.status=='Ready'?'selected':''}>Ready</option>
+                        <option value="Delivered" ${r.status=='Delivered'?'selected':''}>Delivered</option>
+                    </select>
+                </div>`;
+            });
+            document.getElementById('results').innerHTML = html || "No records found.";
+        });
+    }
+
+    function updateOrderList() {
+        fetch(`${scriptURL}?action=listOrders`).then(r => r.json()).then(data => {
+            let html = '';
+            data.forEach(o => { html += `<div class="order-row"><span>${o.invoice}</span> <span>${o.name}</span> <span class="status-badge">${o.status}</span></div>`; });
+            document.getElementById('orderList').innerHTML = html;
+        });
+    }
+
+    function upd(r, s) { fetch(`${scriptURL}?action=updateStatus&row=${r}&status=${s}`).then(()=>Swal.fire({icon:'success', title:'Updated', toast:true, position:'top-end', showConfirmButton:false, timer:2000})); }
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
+</script>
+</body>
+</html>
