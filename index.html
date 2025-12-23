@@ -133,6 +133,8 @@
     <div class="sidebar">
         <div class="card">
             <h3>New Order Registration</h3>
+            <label>INVOICE NUMBER </label>
+    <input type="text" id="manualInv" placeholder="e.g. 5001" style="border: 2px solid var(--accent);">
             <label>FULL NAME</label><input type="text" id="custName">
             <label>CONTACT</label><input type="text" id="custPhone">
             <div style="display:flex; gap:10px;">
@@ -176,7 +178,7 @@
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwSXBpnVFCfLMdruDIY_qa4mAofMu09Ry3bHuRxWzfxJN_QYK4ezq1xJpzhKCul3fMPhA/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyRRb3PkAuDzDelJ5v0d0k5Y6-B_THYfv2Xe_fnmtRYTjv6V66WcXy6Cf0Xg11OlJwSFg/exec';
 
     window.onload = function() {
         fetch(`${scriptURL}?action=getStats`).then(r => r.json()).then(d => {
