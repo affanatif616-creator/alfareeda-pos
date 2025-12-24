@@ -56,6 +56,9 @@
         <nav style="flex-grow: 1;">
             <div class="nav-item active" onclick="showSection('dash')"><i class="fas fa-th-large"></i> Dashboard</div>
             <div class="nav-item" onclick="showSection('order')"><i class="fas fa-plus-circle"></i> New Sale Record</div>
+            <div class="nav-item" onclick="showSection('order-list'); loadOrderList();">
+    <i class="fas fa-list-ul"></i> <span>Order List</span>
+</div>
             <div class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr')"><i class="fas fa-user-shield"></i> Staff Management</div>
         </nav>
         <div class="nav-item" onclick="logout(event)" style="color:var(--danger); border-top:1px solid #334155; padding-top:20px;">
@@ -136,10 +139,74 @@
                 <button class="btn-primary" onclick="createNewStaff()">Create Cloud Account</button>
             </div>
         </div>
+
+<div id="order-list-section" class="content-section" style="display:none;">
+    <div class="data-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2><i class="fas fa-history"></i> Recent Orders</h2>
+            <input type="text" id="search-box" placeholder="Search Name or Mobile..." onkeyup="searchOrders()" style="width: 250px;">
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+    <tr style="background: #f1f5f9; text-align: left;">
+        <th style="padding: 12px;">Date</th>
+        <th style="padding: 12px;">Invoice</th>
+        <th style="padding: 12px;">Name</th>
+        <th style="padding: 12px;">Number</th>
+        <th style="padding: 12px;">Balance</th>
+        <th style="padding: 12px;">Status</th>
+        <th style="padding: 12px; text-align:right;">Actions</th>
+    </tr>
+</thead>
+<tbody id="order-list-table"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
     </main>
+<div id="edit-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+    <div class="data-card" style="width:350px; background:white; padding:20px; border-radius:15px;">
+        <h3 style="margin-bottom:15px;">Update Order</h3>
+        
+        <div class="form-group">
+            <label>Invoice Number</label>
+            <input type="text" id="up-invoice" readonly style="background:#f1f5f9; cursor:not-allowed;">
+        </div>
+
+        <div class="form-group" style="margin-top:10px;">
+            <label>Order Status</label>
+            <select id="up-status">
+                <option value="Pending">Pending</option>
+                <option value="Ready">Ready</option>
+                <option value="Delivered">Delivered</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-top:10px;">
+            <label>Remaining Balance (OMR)</label>
+            <input type="number" id="up-balance" step="0.001">
+        </div>
+
+        <div style="margin-top:20px;">
+            <button class="btn-primary" onclick="submitUpdate()">Save Changes</button>
+            <button onclick="closeModals()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="rx-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10001; align-items:center; justify-content:center;">
+    <div class="data-card" style="width:400px; background:white; padding:25px; border-radius:15px;">
+        <div id="rx-body"></div>
+        <button class="btn-primary" style="margin-top:20px;" onclick="closeModals()">Close</button>
+    </div>
+</div>
+
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwCnbluvZp5rmGIw_iaZRh1SYvX1UFeSV9rz5TLwzT_5HwrJZlU6P29A2o8M0ALKHhdFw/exec'; // <--- PUT YOUR URL HERE
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbywSYeS2XoS1YJkHvN4JQKzwSDj6gdvJLaZZSHFcyumZOuyGSl7AXgWLRGYvGHMxtBRwg/exec'; // <--- PUT YOUR URL HERE
         let staffList = [];
         let logoutTimer;
 
@@ -266,6 +333,98 @@
             if(confirm("Logout?")) { sessionStorage.removeItem('alfareeda_user'); location.reload(); }
         }
 
+async function loadOrderList() {
+    const tableBody = document.getElementById('order-list-table');
+    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    
+    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Fetching Cloud Records...</td></tr>';
+
+    try {
+        const res = await fetch(scriptURL + "?type=records");
+        const allRecords = await res.json();
+        
+        // Filter: Manager sees all, Branch sees only theirs
+        const displayRecords = (user.role === "Manager") 
+            ? allRecords 
+            : allRecords.filter(r => r[12] === user.activeBranch);
+
+        displayRecords.reverse(); // Newest first
+
+        tableBody.innerHTML = '';
+        displayRecords.forEach(row => {
+            const dateStr = new Date(row[0]).toLocaleDateString('en-GB');
+            const inv = row[1];
+            const name = row[2];
+            const phone = row[3];
+            const balance = parseFloat(row[9]) || 0;
+            const status = row[11];
+            
+            // Prescription data for the "View RX" button
+            const rxData = JSON.stringify({
+                name: name,
+                invoice: inv,
+                re: row[4],
+                le: row[5],
+                items: row[6]
+            }).replace(/"/g, '&quot;');
+
+            // Status Badge Color
+            let badgeColor = status === 'Delivered' ? '#10b981' : (status === 'Ready' ? '#3b82f6' : '#f59e0b');
+
+            tableBody.innerHTML += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 12px;">${dateStr}</td>
+                    <td style="padding: 12px; font-weight:600;">${inv}</td>
+                    <td style="padding: 12px;">${name}</td>
+                    <td style="padding: 12px; color:#64748b;">${phone}</td>
+                    <td style="padding: 12px; font-weight:bold; color:${balance > 0 ? '#f43f5e' : '#10b981'};">
+                        ${balance.toFixed(3)}
+                    </td>
+                    <td style="padding: 12px;">
+                        <span style="background:${badgeColor}22; color:${badgeColor}; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:bold;">
+                            ${status}
+                        </span>
+                    </td>
+                    <td style="padding: 12px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
+                        <button onclick="showRx('${rxData}')" title="View Prescription" style="background:#f1f5f9; color:#475569; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="openEditModal('${inv}', '${balance}', '${status}')" title="Edit Order" style="background:var(--accent); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (e) {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Connection Error</td></tr>';
+    }
+}
+
+function searchOrders() {
+    const input = document.getElementById('search-box').value.toLowerCase();
+    const table = document.querySelector('table');
+    const tr = table.getElementsByTagName('tr');
+
+    // Loop through all table rows (starting from index 1 to skip the header)
+    for (let i = 1; i < tr.length; i++) {
+        const nameCell = tr[i].getElementsByTagName('td')[2]; // Column 3 is Name
+        const invCell = tr[i].getElementsByTagName('td')[1];  // Column 2 is Invoice
+        
+        if (nameCell || invCell) {
+            const nameText = nameCell.textContent.toLowerCase();
+            const invText = invCell.textContent.toLowerCase();
+            
+            // If the name or invoice matches the search input, show the row
+            if (nameText.indexOf(input) > -1 || invText.indexOf(input) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+
 
         window.onload = async () => {
             const saved = sessionStorage.getItem('alfareeda_user');
@@ -337,7 +496,130 @@ async function loadBranchStats(userRole, myBranch) {
         console.log("Stats error:", e);
     }
 }
+// This function opens the Edit window when the pencil icon is clicked
+function openEditModal(inv, bal, stat) {
+    const modal = document.getElementById('edit-modal');
+    const invField = document.getElementById('up-invoice');
+    const balField = document.getElementById('up-balance');
+    const statField = document.getElementById('up-status');
+
+    if (modal && invField && balField && statField) {
+        invField.value = inv;
+        balField.value = bal;
+        statField.value = stat;
+        modal.style.display = 'flex';
+    } else {
+        console.error("One or more Edit Modal elements are missing from HTML");
+    }
+}
+
+// This function sends the updated status and balance to your Google Sheet
+async function submitUpdate() {
+    const inv = document.getElementById('up-invoice').value;
+    const bal = document.getElementById('up-balance').value;
+    const stat = document.getElementById('up-status').value;
+
+    if (!inv) {
+        alert("Error: Invoice number is missing.");
+        return;
+    }
+
+    // Change button text to show it's working
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "Updating Cloud...";
+    btn.disabled = true;
+
+    const data = {
+        action: "update",
+        invoice: inv,
+        balance: bal,
+        status: stat
+    };
+
+    try {
+        // Send to your Google Apps Script URL
+        await fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(data) 
+        });
+
+        alert("Order " + inv + " updated successfully!");
+        closeModals();
+        location.reload(); // Refresh to show new balance/status
+    } catch (e) {
+        console.error("Update Error:", e);
+        alert("Connection Error. Please try again.");
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+// This function handles the "Prescription" button
+function showRx(jsonStr) {
+    const modal = document.getElementById('rx-modal');
+    const body = document.getElementById('rx-body');
+    
+    // Parse the JSON string back into an object
+    const data = JSON.parse(jsonStr);
+
+    if (modal && body) {
+        body.innerHTML = `
+            <h2 style="color:var(--accent); margin-bottom:15px;">Prescription Card</h2>
+            <p><strong>Customer:</strong> ${data.name}</p>
+            <p><strong>Invoice:</strong> ${data.invoice}</p>
+            <hr style="margin:15px 0; opacity:0.1;">
+            <div style="background:#f8fafc; padding:15px; border-radius:8px; line-height:1.6;">
+                <p><strong>Right Eye (RE):</strong><br> ${data.re || 'N/A'}</p>
+                <p style="margin-top:10px;"><strong>Left Eye (LE):</strong><br> ${data.le || 'N/A'}</p>
+            </div>
+            <div style="margin-top:15px;">
+                <p><strong>Lens/Items:</strong><br> ${data.items || 'None'}</p>
+            </div>
+        `;
+        modal.style.display = 'flex';
+    }
+}
+
+// Function to close any open popup
+function closeModals() {
+    if(document.getElementById('rx-modal')) document.getElementById('rx-modal').style.display = 'none';
+    if(document.getElementById('edit-modal')) document.getElementById('edit-modal').style.display = 'none';
+}
+
+function searchOrders() {
+    // 1. Get the search text from the input with ID "search-box"
+    const input = document.getElementById('search-box');
+    const filter = input.value.toLowerCase();
+    
+    // 2. Get the table rows
+    const table = document.querySelector("table");
+    const tr = table.getElementsByTagName("tr");
+
+    // 3. Loop through rows (skip header row i=0)
+    for (let i = 1; i < tr.length; i++) {
+        // Name is usually index 2, Mobile/Phone is usually index 3
+        const nameCell = tr[i].getElementsByTagName("td")[2]; 
+        const mobileCell = tr[i].getElementsByTagName("td")[3];
+        const invoiceCell = tr[i].getElementsByTagName("td")[1];
+        
+        if (nameCell || mobileCell || invoiceCell) {
+            const nameText = nameCell ? nameCell.textContent.toLowerCase() : "";
+            const mobileText = mobileCell ? mobileCell.textContent.toLowerCase() : "";
+            const invoiceText = invoiceCell ? invoiceCell.textContent.toLowerCase() : "";
+            
+            // Check if search text matches Name, Mobile, or Invoice
+            if (nameText.includes(filter) || mobileText.includes(filter) || invoiceText.includes(filter)) {
+                tr[i].style.display = ""; // Show
+            } else {
+                tr[i].style.display = "none"; // Hide
+            }
+        }
+    }
+}
 
     </script>
+
 </body>
 </html>
