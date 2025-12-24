@@ -144,7 +144,11 @@
     <div class="data-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2><i class="fas fa-history"></i> Recent Orders</h2>
-            <input type="text" id="search-box" placeholder="Search Name or Mobile..." onkeyup="searchOrders()" style="width: 250px;">
+            <input type="text" 
+       id="search-box" 
+       oninput="searchOrders()" 
+       placeholder="Search Name, Mobile or Invoice..." 
+       style="width: 250px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
         </div>
         
         <div style="overflow-x: auto;">
@@ -589,36 +593,30 @@ function closeModals() {
 }
 
 function searchOrders() {
-    // 1. Get the search text from the input with ID "search-box"
+    // 1. Get the input value
     const input = document.getElementById('search-box');
+    if (!input) return;
     const filter = input.value.toLowerCase();
     
-    // 2. Get the table rows
-    const table = document.querySelector("table");
-    const tr = table.getElementsByTagName("tr");
+    // 2. Target the specific table body where your Google Sheet data goes
+    // In your system, this is usually 'table-body' or 'order-list-body'
+    const tbody = document.querySelector('tbody'); 
+    if (!tbody) return;
 
-    // 3. Loop through rows (skip header row i=0)
-    for (let i = 1; i < tr.length; i++) {
-        // Name is usually index 2, Mobile/Phone is usually index 3
-        const nameCell = tr[i].getElementsByTagName("td")[2]; 
-        const mobileCell = tr[i].getElementsByTagName("td")[3];
-        const invoiceCell = tr[i].getElementsByTagName("td")[1];
+    const tr = tbody.getElementsByTagName('tr');
+
+    // 3. Loop through rows
+    for (let i = 0; i < tr.length; i++) {
+        // This looks at all text in the row (Invoice, Name, Mobile, etc.)
+        const rowText = tr[i].textContent || tr[i].innerText;
         
-        if (nameCell || mobileCell || invoiceCell) {
-            const nameText = nameCell ? nameCell.textContent.toLowerCase() : "";
-            const mobileText = mobileCell ? mobileCell.textContent.toLowerCase() : "";
-            const invoiceText = invoiceCell ? invoiceCell.textContent.toLowerCase() : "";
-            
-            // Check if search text matches Name, Mobile, or Invoice
-            if (nameText.includes(filter) || mobileText.includes(filter) || invoiceText.includes(filter)) {
-                tr[i].style.display = ""; // Show
-            } else {
-                tr[i].style.display = "none"; // Hide
-            }
+        if (rowText.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = ""; // Show matching row
+        } else {
+            tr[i].style.display = "none"; // Hide non-matching row
         }
     }
 }
-
     </script>
 
 </body>
