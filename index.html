@@ -406,30 +406,29 @@ async function loadOrderList() {
 }
 
 function searchOrders() {
-    // 1. Get the search input
-    const input = document.getElementById('search-box');
-    if (!input) return;
-    const filter = input.value.toLowerCase();
-    
-    // 2. Target YOUR specific table body ID
-    const tableBody = document.getElementById('order-list-table');
-    if (!tableBody) return;
+    const input = document.getElementById('search-box').value.toLowerCase();
+    const table = document.querySelector('table');
+    const tr = table.getElementsByTagName('tr');
 
-    // 3. Get all rows inside that table body
-    const rows = tableBody.getElementsByTagName('tr');
-
-    // 4. Loop through the rows
-    for (let i = 0; i < rows.length; i++) {
-        // Get the text from Name (3rd column) and Invoice (2nd column)
-        const rowText = rows[i].textContent || rows[i].innerText;
+    // Loop through all table rows (starting from index 1 to skip the header)
+    for (let i = 1; i < tr.length; i++) {
+        const nameCell = tr[i].getElementsByTagName('td')[2]; // Column 3 is Name
+        const invCell = tr[i].getElementsByTagName('td')[1];  // Column 2 is Invoice
         
-        if (rowText.toLowerCase().indexOf(filter) > -1) {
-            rows[i].style.display = ""; // Show
-        } else {
-            rows[i].style.display = "none"; // Hide
+        if (nameCell || invCell) {
+            const nameText = nameCell.textContent.toLowerCase();
+            const invText = invCell.textContent.toLowerCase();
+            
+            // If the name or invoice matches the search input, show the row
+            if (nameText.indexOf(input) > -1 || invText.indexOf(input) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
         }
     }
 }
+
 
         window.onload = async () => {
             const saved = sessionStorage.getItem('alfareeda_user');
@@ -594,30 +593,31 @@ function closeModals() {
 }
 
 function searchOrders() {
-    // 1. Get the input value
+    // 1. Get the search input
     const input = document.getElementById('search-box');
     if (!input) return;
     const filter = input.value.toLowerCase();
     
-    // 2. Target the specific table body where your Google Sheet data goes
-    // In your system, this is usually 'table-body' or 'order-list-body'
-    const tbody = document.querySelector('tbody'); 
-    if (!tbody) return;
+    // 2. Target YOUR specific table body ID
+    const tableBody = document.getElementById('order-list-table');
+    if (!tableBody) return;
 
-    const tr = tbody.getElementsByTagName('tr');
+    // 3. Get all rows inside that table body
+    const rows = tableBody.getElementsByTagName('tr');
 
-    // 3. Loop through rows
-    for (let i = 0; i < tr.length; i++) {
-        // This looks at all text in the row (Invoice, Name, Mobile, etc.)
-        const rowText = tr[i].textContent || tr[i].innerText;
+    // 4. Loop through the rows
+    for (let i = 0; i < rows.length; i++) {
+        // Get the text from Name (3rd column) and Invoice (2nd column)
+        const rowText = rows[i].textContent || rows[i].innerText;
         
         if (rowText.toLowerCase().indexOf(filter) > -1) {
-            tr[i].style.display = ""; // Show matching row
+            rows[i].style.display = ""; // Show
         } else {
-            tr[i].style.display = "none"; // Hide non-matching row
+            rows[i].style.display = "none"; // Hide
         }
     }
 }
+
     </script>
 
 </body>
