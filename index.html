@@ -35,6 +35,7 @@
         .rx-table th { background: #f1f5f9; padding: 10px; font-size: 0.75rem; color: #64748b; }
         .rx-table td { background: white; padding: 5px; border: 1px solid #f1f5f9; }
         .rx-table input { border: none; text-align: center; padding: 8px; }
+
     </style>
 </head>
 <body>
@@ -57,8 +58,14 @@
             <div class="nav-item active" onclick="showSection('dash')"><i class="fas fa-th-large"></i> Dashboard</div>
             <div class="nav-item" onclick="showSection('order')"><i class="fas fa-plus-circle"></i> New Sale Record</div>
             <div class="nav-item" onclick="showSection('order-list'); loadOrderList();">
-    <i class="fas fa-list-ul"></i> <span>Order List</span>
+    <i class="fas fa-list-ul"></i> <span>Order List</span></div>
+<div class="nav-item" onclick="showSection('expense')">
+    <i class="fas fa-wallet"></i> Record Expense
 </div>
+<div class="nav-item" onclick="showSection('expense-list'); loadExpenseList();">
+    <i class="fas fa-list-alt"></i> Expense History
+</div>
+
             <div class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr')"><i class="fas fa-user-shield"></i> Staff Management</div>
         </nav>
         <div class="nav-item" onclick="logout(event)" style="color:var(--danger); border-top:1px solid #334155; padding-top:20px;">
@@ -127,6 +134,82 @@
             </div>
         </div>
 
+<div id="expense-section" class="content-section" style="display:none;">
+    <div class="data-card">
+        <h2><i class="fas fa-receipt"></i> Daily Expense Entry</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">Record any shop-related costs below.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label>Category</label>
+                <select id="exp-category">
+                    <option>Tea & Coffee</option>
+                    <option>Cleaning / Maintenance</option>
+                    <option>Stationery</option>
+                    <option>Electricity / Water</option>
+                    <option>Stock Purchase</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Amount (OMR)</label>
+                <input type="number" id="exp-amount" step="0.001" placeholder="0.000">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Description / Remarks</label>
+            <textarea id="exp-desc" rows="3" placeholder="Enter details..."></textarea>
+        </div>
+
+        <button class="btn-primary" id="exp-save-btn" onclick="saveExpense()">
+            <i class="fas fa-save"></i> Save Expense
+        </button>
+    </div>
+</div>
+
+<div id="expense-list-section" class="content-section" style="display:none;">
+    <div class="data-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2><i class="fas fa-history"></i> Expense History</h2>
+            <div id="expense-total-badge" style="background:var(--danger); color:white; padding:8px 15px; border-radius:8px; font-weight:bold;">
+                Total: 0.000 OMR
+            </div>
+        </div>
+        
+<div class="data-card" style="margin-bottom: 15px; background: #f8fafc; padding: 15px;">
+    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin:0;">
+            <label style="font-size: 0.75rem;">Start Date</label>
+            <input type="date" id="exp-start-date" style="padding: 5px;">
+        </div>
+        <div class="form-group" style="margin:0;">
+            <label style="font-size: 0.75rem;">End Date</label>
+            <input type="date" id="exp-end-date" style="padding: 5px;">
+        </div>
+        <button class="btn-primary" onclick="loadExpenseList(true)" style="padding: 8px 15px; font-size: 0.8rem;">Filter</button>
+        <button class="btn-secondary" onclick="resetExpFilter()" style="padding: 8px 15px; font-size: 0.8rem;">Reset</button>
+    </div>
+</div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: #f1f5f9; text-align: left;">
+                        <th style="padding: 12px;">Date</th>
+                        <th style="padding: 12px;">Category</th>
+                        <th style="padding: 12px;">Description</th>
+                        <th style="padding: 12px;">Amount</th>
+                        <th id="exp-branch-header" style="padding: 12px; display:none;">Branch</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-list-table"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
         <div id="staff-mgr-section" class="content-section" style="display:none;">
             <div class="data-card">
                 <h3>Add New Staff Member</h3><br>
@@ -151,6 +234,21 @@
        style="width: 250px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
         </div>
         
+<div class="data-card" style="margin-bottom: 15px; background: #f8fafc; padding: 15px;">
+    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin:0;">
+            <label style="font-size: 0.75rem;">Start Date</label>
+            <input type="date" id="order-start-date" style="padding: 5px;">
+        </div>
+        <div class="form-group" style="margin:0;">
+            <label style="font-size: 0.75rem;">End Date</label>
+            <input type="date" id="order-end-date" style="padding: 5px;">
+        </div>
+        <button class="btn-primary" onclick="loadOrderList(true)" style="padding: 8px 15px; font-size: 0.8rem;">Filter</button>
+        <button class="btn-secondary" onclick="resetOrderFilter()" style="padding: 8px 15px; font-size: 0.8rem;">Reset</button>
+    </div>
+</div>
+
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                 <thead>
@@ -161,6 +259,7 @@
         <th style="padding: 12px;">Number</th>
         <th style="padding: 12px;">Balance</th>
         <th style="padding: 12px;">Status</th>
+        <th id="branch-header" style="padding: 12px; display: none;">Branch</th>
         <th style="padding: 12px; text-align:right;">Actions</th>
     </tr>
 </thead>
@@ -169,6 +268,7 @@
         </div>
     </div>
 </div>
+
 
     </main>
 <div id="edit-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
@@ -209,9 +309,12 @@
 </div>
 
 
+    
+
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbywSYeS2XoS1YJkHvN4JQKzwSDj6gdvJLaZZSHFcyumZOuyGSl7AXgWLRGYvGHMxtBRwg/exec'; // <--- PUT YOUR URL HERE
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwIpCgMcveDRnn6xlHAs8E0ezIdR93f1rMOPikKuKzE8cDoP-iUHmdtq1Q_NWc1thxX6w/exec'; // <--- PUT YOUR URL HERE
         let staffList = [];
+        let currentOrders = [];
         let logoutTimer;
 
         // --- SECURITY & SESSION ---
@@ -337,24 +440,60 @@
             if(confirm("Logout?")) { sessionStorage.removeItem('alfareeda_user'); location.reload(); }
         }
 
-async function loadOrderList() {
+        async function loadOrderList(isFiltered = false) {
     const tableBody = document.getElementById('order-list-table');
     const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    if (!user) return;
+
+    const isAdmin = user.role === "Manager";
+    const branchHeader = document.getElementById('branch-header');
     
-    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Fetching Cloud Records...</td></tr>';
+    // Toggle header visibility
+    if (branchHeader) {
+        branchHeader.style.display = isAdmin ? "table-cell" : "none";
+    }
+
+    // 1. Get Date Values if filtering
+    let startDate = null;
+    let endDate = null;
+    if (isFiltered) {
+        const startVal = document.getElementById('order-start-date').value;
+        const endVal = document.getElementById('order-end-date').value;
+        if (!startVal || !endVal) {
+            alert("Please select both Start and End dates");
+            return;
+        }
+        startDate = new Date(startVal);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(endVal);
+        endDate.setHours(23, 59, 59, 999);
+    }
+
+    tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">Fetching Cloud Records...</td></tr>`;
 
     try {
-        const res = await fetch(scriptURL + "?type=records");
+        const res = await fetch(scriptURL + "?type=Records"); // Note: Ensure "Records" matches your sheet tab exactly
         const allRecords = await res.json();
         
-        // Filter: Manager sees all, Branch sees only theirs
-        const displayRecords = (user.role === "Manager") 
-            ? allRecords 
-            : allRecords.filter(r => r[12] === user.activeBranch);
+        // 2. Combined Filter: Branch + Date
+        const displayRecords = allRecords.filter(r => {
+            const rowDate = new Date(r[0]);
+            const branchMatch = isAdmin ? true : r[12] === user.activeBranch;
+            
+            if (isFiltered) {
+                return branchMatch && rowDate >= startDate && rowDate <= endDate;
+            }
+            return branchMatch;
+        });
 
-        displayRecords.reverse(); // Newest first
+        displayRecords.reverse(); 
 
         tableBody.innerHTML = '';
+        if (displayRecords.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">No records found for this period.</td></tr>`;
+            return;
+        }
+
         displayRecords.forEach(row => {
             const dateStr = new Date(row[0]).toLocaleDateString('en-GB');
             const inv = row[1];
@@ -362,74 +501,54 @@ async function loadOrderList() {
             const phone = row[3];
             const balance = parseFloat(row[9]) || 0;
             const status = row[11];
+            const branchName = row[12] || 'N/A';
             
-            // Prescription data for the "View RX" button
             const rxData = JSON.stringify({
-                name: name,
-                invoice: inv,
-                re: row[4],
-                le: row[5],
-                items: row[6]
+                name: name, invoice: inv, re: row[4], le: row[5], items: row[6]
             }).replace(/"/g, '&quot;');
 
-            // Status Badge Color
             let badgeColor = status === 'Delivered' ? '#10b981' : (status === 'Ready' ? '#3b82f6' : '#f59e0b');
+            let branchTd = isAdmin ? `<td style="padding: 12px; color:#64748b;">${branchName}</td>` : '';
 
-            tableBody.innerHTML += `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 12px;">${dateStr}</td>
-                    <td style="padding: 12px; font-weight:600;">${inv}</td>
-                    <td style="padding: 12px;">${name}</td>
-                    <td style="padding: 12px; color:#64748b;">${phone}</td>
-                    <td style="padding: 12px; font-weight:bold; color:${balance > 0 ? '#f43f5e' : '#10b981'};">
-                        ${balance.toFixed(3)}
-                    </td>
-                    <td style="padding: 12px;">
-                        <span style="background:${badgeColor}22; color:${badgeColor}; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:bold;">
-                            ${status}
-                        </span>
-                    </td>
-                    <td style="padding: 12px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
-                        <button onclick="showRx('${rxData}')" title="View Prescription" style="background:#f1f5f9; color:#475569; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="openEditModal('${inv}', '${balance}', '${status}')" title="Edit Order" style="background:var(--accent); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-    } catch (e) {
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Connection Error</td></tr>';
-    }
-}
+            // Find this section inside your loadOrderList loop and replace it:
+    tableBody.innerHTML += `
+    <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 12px;">${dateStr}</td>
+        <td style="padding: 12px; font-weight:600;">${inv}</td>
+        <td style="padding: 12px;">${name}</td>
+        <td style="padding: 12px; color:#64748b;">${phone}</td>
+        <td style="padding: 12px; font-weight:bold; color:${balance > 0 ? '#f43f5e' : '#10b981'};">
+            ${balance.toFixed(3)}
+        </td>
+        <td style="padding: 12px;">
+            <span style="background:${badgeColor}22; color:${badgeColor}; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:bold;">
+                ${status}
+            </span>
+        </td>
+        ${branchTd}
+        <td style="padding: 12px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
+            <button onclick="showRx('${rxData}')" style="background:#f1f5f9; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" title="View Rx">
+                <i class="fas fa-eye"></i>
+            </button>
 
-function searchOrders() {
-    const input = document.getElementById('search-box').value.toLowerCase();
-    const table = document.querySelector('table');
-    const tr = table.getElementsByTagName('tr');
+            <button onclick="printOrder('${inv}')" style="background:#0ea5e9; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" title="Print Invoice">
+                <i class="fas fa-print"></i>
+            </button>
 
-    // Loop through all table rows (starting from index 1 to skip the header)
-    for (let i = 1; i < tr.length; i++) {
-        const nameCell = tr[i].getElementsByTagName('td')[2]; // Column 3 is Name
-        const invCell = tr[i].getElementsByTagName('td')[1];  // Column 2 is Invoice
+            <button onclick="openEditModal('${inv}', '${balance}', '${status}')" style="background:var(--accent); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" title="Edit Status">
+                <i class="fas fa-edit"></i>
+            </button>
+        </td>
+    </tr>`;
         
-        if (nameCell || invCell) {
-            const nameText = nameCell.textContent.toLowerCase();
-            const invText = invCell.textContent.toLowerCase();
-            
-            // If the name or invoice matches the search input, show the row
-            if (nameText.indexOf(input) > -1 || invText.indexOf(input) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
+        });
+    
+}
+    catch (e) {
+        console.error(e);
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Connection Error</td></tr>';
     }
 }
-
-
         window.onload = async () => {
             const saved = sessionStorage.getItem('alfareeda_user');
             if(saved) applyUI(JSON.parse(saved));
@@ -437,69 +556,138 @@ function searchOrders() {
         };
 
 async function loadBranchStats(userRole, myBranch) {
+    const dashContainer = document.getElementById('dash-section');
+    dashContainer.innerHTML = '<div style="text-align:center; padding:50px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Calculating Financials...</p></div>';
+
     try {
-        const res = await fetch(scriptURL + "?type=records");
-        const allRecords = await res.json();
-        const dashContainer = document.getElementById('dash-section');
+        const [salesRes, expRes] = await Promise.all([
+            fetch(scriptURL + "?type=Records"),
+            fetch(scriptURL + "?type=Expenses")
+        ]);
+        
+        const allSales = await salesRes.json();
+        const allExpenses = await expRes.json();
 
-        // CASE 1: MANAGER VIEW (Show all branches)
         if (userRole === "Manager") {
-            const branches = ["Sumail", "Izki", "Sinaw"];
-            let htmlContent = `<h3 style="margin-bottom:20px; color:var(--accent);">All Branches Overview</h3>
-                               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">`;
-
-            branches.forEach(b => {
-                const branchData = allRecords.filter(r => r[12] === b);
-                let total = 0, bal = 0;
-                branchData.forEach(row => {
-                    total += parseFloat(row[7]) || 0;
-                    bal += parseFloat(row[9]) || 0;
-                });
-
-                htmlContent += `
-                    <div class="data-card" style="border-top: 5px solid var(--accent);">
-                        <h4 style="color:var(--primary);">${b} Branch</h4>
-                        <hr style="margin:10px 0; opacity:0.1;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span style="font-size:0.8rem; color:#64748b;">Total Sales:</span>
-                            <span style="font-weight:700;">${total.toFixed(3)} OMR</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="font-size:0.8rem; color:#64748b;">Pending Bal:</span>
-                            <span style="font-weight:700; color:var(--danger);">${bal.toFixed(3)} OMR</span>
-                        </div>
-                    </div>`;
-            });
-
-            htmlContent += `</div>`;
-            dashContainer.innerHTML = htmlContent;
-
-        // CASE 2: CASHIER VIEW (Show only their branch)
+            renderManagerDash(allSales, allExpenses);
         } else {
-            const myBranchSales = allRecords.filter(r => r[12] === myBranch);
-            let totalRevenue = 0, pendingBalance = 0;
-
-            myBranchSales.forEach(row => {
-                totalRevenue += parseFloat(row[7]) || 0;
-                pendingBalance += parseFloat(row[9]) || 0;
-            });
-
-            dashContainer.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="data-card" style="border-left: 5px solid var(--success);">
-                        <label style="color:#64748b; font-size:0.8rem; font-weight:bold;">TOTAL SALES (${myBranch})</label>
-                        <h2 style="font-size: 2rem; color: #0f172a;">${totalRevenue.toFixed(3)} OMR</h2>
-                    </div>
-                    <div class="data-card" style="border-left: 5px solid var(--danger);">
-                        <label style="color:#64748b; font-size:0.8rem; font-weight:bold;">PENDING BALANCE</label>
-                        <h2 style="font-size: 2rem; color: #f43f5e;">${pendingBalance.toFixed(3)} OMR</h2>
-                    </div>
-                </div>`;
+            renderCashierDash(allSales, allExpenses, myBranch);
         }
     } catch (e) {
-        console.log("Stats error:", e);
+        dashContainer.innerHTML = '<p style="color:red;">Error loading dashboard data.</p>';
     }
 }
+
+// Helper to check if a date is "Today"
+function isToday(dateString) {
+    const today = new Date();
+    const target = new Date(dateString);
+    return today.getDate() === target.getDate() &&
+           today.getMonth() === target.getMonth() &&
+           today.getFullYear() === target.getFullYear();
+}
+
+function renderCashierDash(allSales, allExpenses, branch) {
+    const bSales = allSales.filter(r => r[12] === branch);
+    const bExp = allExpenses.filter(e => e[4] === branch);
+    
+    // Today's Calculations
+    const todaySales = bSales.filter(r => isToday(r[0]));
+    const todayExp = bExp.filter(e => isToday(e[0]));
+    
+    let tSalesVal = todaySales.reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
+    let tExpVal = todayExp.reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
+    let tNet = tSalesVal - tExpVal;
+
+    // Total Calculations
+    let totalRev = bSales.reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
+    let totalExp = bExp.reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
+    let pending = bSales.reduce((s, r) => s + (parseFloat(r[9]) || 0), 0);
+
+    document.getElementById('dash-section').innerHTML = `
+        <h3 style="margin-bottom:15px; color:var(--primary); font-size:1rem; opacity:0.8;">TODAY'S SNAPSHOT</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom:30px;">
+            <div class="data-card" style="background:var(--primary); color:white; padding:1.5rem;">
+                <small>TODAY'S SALES</small>
+                <h2 style="margin:5px 0;">${tSalesVal.toFixed(3)}</h2>
+            </div>
+            <div class="data-card" style="border: 1px solid #e2e8f0; padding:1.5rem;">
+                <small style="color:#64748b;">TODAY'S EXPENSE</small>
+                <h2 style="margin:5px 0; color:var(--danger);">${tExpVal.toFixed(3)}</h2>
+            </div>
+            <div class="data-card" style="background:#f0fdf4; border: 1px solid #bbf7d0; padding:1.5rem;">
+                <small style="color:#166534;">TODAY'S NET PROFIT</small>
+                <h2 style="margin:5px 0; color:#15803d;">${tNet.toFixed(3)}</h2>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom:15px; color:var(--primary); font-size:1rem; opacity:0.8;">OVERALL PERFORMANCE (${branch})</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+            <div class="data-card">
+                <small style="color:#64748b;">TOTAL REVENUE</small>
+                <h3>${totalRev.toFixed(3)} OMR</h3>
+            </div>
+            <div class="data-card">
+                <small style="color:#64748b;">TOTAL EXPENSES</small>
+                <h3>${totalExp.toFixed(3)} OMR</h3>
+            </div>
+            <div class="data-card" style="background: #fff1f2; border: 1px solid #fecdd3;">
+                <small style="color:#9f1239;">PENDING CUSTOMER BALANCES</small>
+                <h3 style="color:#9f1239;">${pending.toFixed(3)} OMR</h3>
+            </div>
+        </div>
+    `;
+}
+
+function renderManagerDash(allSales, allExpenses) {
+    const branches = ["Sumail", "Izki", "Sinaw"];
+    let html = `<h2>Branch Performance Monitor</h2>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:25px;">`;
+
+    branches.forEach(b => {
+        const bSales = allSales.filter(r => r[12] === b);
+        const bExp = allExpenses.filter(e => e[4] === b);
+        
+        // Today logic for Manager
+        const tSalesVal = bSales.filter(r => isToday(r[0])).reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
+        const tExpVal = bExp.filter(e => isToday(e[0])).reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
+
+        let totalRev = bSales.reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
+        let totalExp = bExp.reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
+
+        html += `
+            <div class="data-card" style="padding:0; overflow:hidden;">
+                <div style="background:var(--primary); color:white; padding:1.2rem;">
+                    <h3 style="margin:0;">${b} Branch</h3>
+                </div>
+                <div style="padding:1.5rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #eee;">
+                        <span><strong>Today's Net:</strong></span>
+                        <span style="color:${(tSalesVal - tExpVal) >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:bold;">
+                            ${(tSalesVal - tExpVal).toFixed(3)} OMR
+                        </span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
+                        <span color="#64748b;">Overall Revenue:</span>
+                        <span>${totalRev.toFixed(3)}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
+                        <span color="#64748b;">Overall Expenses:</span>
+                        <span style="color:var(--danger);">${totalExp.toFixed(3)}</span>
+                    </div>
+                    <div style="margin-top:15px; background:#f0f9ff; padding:10px; border-radius:8px; text-align:center;">
+                        <small style="color:#0369a1; font-weight:bold;">TOTAL NET PROFIT</small>
+                        <div style="font-size:1.2rem; font-weight:800; color:var(--accent);">${(totalRev - totalExp).toFixed(3)} OMR</div>
+                    </div>
+                </div>
+            </div>`;
+    });
+
+    html += `</div>`;
+    document.getElementById('dash-section').innerHTML = html;
+}
+
+
 // This function opens the Edit window when the pencil icon is clicked
 function openEditModal(inv, bal, stat) {
     const modal = document.getElementById('edit-modal');
@@ -616,6 +804,155 @@ function searchOrders() {
             rows[i].style.display = "none"; // Hide
         }
     }
+}
+
+async function saveExpense() {
+    const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    if (!sessionUser) {
+        alert("Session expired. Please login again.");
+        return;
+    }
+
+    const amount = document.getElementById('exp-amount').value;
+    if (!amount) {
+        alert("Please enter an amount");
+        return;
+    }
+
+    const data = {
+        type: "expense",
+        category: document.getElementById('exp-category').value,
+        amount: amount,
+        description: document.getElementById('exp-desc').value,
+        branch: sessionUser.activeBranch,
+        staff: sessionUser.id
+    };
+
+    console.log("Sending data:", data); // This helps you see if the data is ready
+
+    try {
+        await fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(data) 
+        });
+        alert("Expense Sent to Cloud!");
+        location.reload(); 
+    } catch(e) {
+        console.error("Fetch error:", e);
+        alert("Network Error");
+    }
+}
+
+async function loadExpenseList(isFiltered = false) {
+    const tableBody = document.getElementById('expense-list-table');
+    const totalBadge = document.getElementById('expense-total-badge');
+    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    if (!user) return;
+
+    const isAdmin = user.role === "Manager";
+    const branchHeader = document.getElementById('exp-branch-header');
+    if (branchHeader) {
+        branchHeader.style.display = isAdmin ? "table-cell" : "none";
+    }
+
+    // 1. Get Date Values if filtering is active
+    let startDate = null;
+    let endDate = null;
+    if (isFiltered) {
+        const startVal = document.getElementById('exp-start-date').value;
+        const endVal = document.getElementById('exp-end-date').value;
+        if (!startVal || !endVal) {
+            alert("Please select both Start and End dates");
+            return;
+        }
+        startDate = new Date(startVal);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(endVal);
+        endDate.setHours(23, 59, 59, 999);
+    }
+
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Loading Expenses...</td></tr>';
+
+    try {
+        const res = await fetch(scriptURL + "?type=Expenses"); 
+        const allExpenses = await res.json();
+        
+        // 2. Combined Filter: Branch Security + Date Range
+        const displayData = allExpenses.filter(e => {
+            const rowDate = new Date(e[0]);
+            const branchMatch = isAdmin ? true : e[4] === user.activeBranch;
+            
+            if (isFiltered) {
+                return branchMatch && rowDate >= startDate && rowDate <= endDate;
+            }
+            return branchMatch;
+        });
+
+        displayData.reverse(); // Newest first
+
+        let html = '';
+        let totalSum = 0;
+
+        displayData.forEach(row => {
+            const date = new Date(row[0]).toLocaleDateString('en-GB');
+            const category = row[1];
+            const amount = parseFloat(row[2]) || 0;
+            const desc = row[3];
+            const branch = row[4];
+            
+            totalSum += amount;
+
+            html += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 12px;">${date}</td>
+                    <td style="padding: 12px;"><span style="background:#eee; padding:3px 8px; border-radius:4px; font-size:0.8rem;">${category}</span></td>
+                    <td style="padding: 12px; color:#64748b;">${desc}</td>
+                    <td style="padding: 12px; font-weight:bold; color:var(--danger);">${amount.toFixed(3)}</td>
+                    ${isAdmin ? `<td style="padding: 12px;">${branch}</td>` : ''}
+                </tr>`;
+        });
+
+        tableBody.innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding:20px;">No expenses found for this period.</td></tr>';
+        
+        // 3. Update the Total Badge with the filtered sum
+        totalBadge.innerText = `Total: ${totalSum.toFixed(3)} OMR`;
+
+    } catch (e) {
+        console.error(e);
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Failed to load data.</td></tr>';
+    }
+}
+
+function printOrder(invoiceId) {
+    // 1. Fetch all records from local memory or cloud
+    // For this example, we assume you have 'allRecords' available
+    // Otherwise, we filter the currently loaded list
+    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    
+    // Find the order in the current table data (you'll need to store this globally)
+    const order = currentOrders.find(r => r[1] == invoiceId); 
+    if(!order) return alert("Order data not found.");
+
+    // 2. Map Data to Template
+    document.getElementById('p-inv-no').innerText = "#" + order[1];
+    document.getElementById('p-date').innerText = "Date: " + new Date(order[0]).toLocaleDateString('en-GB');
+    document.getElementById('p-branch-address').innerText = order[12] + " Branch";
+    document.getElementById('p-cust-name').innerText = order[2];
+    document.getElementById('p-cust-phone').innerText = "Mobile: " + order[3];
+    
+    // Rx Mapping (Assuming RE and LE are stored in columns 4 and 5 as JSON or space-separated)
+    // Adjust these indexes based on your exact Google Sheet columns
+    document.getElementById('p-re-sph').innerText = order[4] || '-'; 
+    document.getElementById('p-le-sph').innerText = order[5] || '-';
+    
+    document.getElementById('p-items').innerText = order[6];
+    document.getElementById('p-total').innerText = parseFloat(order[7]).toFixed(3) + " OMR";
+    document.getElementById('p-advance').innerText = parseFloat(order[8]).toFixed(3) + " OMR";
+    document.getElementById('p-balance').innerText = parseFloat(order[9]).toFixed(3) + " OMR";
+
+    // 3. Trigger Print
+    window.print();
 }
 
     </script>
