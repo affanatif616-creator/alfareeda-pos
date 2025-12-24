@@ -406,29 +406,30 @@ async function loadOrderList() {
 }
 
 function searchOrders() {
-    const input = document.getElementById('search-box').value.toLowerCase();
-    const table = document.querySelector('table');
-    const tr = table.getElementsByTagName('tr');
+    // 1. Get the search input
+    const input = document.getElementById('search-box');
+    if (!input) return;
+    const filter = input.value.toLowerCase();
+    
+    // 2. Target YOUR specific table body ID
+    const tableBody = document.getElementById('order-list-table');
+    if (!tableBody) return;
 
-    // Loop through all table rows (starting from index 1 to skip the header)
-    for (let i = 1; i < tr.length; i++) {
-        const nameCell = tr[i].getElementsByTagName('td')[2]; // Column 3 is Name
-        const invCell = tr[i].getElementsByTagName('td')[1];  // Column 2 is Invoice
+    // 3. Get all rows inside that table body
+    const rows = tableBody.getElementsByTagName('tr');
+
+    // 4. Loop through the rows
+    for (let i = 0; i < rows.length; i++) {
+        // Get the text from Name (3rd column) and Invoice (2nd column)
+        const rowText = rows[i].textContent || rows[i].innerText;
         
-        if (nameCell || invCell) {
-            const nameText = nameCell.textContent.toLowerCase();
-            const invText = invCell.textContent.toLowerCase();
-            
-            // If the name or invoice matches the search input, show the row
-            if (nameText.indexOf(input) > -1 || invText.indexOf(input) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
+        if (rowText.toLowerCase().indexOf(filter) > -1) {
+            rows[i].style.display = ""; // Show
+        } else {
+            rows[i].style.display = "none"; // Hide
         }
     }
 }
-
 
         window.onload = async () => {
             const saved = sessionStorage.getItem('alfareeda_user');
