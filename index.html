@@ -36,32 +36,93 @@
         .rx-table td { background: white; padding: 5px; border: 1px solid #f1f5f9; }
         .rx-table input { border: none; text-align: center; padding: 8px; }
 
-          /* Hide the print section by default on the screen */
+
+/* --- 1. HIDE FROM DASHBOARD SCREEN --- */
 #print-section {
-    display: none;
+    display: none !important; /* Forces it to stay hidden on screen */
 }
 
-/* Specific instructions for the printer */
+/* --- 2. SHOW ONLY FOR PRINTER --- */
 @media print {
+    /* Hide everything on the website UI */
     body * {
-        visibility: hidden; /* Hide everything else */
+        visibility: hidden !important;
     }
+
+    /* Show only the invoice section */
     #print-section, #print-section * {
-        visibility: visible; /* Show only the invoice */
-    }
-    #print-section {
+        visibility: visible !important;
         display: block !important;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
     }
-    .sidebar, .main-content, button, .login-screen {
-        display: none !important; /* Force hide UI elements */
+
+    #print-section {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
+
+    /* Keep the Prescription table looking like a table */
+    .medical-table {
+        display: table !important;
+        width: 100% !important;
+    }
+    .medical-table tr { display: table-row !important; }
+    .medical-table td, .medical-table th { display: table-cell !important; }
 }
 
-    </style>
+/* Professional Clinical Prescription Table */
+.medical-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0px;
+    table-layout: fixed; /* Ensures all columns are equal width */
+}
+
+.medical-table th {
+    background-color: #f1f5f9; /* Soft Professional Grey */
+    border: 1px solid #1a365d; /* Sharp Navy Border */
+    padding: 10px 5px;
+    font-size: 11px;
+    color: #1a365d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.medical-table td {
+    border: 1px solid #1a365d;
+    padding: 15px 5px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700; /* Bold numbers for clinical clarity */
+    color: #1e293b;
+}
+
+.side-label {
+    background-color: #f8fafc;
+    width: 30%;
+    text-align: left !important;
+    padding-left: 15px !important;
+    font-size: 13px !important;
+    color: #1a365d !important;
+}
+
+.rx-header-main {
+    background-color: #1a365d;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: 1px solid #1a365d;
+}
+
+
+       </style>
 </head>
 <body>
 
@@ -89,6 +150,11 @@
 </div>
 <div class="nav-item" onclick="showSection('expense-list'); loadExpenseList();">
     <i class="fas fa-list-alt"></i> Expense History
+</div>
+ 
+      <div class="nav-item" id="nav-transactions" style="display:none;" onclick="showSection('transactions'); loadTransactionHistory();">
+    <i class="fas fa-history"></i>
+    <span>Transaction History</span>
 </div>
 
             <div class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr')"><i class="fas fa-user-shield"></i> Staff Management</div>
@@ -257,6 +323,52 @@
             </div>
         </div>
 
+<div id="transactions-section" class="content-section" style="display:none;">
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h2 style="color: var(--primary); margin: 0;">Daily Cash Collections</h2>
+            <p style="color: #64748b; font-size: 0.85rem;">Tracking all advances and balance clearances</p>
+        </div>
+        <div id="trans-total-badge" style="background: var(--accent); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            Total: 0.000 OMR
+        </div>
+    </div>
+
+    <div class="filter-bar" style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">START DATE</label>
+            <input type="date" id="trans-start-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+        </div>
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">END DATE</label>
+            <input type="date" id="trans-end-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+        </div>
+        <button onclick="loadTransactionHistory(true)" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            <i class="fas fa-filter"></i> Filter
+        </button>
+        <button onclick="loadTransactionHistory(false)" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Reset
+        </button>
+    </div>
+
+    <div class="table-container" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="background: #f1f5f9;">
+                <tr>
+                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">DATE</th>
+                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">INVOICE</th>
+                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">CUSTOMER</th>
+                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">BRANCH</th>
+                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">TYPE</th>
+                    <th style="padding: 15px; color: #475569; font-size: 0.85rem; text-align: right;">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody id="transaction-list-table">
+                </tbody>
+        </table>
+    </div>
+</div>
+
 <div id="order-list-section" class="content-section" style="display:none;">
     <div class="data-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -304,90 +416,14 @@
     </div>
 </div>
 
-
-    </main>
-
-</main>
-
-    <div id="print-section" class="print-only">
-        <div class="print-container">
-            <div class="print-header">
-                <div>
-                    <div class="store-name" style="font-size: 24px; font-weight: bold;">Al Fareeda Optics</div>
-                    <div id="p-branch-address">Branch Address</div>
-                </div>
-                <div style="text-align: right;">
-                    <h2 style="margin:0;">INVOICE</h2>
-                    <div id="p-inv-no">#INV-000</div>
-                    <div id="p-date">Date: </div>
-                </div>
+<div class="main-content" id="main-dashboard-area">
+    <div id="print-section">
+        <div class="medical-container">
             </div>
-
-            <div class="info-grid" style="margin: 20px 0;">
-                <div>
-                    <strong>CUSTOMER DETAILS:</strong>
-                    <div id="p-cust-name" style="font-size: 1.2rem; margin-top:5px;">Customer Name</div>
-                    <div id="p-cust-phone">Mobile: 00000000</div>
-                </div>
-            </div>
-
-            <h3>OPTICAL PRESCRIPTION (Rx)</h3>
-            <table class="rx-table" style="width:100%; border-collapse: collapse; border: 1px solid #000; margin-top:10px;">
-                <thead>
-                    <tr style="background: #f0f0f0; border-bottom: 1px solid #000;">
-                        <th style="padding: 8px; border: 1px solid #000;">EYE</th>
-                        <th style="padding: 8px; border: 1px solid #000;">SPH</th>
-                        <th style="padding: 8px; border: 1px solid #000;">CYL</th>
-                        <th style="padding: 8px; border: 1px solid #000;">AXIS</th>
-                        <th style="padding: 8px; border: 1px solid #000;">ADD</th>
-                    </tr>
-                </thead>
-                <tbody style="text-align: center;">
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #000;"><strong>Right Eye (RE)</strong></td>
-                        <td id="p-re-sph" style="border: 1px solid #000;"></td>
-                        <td id="p-re-cyl" style="border: 1px solid #000;"></td>
-                        <td id="p-re-axis" style="border: 1px solid #000;"></td>
-                        <td id="p-re-add" style="border: 1px solid #000;"></td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #000;"><strong>Left Eye (LE)</strong></td>
-                        <td id="p-le-sph" style="border: 1px solid #000;"></td>
-                        <td id="p-le-cyl" style="border: 1px solid #000;"></td>
-                        <td id="p-le-axis" style="border: 1px solid #000;"></td>
-                        <td id="p-le-add" style="border: 1px solid #000;"></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="margin-top:20px;">
-                <strong>Items / Description:</strong>
-                <p id="p-items" style="border: 1px solid #eee; padding: 15px; border-radius: 5px; min-height: 50px;"></p>
-            </div>
-
-            <div class="financial-box" style="float: right; width: 250px; margin-top: 20px;">
-                <div style="display:flex; justify-content:space-between;"><span>Total Amount:</span><span id="p-total">0.000</span></div>
-                <div style="display:flex; justify-content:space-between;"><span>Advance Paid:</span><span id="p-advance">0.000</span></div>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; border-top:1px solid #000; padding-top:5px;"><span>Balance Due:</span><span id="p-balance">0.000</span></div>
-            </div>
-
-            <div style="clear: both;"></div>
-
-            <div class="footer-terms" style="margin-top: 40px; font-size: 12px;">
-                <p><strong>Terms & Conditions:</strong></p>
-                <ul>
-                    <li>Please bring this invoice for collection.</li>
-                    <li>Warranty valid for manufacturing defects only.</li>
-                    <li>Goods once sold are not returnable or exchangeable.</li>
-                </ul>
-                <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-                    <span>Customer Signature: ___________________</span>
-                    <span>Store Stamp: ___________________</span>
-                </div>
-            </div>
-        </div>
     </div>
-
+</div>
+    </main>
+</main>
 
 <div id="edit-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
     <div class="data-card" style="width:350px; background:white; padding:20px; border-radius:15px;">
@@ -427,10 +463,101 @@
 </div>
 
 
-    
+<div id="print-section">
+    <div class="medical-container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <img src="logo.jpg.jpg" style="width: 120px; height: auto;" alt="Logo">
+                <div>
+                    <h2 style="margin:0; color: #1a365d;">Al Fareeda Optics</h2>
+                    <div id="p-branch-address" style="font-size: 14px; color: #4a5568;">Izki Branch</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <h1 style="margin:0; font-size: 24px; color: #1a365d;">PRESCRIPTION INVOICE</h1>
+                <div style="font-size: 18px; font-weight: bold; margin-top: 5px;">NO: <span id="p-inv-no">#</span></div>
+                <div id="p-date" style="font-size: 14px; color: #718096;">Date: --/--/----</div>
+            </div>
+        </div>
+
+        <div style="margin: 20px 0; display: flex; gap: 50px;">
+            <div>
+                <span style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold;">Patient Name</span>
+                <div id="p-cust-name" style="font-size: 18px; font-weight: bold; color: #2d3748;">-</div>
+            </div>
+            <div>
+                <span style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold;">Contact Number</span>
+                <div id="p-cust-phone" style="font-size: 16px; color: #2d3748;">-</div>
+            </div>
+        </div>
+
+       <div class="rx-header-main">Optical Prescription (Rx)</div>
+<table class="medical-table">
+    <thead>
+        <tr>
+            <th>EYE</th>
+            <th>SPH</th>
+            <th>CYL</th>
+            <th>AXIS</th>
+            <th>ADD</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="side-label"><strong>Right Eye (OD)</strong></td>
+            <td id="p-re-sph">0.00</td>
+            <td id="p-re-cyl">0.00</td>
+            <td id="p-re-axis">0</td>
+            <td id="p-re-add">0.00</td>
+        </tr>
+        <tr>
+            <td class="side-label"><strong>Left Eye (OS)</strong></td>
+            <td id="p-le-sph">0.00</td>
+            <td id="p-le-cyl">0.00</td>
+            <td id="p-le-axis">0</td>
+            <td id="p-le-add">0.00</td>
+        </tr>
+    </tbody>
+</table>
+        <div style="margin-top: 25px;">
+            <span style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold;">Dispensed Items / Description</span>
+            <div id="p-items" style="border: 1px solid #e2e8f0; padding: 15px; margin-top: 5px; font-size: 15px; background: #fff;">-</div>
+        </div>
+
+        <div class="financial-summary-medical" style="display: flex; justify-content: flex-end;">
+            <div style="width: 250px;">
+                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                    <span>Sub-Total:</span>
+                    <span id="p-total">0.000</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #38a169;">
+                    <span>Deposit Paid:</span>
+                    <span id="p-advance">0.000</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; font-size: 1.2rem; font-weight: bold; border-top: 1px solid #1a365d; color: #e53e3e;">
+                    <span>Balance Due:</span>
+                    <span><span id="p-balance">0.000</span> OMR</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+            <div style="text-align: center; width: 200px;">
+                <div style="border-top: 1px solid #1a365d; margin-top: 40px; padding-top: 5px; font-size: 12px;">Customer Signature</div>
+            </div>
+            <div style="text-align: center; width: 200px;">
+                <div style="border-top: 1px solid #1a365d; margin-top: 40px; padding-top: 5px; font-size: 12px;">Optometrist Stamp</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; font-size: 10px; color: #718096; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+            * This is a computer-generated prescription. Valid for 6 months from the date of issue. *
+        </div>
+    </div>
+</div>    
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwIpCgMcveDRnn6xlHAs8E0ezIdR93f1rMOPikKuKzE8cDoP-iUHmdtq1Q_NWc1thxX6w/exec'; // <--- PUT YOUR URL HERE
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxutx2Sgsgnty1lBV13BaegnClnmvcHyRZ-rQQrJVXwWK3SmlpIo4woUvN4FA5BKsIQqA/exec'; // <--- PUT YOUR URL HERE
         let staffList = [];
         let currentOrders = [];
         let logoutTimer;
@@ -473,18 +600,25 @@
             }
         }
 
-       function applyUI(auth) {
+function applyUI(auth) {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('sidebar').style.display = 'flex';
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('branch-display').innerText = auth.activeBranch + " Records";
     document.getElementById('staff-display').innerText = "Logged in as: " + (auth.name || auth.id);
-    if(auth.role === "Manager") document.getElementById('nav-staff').style.display = 'flex';
+
+    // --- ROLE BASED SIDEBAR RESTRICTIONS ---
+    if(auth.role === "Manager") {
+        document.getElementById('nav-staff').style.display = 'flex';         // Show Staff Management
+        document.getElementById('nav-transactions').style.display = 'flex';  // Show Transaction History
+    } else {
+        document.getElementById('nav-staff').style.display = 'none';
+        document.getElementById('nav-transactions').style.display = 'none';
+    }
     
-    loadBranchStats(auth.role, auth.activeBranch); // Call stats
+    loadBranchStats(auth.role, auth.activeBranch); 
     resetLogoutTimer();
 }
-
 
         // --- BUSINESS LOGIC ---
         function calcBalance() {
@@ -726,7 +860,7 @@ function renderCashierDash(allSales, allExpenses, branch) {
     
     let tSalesVal = todaySales.reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
     let tExpVal = todayExp.reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
-    let tNet = tSalesVal - tExpVal;
+    
 
     // --- UPDATED: Monthly Calculations (Formerly Overall) ---
     const monthlySales = bSales.filter(r => isThisMonth(r[0]));
@@ -749,10 +883,7 @@ function renderCashierDash(allSales, allExpenses, branch) {
                 <small style="color:#64748b;">TODAY'S EXPENSE</small>
                 <h2 style="margin:5px 0; color:var(--danger);">${tExpVal.toFixed(3)}</h2>
             </div>
-            <div class="data-card" style="background:#f0fdf4; border: 1px solid #bbf7d0; padding:1.5rem;">
-                <small style="color:#166534;">TODAY'S NET PROFIT</small>
-                <h2 style="margin:5px 0; color:#15803d;">${tNet.toFixed(3)}</h2>
-            </div>
+            
         </div>
 
         <h3 style="margin-bottom:15px; color:var(--primary); font-size:1rem; opacity:0.8;">PERFORMANCE THIS MONTH (${branch})</h3>
@@ -843,36 +974,49 @@ async function submitUpdate() {
     const inv = document.getElementById('up-invoice').value;
     const bal = document.getElementById('up-balance').value;
     const stat = document.getElementById('up-status').value;
+    
+    // Get session user to know which branch is collecting the money
+    const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
 
     if (!inv) {
         alert("Error: Invoice number is missing.");
         return;
     }
 
-    // Change button text to show it's working
     const btn = event.target;
     const originalText = btn.innerText;
     btn.innerText = "Updating Cloud...";
     btn.disabled = true;
 
+    // FIND OLD DATA: We need the previous balance and name to calculate the payment
+    const oldOrder = currentOrders.find(r => String(r[1]) === String(inv));
+    const oldBalance = oldOrder ? parseFloat(oldOrder[9]) : 0;
+    const customerName = oldOrder ? oldOrder[2] : "Unknown";
+    
+    // Calculate how much cash was actually handed over right now
+    const amountPaidNow = oldBalance - parseFloat(bal);
+
     const data = {
         action: "update",
         invoice: inv,
         balance: bal,
-        status: stat
+        status: stat,
+        // New fields for the Collection Sheet
+        amountCollected: amountPaidNow > 0 ? amountPaidNow : 0, 
+        branch: sessionUser ? sessionUser.activeBranch : "Unknown",
+        customerName: customerName
     };
 
     try {
-        // Send to your Google Apps Script URL
         await fetch(scriptURL, { 
             method: 'POST', 
             mode: 'no-cors', 
             body: JSON.stringify(data) 
         });
 
-        alert("Order " + inv + " updated successfully!");
+        alert("Order " + inv + " updated and cash logged!");
         closeModals();
-        location.reload(); // Refresh to show new balance/status
+        location.reload(); 
     } catch (e) {
         console.error("Update Error:", e);
         alert("Connection Error. Please try again.");
@@ -880,7 +1024,6 @@ async function submitUpdate() {
         btn.disabled = false;
     }
 }
-
 // This function handles the "Prescription" button
 function showRx(jsonStr) {
     const modal = document.getElementById('rx-modal');
@@ -1064,47 +1207,115 @@ function printOrder(invoiceId) {
         return;
     }
 
-    // Map Header Data
-    document.getElementById('p-inv-no').innerText = "#" + order[1];
-    document.getElementById('p-date').innerText = "Date: " + new Date(order[0]).toLocaleDateString('en-GB');
-    document.getElementById('p-branch-address').innerText = (order[12] || "Main") + " Branch";
-    document.getElementById('p-cust-name').innerText = order[2];
-    document.getElementById('p-cust-phone').innerText = "Mobile: " + order[3];
+    // 1. Map Header & Customer Data
+    document.getElementById('p-inv-no').innerText = "#" + order[1]; // [cite: 9]
+    document.getElementById('p-date').innerText = "Date: " + new Date(order[0]).toLocaleDateString('en-GB'); // [cite: 10]
+    document.getElementById('p-branch-address').innerText = (order[12] || "Main") + " Branch"; // [cite: 2]
+    document.getElementById('p-cust-name').innerText = order[2]; // [cite: 4]
+    document.getElementById('p-cust-phone').innerText = "Mobile: " + order[3]; // [cite: 5]
     
-    // --- Parse and Fill Rx Table ---
-    const re = parseRx(order[4]); 
-    const le = parseRx(order[5]);
+    // 2. Parse and Fill Prescription (Rx) Table
+    const re = parseRx(order[4]); // [cite: 11]
+    const le = parseRx(order[5]); // [cite: 11]
 
-    // Right Eye
     document.getElementById('p-re-sph').innerText = re.s;
     document.getElementById('p-re-cyl').innerText = re.c;
     document.getElementById('p-re-axis').innerText = re.a;
     document.getElementById('p-re-add').innerText = re.ad;
 
-    // Left Eye
     document.getElementById('p-le-sph').innerText = le.s;
     document.getElementById('p-le-cyl').innerText = le.c;
     document.getElementById('p-le-axis').innerText = le.a;
     document.getElementById('p-le-add').innerText = le.ad;
     
-    // Fill Financials (Using unique IDs to avoid conflicts with the Sale Entry screen)
-    document.getElementById('p-items').innerText = order[6] || 'N/A';
-    // Use querySelector to target the specific spans inside financial-box
-    const finBox = document.querySelector('.financial-box');
-    finBox.querySelector('#p-total').innerText = parseFloat(order[7]).toFixed(3);
-    finBox.querySelector('#p-advance').innerText = parseFloat(order[8] || 0).toFixed(3);
-    finBox.querySelector('#p-balance').innerText = parseFloat(order[9]).toFixed(3);
+    // 3. Fill Items & Financials
+    document.getElementById('p-items').innerText = order[6] || 'N/A'; // [cite: 13]
+    
+    // Fixed: Direct ID access instead of querySelector('.financial-box')
+    document.getElementById('p-total').innerText = parseFloat(order[7]).toFixed(3); // 
+    document.getElementById('p-advance').innerText = parseFloat(order[8] || 0).toFixed(3); // 
+    document.getElementById('p-balance').innerText = parseFloat(order[9]).toFixed(3); // 
 
     window.print();
 }
+
+// Helper function to extract SPH, CYL, AXIS, and ADD from the saved string
 function parseRx(rxStr) {
-    if (!rxStr) return { s: '-', c: '-', a: '-', ad: '-' };
+    if (!rxStr || rxStr === "N/A") {
+        return { s: '-', c: '-', a: '-', ad: '-' };
+    }
+    
+    // This matches the format "S:1.25 C:1.00 A:80 Add:0" used in your records
     return {
         s: rxStr.match(/S:([^ ]+)/)?.[1] || '-',
         c: rxStr.match(/C:([^ ]+)/)?.[1] || '-',
         a: rxStr.match(/A:([^ ]+)/)?.[1] || '-',
         ad: rxStr.match(/Add:([^ ]+)/)?.[1] || '-'
     };
+}
+
+
+async function loadTransactionHistory(isFiltered = false) {
+    const tableBody = document.getElementById('transaction-list-table');
+    const totalBadge = document.getElementById('trans-total-badge');
+    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    
+    // Security check
+    if (!user || user.role !== "Manager") return;
+
+    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading Transactions...</td></tr>';
+
+    try {
+        const res = await fetch(scriptURL + "?type=Collections");
+        const allTrans = await res.json();
+        
+        let startDate = isFiltered ? new Date(document.getElementById('trans-start-date').value) : null;
+        let endDate = isFiltered ? new Date(document.getElementById('trans-end-date').value) : null;
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
+
+        // Sort: Newest at the top
+        allTrans.reverse();
+
+        let html = '';
+        let totalSum = 0;
+
+        allTrans.forEach(row => {
+            const rowDate = new Date(row[0]);
+            const amount = parseFloat(row[5]) || 0;
+
+            // Date filtering logic
+            if (isFiltered && startDate && endDate) {
+                if (rowDate < startDate || rowDate > endDate) return;
+            }
+
+            totalSum += amount;
+
+            html += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 15px; font-size: 0.9rem;">${rowDate.toLocaleDateString('en-GB')}</td>
+                    <td style="padding: 15px; font-weight: bold; color: var(--primary);">#${row[1]}</td>
+                    <td style="padding: 15px; color: #1e293b;">${row[2]}</td>
+                    <td style="padding: 15px; color: #64748b;">${row[3]}</td>
+                    <td style="padding: 15px;">
+                        <span style="background:${row[4] === 'Advance' ? '#e0f2fe' : '#dcfce7'}; 
+                                     color:${row[4] === 'Advance' ? '#0369a1' : '#166534'}; 
+                                     padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">
+                            ${row[4]}
+                        </span>
+                    </td>
+                    <td style="padding: 15px; text-align: right; font-weight: 800; color: var(--accent);">
+                        ${amount.toFixed(3)}
+                    </td>
+                </tr>`;
+        });
+
+        tableBody.innerHTML = html || '<tr><td colspan="6" style="text-align:center; padding:30px;">No transactions found for this period.</td></tr>';
+        totalBadge.innerText = "Total: " + totalSum.toFixed(3) + " OMR";
+
+    } catch (e) {
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding:30px;">Failed to load history. Check "Collections" sheet.</td></tr>';
+    }
 }
 
     </script>
