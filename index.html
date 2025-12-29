@@ -503,41 +503,61 @@
     </div>
 </div>
 
-<div id="print-section">
+    <div id="print-section">
     <div class="medical-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1a365d; padding-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; align-items: center; border-bottom: 3px solid #1a365d; padding-bottom: 20px;">
+            
+            <div style="font-size: 16px; color: #475569; line-height: 1.4;">
+                <div>C.R: 1019840</div>
+                <div>P.O. Box: 255</div>
+                <div>P.C: 614</div>
+                <div>Manzaliya, Izki</div>
+                <div>Near Bank Dhofar</div>
+                <div>Sultanate of Oman</div>
+                <div>GSM: 93036614</div>
+            </div>
+
+            <div style="text-align: center;">
                 <img src="logo.jpg.jpg" style="width: 130px; height: auto;">
-                <div>
-                    <h2 style="margin:0; color: #1a365d; font-size: 26px;">Al Fareeda Opticals</h2>
-                    <div id="p-branch-address" style="font-size: 16px; font-weight: 600;">Izki Branch</div>
+                <h1 style="margin: 0; color: #1a365d; font-size: 28px; letter-spacing: 1px; text-transform: uppercase;">Al Fareeda Opticals</h1>
+                <div style="font-size: 16px; font-weight: 700; color: #64748b; margin-top: 5px;">
+                    <span id="p-branch-address" style="background: #f1f5f9; padding: 2px 12px; border-radius: 12px;">Izki Branch</span>
                 </div>
             </div>
-            <div style="text-align: right;">
-                
-                <div style="font-size: 20px; font-weight: bold;"> INVOICE NO: <span id="p-inv-no">#00</span></div>
-                <div id="p-date" style="font-size: 14px;">Date: --/--/----</div>
+
+           <div style="font-size: 16px; color: #475569; line-height: 1.4; text-align: right;">
+           <div>س.ت: ١٠١٩٨٤٠</div>
+           <div>ص.ب: ٢٥٥</div>
+           <div>ر.ب: ٦١٤</div>
+           <div>المنزلية، إزكي</div>
+           <div>بالقرب من بنك ظفار</div>
+           <div>سلطنة عمان</div>
+           <div>نقال: ٩٣٠٣٦٦١٤</div>
+           </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 30px; padding: 0 10px;">
+            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
+                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Invoice Number</label>
+                <div style="font-size: 18px; font-weight: 800; color: #1a365d;" id="p-inv-no">#00</div>
+            </div>
+            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
+                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Date of Issue</label>
+                <div style="font-size: 18px; font-weight: 800; color: #1a365d;" id="p-date">--/--/----</div>
             </div>
         </div>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin: 40px 0; padding: 0 10px;">
-    <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
-        <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">
-            Patient Name
-        </label>
-        <div id="p-cust-name" style="font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.2;">
-            -
-        </div>
-    </div>
 
-    <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
-        <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">
-            Contact Number
-        </label>
-        <div id="p-cust-phone" style="font-size: 20px; font-weight: 600; color: #334155;">
-            -
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin: 20px 0; padding: 0 10px;">
+            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
+                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">Patient Name</label>
+                <div id="p-cust-name" style="font-size: 20px; font-weight: 800; color: ##414e61; line-height: 1.2;">-</div>
+            </div>
+            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
+                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">Contact Number</label>
+                <div id="p-cust-phone" style="font-size: 20px; font-weight: 600; color: #334155;">-</div>
+            </div>
         </div>
-    </div>
-</div>
+      
 
         <div class="rx-header-main">Optical Prescription (Rx)</div>
         <table class="medical-table">
@@ -571,11 +591,11 @@
         
             <div style="margin-top: 30px;">
     <div style="border-left: 3px solid #1a365d; padding-left: 15px; margin-bottom: 10px;">
-        <label style="font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block;">
-            Dispensed Items & Description
+        <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block;">
+            Items & Description
         </label>
     </div>
-    <div id="p-items" style="font-size: 15px; color: #334155; line-height: 1.6; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; min-height: 80px;">
+    <div id="p-items" style="font-size: 16px; color: #334155; line-height: 1.6; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; white-space: pre-line;">
         <strong>Frame:</strong> Rayban Wayfarer (Black/G15)<br>
         <strong>Lenses:</strong> Blue-Cut + Anti-Glare Coating
     </div>
@@ -606,6 +626,7 @@
         </div>
     </div>
 </div>
+
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxutx2Sgsgnty1lBV13BaegnClnmvcHyRZ-rQQrJVXwWK3SmlpIo4woUvN4FA5BKsIQqA/exec'; // <--- PUT YOUR URL HERE
