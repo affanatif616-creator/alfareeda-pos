@@ -39,88 +39,129 @@
 
 /* --- 1. HIDE FROM DASHBOARD SCREEN --- */
 #print-section {
-    display: none !important; /* Forces it to stay hidden on screen */
+    display: none; 
 }
 
 /* --- 2. SHOW ONLY FOR PRINTER --- */
 @media print {
-    /* Hide everything on the website UI */
+    /* Set page margins to zero for clean alignment */
+    @page { margin: 1cm; }
+
     body * {
         visibility: hidden !important;
     }
 
-    /* Show only the invoice section */
+    /* Target the container and ensure children show up correctly */
     #print-section, #print-section * {
         visibility: visible !important;
-        display: block !important;
     }
 
     #print-section {
+        display: block !important;
         position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
+        left: 0;
+        top: 0;
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
-    /* Keep the Prescription table looking like a table */
+    /* CRITICAL FIX: Ensure the table behaves like a table, not blocks */
     .medical-table {
         display: table !important;
         width: 100% !important;
+        border-collapse: collapse !important;
     }
+    .medical-table thead { display: table-header-group !important; }
+    .medical-table tbody { display: table-row-group !important; }
     .medical-table tr { display: table-row !important; }
-    .medical-table td, .medical-table th { display: table-cell !important; }
+    .medical-table th, .medical-table td { 
+        display: table-cell !important; 
+        border: 1.5pt solid #1a365d !important; /* Thick sharp lines for printing */
+    }
 }
 
-/* Professional Clinical Prescription Table */
+/* --- 3. PROFESSIONAL CLINICAL TABLE STYLING --- */
 .medical-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 0px;
-    table-layout: fixed; /* Ensures all columns are equal width */
-}
-
-.medical-table th {
-    background-color: #f1f5f9; /* Soft Professional Grey */
-    border: 1px solid #1a365d; /* Sharp Navy Border */
-    padding: 10px 5px;
-    font-size: 11px;
-    color: #1a365d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.medical-table td {
-    border: 1px solid #1a365d;
-    padding: 15px 5px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 700; /* Bold numbers for clinical clarity */
-    color: #1e293b;
-}
-
-.side-label {
-    background-color: #f8fafc;
-    width: 30%;
-    text-align: left !important;
-    padding-left: 15px !important;
-    font-size: 13px !important;
-    color: #1a365d !important;
+    table-layout: fixed; /* Ensures all Rx columns are perfectly equal */
 }
 
 .rx-header-main {
-    background-color: #1a365d;
-    color: white;
+    background-color: #1a365d !important; /* Force color for print */
+    -webkit-print-color-adjust: exact;
+    color: white !important;
     text-align: center;
-    padding: 10px;
+    padding: 12px;
     font-weight: bold;
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 2px;
-    border: 1px solid #1a365d;
+    border: 1.5pt solid #1a365d;
 }
 
+.medical-table th {
+    background-color: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact;
+    border: 1.5pt solid #1a365d;
+    padding: 10px;
+    font-size: 11px;
+    color: #1a365d;
+    text-transform: uppercase;
+}
+
+.medical-table td {
+    border: 1.5pt solid #1a365d;
+    padding: 18px 5px; /* Taller cells for that "form" look */
+    text-align: center;
+    font-size: 20px; /* Large for readability */
+    font-weight: 800;
+    color: #000;
+}
+
+.side-label {
+    background-color: #f8fafc !important;
+    -webkit-print-color-adjust: exact;
+    width: 28%; /* Keeps the "Eye" column fixed */
+    text-align: left !important;
+    padding-left: 15px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    color: #1a365d !important;
+}
+
+/* Clean, Open Financial Layout */
+.financial-summary-medical {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.summary-container {
+    width: 300px; /* Slightly narrower for a cleaner look */
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0; /* Vertical padding only since there is no box */
+    font-size: 16px;
+    color: #475569;
+}
+
+.summary-row.balance-due {
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #1a365d; /* Professional navy separator line */
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a365d; /* Navy text for the final amount */
+}
+
+.summary-row.balance-due span:last-child {
+    color: #1a365d;
+}
 
        </style>
 </head>
@@ -462,99 +503,109 @@
     </div>
 </div>
 
-
 <div id="print-section">
     <div class="medical-container">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1a365d; padding-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <img src="logo.jpg.jpg" style="width: 120px; height: auto;" alt="Logo">
+                <img src="logo.jpg.jpg" style="width: 130px; height: auto;">
                 <div>
-                    <h2 style="margin:0; color: #1a365d;">Al Fareeda Optics</h2>
-                    <div id="p-branch-address" style="font-size: 14px; color: #4a5568;">Izki Branch</div>
+                    <h2 style="margin:0; color: #1a365d; font-size: 26px;">Al Fareeda Opticals</h2>
+                    <div id="p-branch-address" style="font-size: 16px; font-weight: 600;">Izki Branch</div>
                 </div>
             </div>
             <div style="text-align: right;">
-                <h1 style="margin:0; font-size: 24px; color: #1a365d;">PRESCRIPTION INVOICE</h1>
-                <div style="font-size: 18px; font-weight: bold; margin-top: 5px;">NO: <span id="p-inv-no">#</span></div>
-                <div id="p-date" style="font-size: 14px; color: #718096;">Date: --/--/----</div>
+                
+                <div style="font-size: 20px; font-weight: bold;"> INVOICE NO: <span id="p-inv-no">#00</span></div>
+                <div id="p-date" style="font-size: 14px;">Date: --/--/----</div>
             </div>
         </div>
-
-        <div style="margin: 20px 0; display: flex; gap: 50px;">
-            <div>
-                <span style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold;">Patient Name</span>
-                <div id="p-cust-name" style="font-size: 18px; font-weight: bold; color: #2d3748;">-</div>
-            </div>
-            <div>
-                <span style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold;">Contact Number</span>
-                <div id="p-cust-phone" style="font-size: 16px; color: #2d3748;">-</div>
-            </div>
-        </div>
-
-       <div class="rx-header-main">Optical Prescription (Rx)</div>
-<table class="medical-table">
-    <thead>
-        <tr>
-            <th>EYE</th>
-            <th>SPH</th>
-            <th>CYL</th>
-            <th>AXIS</th>
-            <th>ADD</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td class="side-label"><strong>Right Eye (OD)</strong></td>
-            <td id="p-re-sph">0.00</td>
-            <td id="p-re-cyl">0.00</td>
-            <td id="p-re-axis">0</td>
-            <td id="p-re-add">0.00</td>
-        </tr>
-        <tr>
-            <td class="side-label"><strong>Left Eye (OS)</strong></td>
-            <td id="p-le-sph">0.00</td>
-            <td id="p-le-cyl">0.00</td>
-            <td id="p-le-axis">0</td>
-            <td id="p-le-add">0.00</td>
-        </tr>
-    </tbody>
-</table>
-        <div style="margin-top: 25px;">
-            <span style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold;">Dispensed Items / Description</span>
-            <div id="p-items" style="border: 1px solid #e2e8f0; padding: 15px; margin-top: 5px; font-size: 15px; background: #fff;">-</div>
-        </div>
-
-        <div class="financial-summary-medical" style="display: flex; justify-content: flex-end;">
-            <div style="width: 250px;">
-                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-                    <span>Sub-Total:</span>
-                    <span id="p-total">0.000</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #38a169;">
-                    <span>Deposit Paid:</span>
-                    <span id="p-advance">0.000</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; font-size: 1.2rem; font-weight: bold; border-top: 1px solid #1a365d; color: #e53e3e;">
-                    <span>Balance Due:</span>
-                    <span><span id="p-balance">0.000</span> OMR</span>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-            <div style="text-align: center; width: 200px;">
-                <div style="border-top: 1px solid #1a365d; margin-top: 40px; padding-top: 5px; font-size: 12px;">Customer Signature</div>
-            </div>
-            <div style="text-align: center; width: 200px;">
-                <div style="border-top: 1px solid #1a365d; margin-top: 40px; padding-top: 5px; font-size: 12px;">Optometrist Stamp</div>
-            </div>
-        </div>
-
-        <div style="margin-top: 40px; font-size: 10px; color: #718096; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
-            * This is a computer-generated prescription. Valid for 6 months from the date of issue. *
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin: 40px 0; padding: 0 10px;">
+    <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
+        <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">
+            Patient Name
+        </label>
+        <div id="p-cust-name" style="font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.2;">
+            -
         </div>
     </div>
-</div>    
+
+    <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
+        <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">
+            Contact Number
+        </label>
+        <div id="p-cust-phone" style="font-size: 20px; font-weight: 600; color: #334155;">
+            -
+        </div>
+    </div>
+</div>
+
+        <div class="rx-header-main">Optical Prescription (Rx)</div>
+        <table class="medical-table">
+            <thead>
+                <tr>
+                    <th style="width: 30%;">EYE</th>
+                    <th>SPH</th>
+                    <th>CYL</th>
+                    <th>AXIS</th>
+                    <th>ADD</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="side-label">Right Eye (OD)</td>
+                    <td id="p-re-sph">0.00</td>
+                    <td id="p-re-cyl">0.00</td>
+                    <td id="p-re-axis">0</td>
+                    <td id="p-re-add">0.00</td>
+                </tr>
+                <tr>
+                    <td class="side-label">Left Eye (OS)</td>
+                    <td id="p-le-sph">0.00</td>
+                    <td id="p-le-cyl">0.00</td>
+                    <td id="p-le-axis">0</td>
+                    <td id="p-le-add">0.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        
+            <div style="margin-top: 30px;">
+    <div style="border-left: 3px solid #1a365d; padding-left: 15px; margin-bottom: 10px;">
+        <label style="font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block;">
+            Dispensed Items & Description
+        </label>
+    </div>
+    <div id="p-items" style="font-size: 15px; color: #334155; line-height: 1.6; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; min-height: 80px;">
+        <strong>Frame:</strong> Rayban Wayfarer (Black/G15)<br>
+        <strong>Lenses:</strong> Blue-Cut + Anti-Glare Coating
+    </div>
+</div>
+           
+<div class="financial-summary-medical">
+    <div class="summary-container">
+        <div class="summary-row">
+            <span>Sub-Total</span>
+            <span id="p-total">20.000</span>
+        </div>
+
+        <div class="summary-row" style="color: #16a34a;">
+            <span>Amount Paid (Advance)</span>
+            <span id="p-advance">10.000</span>
+        </div>
+
+        <div class="summary-row balance-due">
+            <span>Balance Due</span>
+            <span><span id="p-balance">10.000</span> OMR</span>
+        </div>
+    </div>
+</div>
+
+        <div style="margin-top: 80px; display: flex; justify-content: space-between;">
+            <div style="text-align: center; border-top: 1px solid #000; width: 200px; padding-top: 5px;">Customer Signature</div>
+            <div style="text-align: center; border-top: 1px solid #000; width: 200px; padding-top: 5px;">Optometrist Stamp</div>
+        </div>
+    </div>
+</div>
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxutx2Sgsgnty1lBV13BaegnClnmvcHyRZ-rQQrJVXwWK3SmlpIo4woUvN4FA5BKsIQqA/exec'; // <--- PUT YOUR URL HERE
@@ -1212,7 +1263,7 @@ function printOrder(invoiceId) {
     document.getElementById('p-date').innerText = "Date: " + new Date(order[0]).toLocaleDateString('en-GB'); // [cite: 10]
     document.getElementById('p-branch-address').innerText = (order[12] || "Main") + " Branch"; // [cite: 2]
     document.getElementById('p-cust-name').innerText = order[2]; // [cite: 4]
-    document.getElementById('p-cust-phone').innerText = "Mobile: " + order[3]; // [cite: 5]
+    document.getElementById('p-cust-phone').innerText = order[3]; // [cite: 5]
     
     // 2. Parse and Fill Prescription (Rx) Table
     const re = parseRx(order[4]); // [cite: 11]
