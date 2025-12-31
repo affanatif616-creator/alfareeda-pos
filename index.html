@@ -317,22 +317,24 @@
                 Total: 0.000 OMR
             </div>
         </div>
-        
-<div class="data-card" style="margin-bottom: 15px; background: #f8fafc; padding: 15px;">
-    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-        <div class="form-group" style="margin:0;">
-            <label style="font-size: 0.75rem;">Start Date</label>
-            <input type="date" id="exp-start-date" style="padding: 5px;">
-        </div>
-        <div class="form-group" style="margin:0;">
-            <label style="font-size: 0.75rem;">End Date</label>
-            <input type="date" id="exp-end-date" style="padding: 5px;">
-        </div>
-        <button class="btn-primary" onclick="loadExpenseList(true)" style="padding: 8px 15px; font-size: 0.8rem;">Filter</button>
-        <button class="btn-secondary" onclick="resetExpFilter()" style="padding: 8px 15px; font-size: 0.8rem;">Reset</button>
-    </div>
-</div>
 
+<div class="data-card" style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">START DATE</label>
+            <input type="date" id="exp-start-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+        </div>
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">END DATE</label>
+            <input type="date" id="exp-end-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+        </div>
+        <button onclick="loadExpenseList(true)" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            <i class="fas fa-filter"></i> Filter
+        </button>
+        <button onclick="resetExpFilter()" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Reset
+        </button>
+    </div>
+        
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                 <thead>
@@ -421,20 +423,22 @@
        style="width: 250px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
         </div>
         
-<div class="data-card" style="margin-bottom: 15px; background: #f8fafc; padding: 15px;">
-    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-        <div class="form-group" style="margin:0;">
-            <label style="font-size: 0.75rem;">Start Date</label>
-            <input type="date" id="order-start-date" style="padding: 5px;">
+<div class="data-card" style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">START DATE</label>
+            <input type="date" id="order-start-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
         </div>
-        <div class="form-group" style="margin:0;">
-            <label style="font-size: 0.75rem;">End Date</label>
-            <input type="date" id="order-end-date" style="padding: 5px;">
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">END DATE</label>
+            <input type="date" id="order-end-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
         </div>
-        <button class="btn-primary" onclick="loadOrderList(true)" style="padding: 8px 15px; font-size: 0.8rem;">Filter</button>
-        <button class="btn-secondary" onclick="resetOrderFilter()" style="padding: 8px 15px; font-size: 0.8rem;">Reset</button>
+        <button onclick="loadOrderList(true)" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            <i class="fas fa-filter"></i> Filter
+        </button>
+        <button onclick="resetOrderFilter()" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Reset
+        </button>
     </div>
-</div>
 
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
@@ -1100,28 +1104,71 @@ async function submitUpdate() {
 function showRx(jsonStr) {
     const modal = document.getElementById('rx-modal');
     const body = document.getElementById('rx-body');
-    
-    // Parse the JSON string back into an object
     const data = JSON.parse(jsonStr);
+
+    // Helper to parse "S:0.00 C:0.00..." strings into neat objects
+    const parse = (str) => {
+        if (!str || str === "N/A") return { s: '-', c: '-', a: '-', ad: '-' };
+        return {
+            s: str.match(/S:([^ ]+)/)?.[1] || '-',
+            c: str.match(/C:([^ ]+)/)?.[1] || '-',
+            a: str.match(/A:([^ ]+)/)?.[1] || '-',
+            ad: str.match(/Add:([^ ]+)/)?.[1] || '-'
+        };
+    };
+
+    const re = parse(data.re);
+    const le = parse(data.le);
 
     if (modal && body) {
         body.innerHTML = `
-            <h2 style="color:var(--accent); margin-bottom:15px;">Prescription Card</h2>
-            <p><strong>Customer:</strong> ${data.name}</p>
-            <p><strong>Invoice:</strong> ${data.invoice}</p>
-            <hr style="margin:15px 0; opacity:0.1;">
-            <div style="background:#f8fafc; padding:15px; border-radius:8px; line-height:1.6;">
-                <p><strong>Right Eye (RE):</strong><br> ${data.re || 'N/A'}</p>
-                <p style="margin-top:10px;"><strong>Left Eye (LE):</strong><br> ${data.le || 'N/A'}</p>
+            <div style="text-align:center; border-bottom:2px solid #eee; margin-bottom:15px; padding-bottom:10px;">
+                <h2 style="color:var(--primary); margin:0;">PRESCRIPTION CARD</h2>
+                <small style="color:#64748b;">Invoice: ${data.invoice}</small>
             </div>
-            <div style="margin-top:15px;">
-                <p><strong>Lens/Items:</strong><br> ${data.items || 'None'}</p>
+
+            <div style="margin-bottom:15px;">
+                <p style="margin:2px 0;"><strong>Customer:</strong> ${data.name}</p>
+            </div>
+
+            <table style="width:100%; border-collapse: collapse; text-align:center; margin-bottom:15px; border:1px solid #e2e8f0;">
+                <thead>
+                    <tr style="background:#f8fafc; color:#64748b; font-size:0.8rem;">
+                        <th style="padding:8px; border:1px solid #e2e8f0;">EYE</th>
+                        <th style="padding:8px; border:1px solid #e2e8f0;">SPH</th>
+                        <th style="padding:8px; border:1px solid #e2e8f0;">CYL</th>
+                        <th style="padding:8px; border:1px solid #e2e8f0;">AXIS</th>
+                        <th style="padding:8px; border:1px solid #e2e8f0;">ADD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold; background:#f1f5f9;">R.E</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.s}</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.c}</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.a}</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.ad}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold; background:#f1f5f9;">L.E</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.s}</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.c}</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.a}</td>
+                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.ad}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="background:#fff7ed; padding:10px; border-radius:6px; border-left:4px solid #f97316;">
+                <p style="margin:0; font-size:0.9rem;"><strong>Lens/Description:</strong></p>
+                <p style="margin:5px 0 0 0; color:#7c2d12;">${data.items || 'None'}</p>
             </div>
         `;
         modal.style.display = 'flex';
     }
 }
 
+        
 // Function to close any open popup
 function closeModals() {
     if(document.getElementById('rx-modal')) document.getElementById('rx-modal').style.display = 'none';
