@@ -1072,6 +1072,9 @@ async function submitUpdate() {
     // Calculate how much cash was actually handed over right now
     const amountPaidNow = oldBalance - parseFloat(bal);
 
+    console.log("Old Balance from Memory:", oldBalance); // DEBUG LINE 1
+    console.log("New Balance from Input:", bal);   // DEBUG LINE 2
+    
     const data = {
         action: "update",
         invoice: inv,
@@ -1083,6 +1086,8 @@ async function submitUpdate() {
         customerName: customerName
     };
 
+console.log("FINAL DATA TO SEND:", data); // DEBUG LINE 3 
+    
     try {
         await fetch(scriptURL, { 
             method: 'POST', 
