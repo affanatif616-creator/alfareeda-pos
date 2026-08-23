@@ -1,1448 +1,1060 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alfareeda Opticals | Pro POS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --success: #10b981; --danger: #f43f5e; --bg: #f8fafc; --sidebar-w: 260px; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; display: flex; min-height: 100vh; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Al Fareeda Opticals — POS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
 
-        /* --- UI COMPONENTS --- */
-        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 10000; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 20px; width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
-        .sidebar { width: var(--sidebar-w); background: var(--primary); color: white; position: fixed; height: 100vh; padding: 2rem 1rem; display: none; flex-direction: column; }
-        .main-content { margin-left: var(--sidebar-w); padding: 2.5rem; width: 100%; display: none; }
-        .data-card { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-        
-        /* --- FORMS --- */
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; color: #64748b; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: inherit; }
-        input:focus { outline: 2px solid var(--accent); border-color: transparent; }
-        .btn-primary { background: var(--accent); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        /* --- NAVIGATION --- */
-        .nav-item { display: flex; align-items: center; gap: 12px; color: #94a3b8; padding: 12px 16px; border-radius: 8px; margin-bottom: 5px; cursor: pointer; transition: 0.2s; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
-
-        /* --- TABLES --- */
-        .rx-table { width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-        .rx-table th { background: #f1f5f9; padding: 10px; font-size: 0.75rem; color: #64748b; }
-        .rx-table td { background: white; padding: 5px; border: 1px solid #f1f5f9; }
-        .rx-table input { border: none; text-align: center; padding: 8px; }
-
-
-/* --- 1. HIDE FROM DASHBOARD SCREEN --- */
-#print-section {
-    display: none; 
+/* ============================================================
+   1. DESIGN TOKENS — change these to re-theme the whole app
+   ============================================================ */
+:root{
+  --navy:        #122A4E;   /* sidebar / primary */
+  --navy-deep:   #0B1B33;   /* sidebar gradient end */
+  --paper:       #FBF7EF;   /* app background */
+  --surface:     #FFFFFF;   /* card background */
+  --brass:       #B8862F;   /* accent / buttons */
+  --brass-light: #E7C067;   /* accent hover / highlights */
+  --rose:        #B23A32;   /* logo mark + danger */
+  --teal:        #2F6E64;   /* success */
+  --amber:       #C08A2E;   /* warn / pending */
+  --ink:         #1C2733;   /* primary text */
+  --ink-soft:    #66707C;   /* secondary text */
+  --border:      #E7DFCF;   /* hairline borders */
+  --radius:      14px;
+  --radius-sm:   8px;
+  --shadow:      0 10px 30px -14px rgba(18,42,78,.25);
+  --font-display:'Fraunces', serif;
+  --font-body:   'Inter', sans-serif;
+  --font-mono:   'IBM Plex Mono', monospace;
 }
 
-/* --- 2. SHOW ONLY FOR PRINTER --- */
-@media print {
-    /* Set page margins to zero for clean alignment */
-    @page { margin: 1cm; }
-
-    body * {
-        visibility: hidden !important;
-    }
-
-    /* Target the container and ensure children show up correctly */
-    #print-section, #print-section * {
-        visibility: visible !important;
-    }
-
-    #print-section {
-        display: block !important;
-        position: absolute !important;
-        left: 0;
-        top: 0;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* CRITICAL FIX: Ensure the table behaves like a table, not blocks */
-    .medical-table {
-        display: table !important;
-        width: 100% !important;
-        border-collapse: collapse !important;
-    }
-    .medical-table thead { display: table-header-group !important; }
-    .medical-table tbody { display: table-row-group !important; }
-    .medical-table tr { display: table-row !important; }
-    .medical-table th, .medical-table td { 
-        display: table-cell !important; 
-        border: 1.5pt solid #1a365d !important; /* Thick sharp lines for printing */
-    }
+/* ============================================================
+   2. RESET & BASE
+   ============================================================ */
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{
+  font-family:var(--font-body);
+  background:var(--paper);
+  color:var(--ink);
+  min-height:100vh;
 }
+.tabular{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
 
-/* --- 3. PROFESSIONAL CLINICAL TABLE STYLING --- */
-.medical-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed; /* Ensures all Rx columns are perfectly equal */
+/* ============================================================
+   3. SIGNATURE MARK — the two-circle "lens" motif
+      used as brand mark, section dividers, and loader
+   ============================================================ */
+.lens-mark{ display:inline-flex; align-items:center; gap:0; flex-shrink:0; }
+.lens-mark svg{ display:block; }
+.lens-spin{ animation:lens-rotate 1.1s linear infinite; transform-origin:center; }
+@keyframes lens-rotate{ to{ transform:rotate(360deg); } }
+
+/* ============================================================
+   4. LOGIN SCREEN
+   ============================================================ */
+.login-screen{
+  position:fixed; inset:0; z-index:1000;
+  background:radial-gradient(circle at 20% 20%, #1a3a63, var(--navy-deep) 70%);
+  display:flex; align-items:center; justify-content:center; padding:20px;
 }
-
-.rx-header-main {
-    background-color: #1a365d !important; /* Force color for print */
-    -webkit-print-color-adjust: exact;
-    color: white !important;
-    text-align: center;
-    padding: 12px;
-    font-weight: bold;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    border: 1.5pt solid #1a365d;
+.login-card{
+  background:var(--surface); width:400px; max-width:100%;
+  border-radius:20px; padding:2.75rem 2.25rem;
+  box-shadow:0 40px 80px -20px rgba(0,0,0,.5);
+  text-align:center;
 }
-
-.medical-table th {
-    background-color: #f1f5f9 !important;
-    -webkit-print-color-adjust: exact;
-    border: 1.5pt solid #1a365d;
-    padding: 10px;
-    font-size: 11px;
-    color: #1a365d;
-    text-transform: uppercase;
+.login-brand-title{ font-family:var(--font-display); font-weight:700; font-size:1.6rem; color:var(--navy); margin:.6rem 0 0; }
+.login-brand-sub{ font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.8rem; }
+.branch-chips{ display:flex; gap:8px; margin-bottom:1.1rem; }
+.branch-chip{
+  flex:1; padding:10px 4px; border-radius:var(--radius-sm); border:1.5px solid var(--border);
+  background:var(--paper); color:var(--ink-soft); font-weight:600; font-size:.85rem; cursor:pointer;
+  transition:.15s;
 }
-
-.medical-table td {
-    border: 1.5pt solid #1a365d;
-    padding: 18px 5px; /* Taller cells for that "form" look */
-    text-align: center;
-    font-size: 20px; /* Large for readability */
-    font-weight: 800;
-    color: #000;
+.branch-chip.active{ background:var(--navy); border-color:var(--navy); color:#fff; }
+.field{ margin-bottom:15px; text-align:left; }
+.field label{ display:block; margin-bottom:5px; font-weight:600; font-size:.78rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+.field input, .field select, .field textarea{
+  width:100%; padding:11px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+  font-size:.95rem; font-family:inherit; background:#fff; color:var(--ink);
 }
+.field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--brass); }
+.field input[readonly]{ background:#F4F1E9; color:var(--ink-soft); }
 
-.side-label {
-    background-color: #f8fafc !important;
-    -webkit-print-color-adjust: exact;
-    width: 28%; /* Keeps the "Eye" column fixed */
-    text-align: left !important;
-    padding-left: 15px !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
-    color: #1a365d !important;
+.btn{
+  border:none; border-radius:var(--radius-sm); font-weight:700; cursor:pointer;
+  font-family:inherit; padding:13px; font-size:.92rem; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  transition:.15s;
 }
+.btn-primary{ background:var(--navy); color:#fff; width:100%; }
+.btn-primary:hover{ background:#0e2140; }
+.btn-primary:disabled{ opacity:.6; cursor:not-allowed; }
+.btn-brass{ background:var(--brass); color:#fff; }
+.btn-brass:hover{ background:#a3781f; }
+.btn-ghost{ background:transparent; color:var(--ink-soft); border:1.5px solid var(--border); }
+.btn-ghost:hover{ background:#F1ECDF; }
+.btn-sm{ padding:7px 10px; font-size:.8rem; border-radius:7px; }
+.btn-icon{ width:34px; height:34px; padding:0; border-radius:8px; }
 
-/* Clean, Open Financial Layout */
-.financial-summary-medical {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 15px;
+/* ============================================================
+   5. APP SHELL
+   ============================================================ */
+#app{ display:none; }
+.sidebar{
+  width:250px; position:fixed; top:0; left:0; height:100vh;
+  background:linear-gradient(180deg, var(--navy), var(--navy-deep));
+  padding:1.6rem 1.1rem; display:flex; flex-direction:column; color:#fff; z-index:100;
 }
+.brand-row{ display:flex; align-items:center; gap:10px; padding:.4rem .4rem 1.6rem; }
+.brand-row .lens-mark{ width:30px; }
+.brand-name{ font-family:var(--font-display); font-weight:700; font-size:1.15rem; letter-spacing:.01em; }
+.brand-tag{ font-size:.62rem; letter-spacing:.14em; color:#9FB0C8; text-transform:uppercase; }
 
-.summary-container {
-    width: 300px; /* Slightly narrower for a cleaner look */
+.nav-item{
+  display:flex; align-items:center; gap:12px; color:#AEBBCF; padding:11px 14px; border-radius:10px;
+  margin-bottom:3px; cursor:pointer; font-size:.88rem; font-weight:600; transition:.15s;
 }
+.nav-item i{ width:18px; text-align:center; opacity:.9; }
+.nav-item:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.nav-item.active{ background:var(--brass); color:#fff; }
+.nav-divider{ height:1px; background:rgba(255,255,255,.1); margin:10px 4px; }
+.nav-footer{ margin-top:auto; }
+.staff-pill{ padding:10px 12px; border-radius:10px; background:rgba(255,255,255,.05); margin-bottom:10px; }
+.staff-pill .name{ font-weight:700; font-size:.85rem; }
+.staff-pill .role{ font-size:.72rem; color:#9FB0C8; }
 
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0; /* Vertical padding only since there is no box */
-    font-size: 16px;
-    color: #475569;
+.main{ margin-left:250px; padding:2.2rem 2.6rem 4rem; }
+.topbar{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1.8rem; flex-wrap:wrap; gap:10px; }
+.topbar h1{ font-family:var(--font-display); font-weight:700; font-size:1.7rem; color:var(--navy); }
+.topbar p{ color:var(--ink-soft); font-size:.85rem; margin-top:2px; }
+
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:1.8rem; box-shadow:var(--shadow); margin-bottom:1.6rem;
 }
+.card h2{ font-family:var(--font-display); font-weight:600; font-size:1.25rem; color:var(--navy); display:flex; align-items:center; gap:10px; margin-bottom:1.1rem; }
+.card h3{ font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:var(--brass); font-weight:700; margin:1.3rem 0 .7rem; }
+.grid{ display:grid; gap:15px; }
+.grid-3{ grid-template-columns:repeat(3,1fr); }
+.grid-4{ grid-template-columns:repeat(4,1fr); }
+.grid-2{ grid-template-columns:repeat(2,1fr); }
+@media(max-width:900px){ .grid-3,.grid-4,.grid-2{ grid-template-columns:1fr 1fr; } .main{ margin-left:0; padding:1.2rem; } .sidebar{ display:none; } }
 
-.summary-row.balance-due {
-    margin-top: 10px;
-    padding-top: 15px;
-    border-top: 2px solid #1a365d; /* Professional navy separator line */
-    font-size: 18px;
-    font-weight: 800;
-    color: #1a365d; /* Navy text for the final amount */
+.content-section{ display:none; }
+.content-section.visible{ display:block; }
+
+/* Rx table (data entry) */
+.rx-table{ width:100%; border-collapse:collapse; margin:6px 0 4px; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.rx-table th{ background:#F4F1E9; padding:9px; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+.rx-table td{ background:#fff; padding:4px; border:1px solid #F1ECDF; }
+.rx-table td:first-child{ padding-left:10px; font-size:.82rem; font-weight:600; color:var(--navy); }
+.rx-table input{ border:none; text-align:center; padding:9px; font-family:var(--font-mono); }
+.rx-table input:focus{ outline:2px solid var(--brass-light); border-radius:4px; }
+
+/* Data tables */
+.table-wrap{ overflow-x:auto; }
+table.data{ width:100%; border-collapse:collapse; font-size:.87rem; }
+table.data thead tr{ background:#F4F1E9; text-align:left; }
+table.data th{ padding:12px; color:var(--ink-soft); font-weight:700; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
+.badge{ padding:4px 11px; border-radius:20px; font-size:.72rem; font-weight:700; display:inline-block; }
+.filter-bar{ background:#F8F5EC; border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; gap:10px; align-items:flex-end; margin-bottom:18px; flex-wrap:wrap; }
+.filter-bar > div{ flex:1; min-width:130px; }
+.filter-bar label{ display:block; font-size:.7rem; font-weight:700; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
+
+/* Stat cards */
+.stat{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.3rem; }
+.stat.dark{ background:var(--navy); color:#fff; border:none; }
+.stat small{ font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; opacity:.75; font-weight:700; }
+.stat h2, .stat h3{ font-family:var(--font-mono); margin-top:6px; }
+.branch-card{ border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:#fff; }
+.branch-card .head{ background:var(--navy); color:#fff; padding:1rem 1.3rem; font-family:var(--font-display); font-weight:600; }
+.branch-card .body{ padding:1.3rem; }
+.branch-row{ display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:8px; color:var(--ink-soft); }
+.loading-box{ text-align:center; padding:60px 20px; color:var(--ink-soft); }
+
+/* Modals */
+.modal{ position:fixed; inset:0; background:rgba(11,27,51,.72); z-index:2000; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal .card{ width:380px; max-width:100%; margin:0; }
+
+/* ============================================================
+   6. PRINT — two-copy carbon-style invoice
+   ============================================================ */
+#print-root{ display:none; }
+.inv-copy{ padding:14px 22px; font-family:var(--font-body); color:#111; }
+.inv-cut{ text-align:center; font-size:11px; letter-spacing:.3em; color:#888; border-top:1px dashed #999; border-bottom:1px dashed #999; padding:3px 0; margin:6px 0; }
+.inv-head{ display:grid; grid-template-columns:1fr 1.5fr 1fr; gap:14px; align-items:center; border-bottom:2.5px solid var(--navy); padding-bottom:10px; }
+.inv-head .en, .inv-head .ar{ font-size:11px; line-height:1.5; color:#333; }
+.inv-head .ar{ text-align:right; direction:rtl; }
+.inv-head .brandbox{ text-align:center; }
+.inv-head .brandbox .name-en{ font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--navy); letter-spacing:.02em; }
+.inv-head .brandbox .name-ar{ font-size:17px; font-weight:700; color:var(--rose); margin-top:2px; }
+.inv-head .brandbox .copy-tag{ display:inline-block; margin-top:5px; background:var(--navy); color:#fff; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:2px 10px; border-radius:10px; }
+.inv-meta{ display:grid; grid-template-columns:1fr 1fr; gap:8px 30px; margin:10px 0; font-size:12px; }
+.inv-meta .lbl{ color:#888; font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+.inv-meta .val{ font-weight:700; border-bottom:1px dotted #bbb; padding-bottom:1px; font-family:var(--font-mono); font-size:12.5px; }
+.inv-rx{ width:100%; border-collapse:collapse; margin-top:6px; }
+.inv-rx caption{ text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:var(--brass); font-weight:700; padding-bottom:3px; }
+.inv-rx th{ background:#F1EEE4; border:1px solid #999; padding:4px; font-size:9px; text-transform:uppercase; }
+.inv-rx td{ border:1px solid #999; padding:5px; text-align:center; font-size:12px; font-family:var(--font-mono); font-weight:700; }
+.inv-rx td.side{ text-align:left; padding-left:8px; font-family:var(--font-body); font-weight:700; background:#FAF8F2; font-size:10.5px; }
+.inv-line{ font-size:11px; margin-top:6px; }
+.inv-line .lbl{ color:#888; font-size:9px; text-transform:uppercase; letter-spacing:.08em; margin-right:5px; }
+.inv-amounts{ width:220px; margin-top:8px; margin-left:auto; border:1px solid #999; }
+.inv-amounts tr td{ padding:4px 8px; font-size:11px; border-bottom:1px solid #ddd; }
+.inv-amounts tr td:first-child{ color:#555; }
+.inv-amounts tr td:last-child{ text-align:right; font-family:var(--font-mono); font-weight:700; }
+.inv-amounts tr:last-child td{ border-bottom:none; background:#F1EEE4; font-size:12.5px; }
+.inv-foot{ display:flex; justify-content:space-between; margin-top:14px; font-size:10.5px; }
+.inv-foot .sig{ border-top:1px solid #333; width:150px; text-align:center; padding-top:3px; }
+.inv-note-ar{ direction:rtl; text-align:right; font-size:9.5px; color:#7a2b26; margin-top:8px; line-height:1.6; }
+
+@media print{
+  @page{ margin:10mm; }
+  body *{ visibility:hidden; }
+  #print-root, #print-root *{ visibility:visible; }
+  #print-root{ display:block; position:absolute; top:0; left:0; width:100%; }
 }
-
-.summary-row.balance-due span:last-child {
-    color: #1a365d;
-}
-
-       </style>
+</style>
 </head>
 <body>
 
-    <div id="login-overlay" class="login-screen">
-        <div class="login-card">
-            <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ALFAREEDA LOGIN</h2>
-            <div class="form-group"><label>Branch</label>
-                <select id="login-branch"><option>Sumail</option><option>Izki</option><option>Sinaw</option></select>
-            </div>
-            <div class="form-group"><label>Staff ID</label><input type="text" id="username"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="password"></div>
-            <button class="btn-primary" id="login-btn" onclick="handleLogin()">Login to Cloud</button>
-        </div>
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div class="login-screen" id="login-overlay">
+  <div class="login-card">
+    <div class="lens-mark" style="justify-content:center;">
+      <svg width="46" height="26" viewBox="0 0 46 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#B23A32" stroke-width="2.4"/><circle cx="33" cy="13" r="11" fill="none" stroke="#B23A32" stroke-width="2.4"/><line x1="24" y1="13" x2="22" y2="13" stroke="#B23A32" stroke-width="2.4"/></svg>
     </div>
+    <div class="login-brand-title">Al Fareeda Opticals</div>
+    <div class="login-brand-sub">Pro POS · Cloud Login</div>
 
-    <aside id="sidebar" class="sidebar">
-        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 2rem;"><i class="fas fa-glasses"></i> ALFAREEDA</div>
-        <nav style="flex-grow: 1;">
-            <div class="nav-item active" onclick="showSection('dash')"><i class="fas fa-th-large"></i> Dashboard</div>
-            <div class="nav-item" onclick="showSection('order')"><i class="fas fa-plus-circle"></i> New Order</div>
-            <div class="nav-item" onclick="showSection('order-list'); loadOrderList();">
-    <i class="fas fa-list-ul"></i> <span>Order List</span></div>
-<div class="nav-item" onclick="showSection('expense')">
-    <i class="fas fa-wallet"></i> Record Expense
-</div>
-<div class="nav-item" onclick="showSection('expense-list'); loadExpenseList();">
-    <i class="fas fa-list-alt"></i> Expense History
-</div>
- 
-      <div class="nav-item" id="nav-transactions" style="display:none;" onclick="showSection('transactions'); loadTransactionHistory();">
-    <i class="fas fa-history"></i>
-    <span>Transaction History</span>
+    <div class="field">
+      <label>Branch</label>
+      <div class="branch-chips" id="branch-chips">
+        <div class="branch-chip active" data-branch="Sumail" onclick="selectBranch(this)">Sumail</div>
+        <div class="branch-chip" data-branch="Izki" onclick="selectBranch(this)">Izki</div>
+        <div class="branch-chip" data-branch="Sinaw" onclick="selectBranch(this)">Sinaw</div>
+      </div>
+    </div>
+    <div class="field"><label>Staff ID</label><input type="text" id="username" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="password" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">Login to Cloud</button>
+  </div>
 </div>
 
-            <div class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr')"><i class="fas fa-user-shield"></i> Staff Management</div>
-        </nav>
-        <div class="nav-item" onclick="logout(event)" style="color:var(--danger); border-top:1px solid #334155; padding-top:20px;">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </div>
-    </aside>
-
-    <main id="main-content" class="main-content">
-        <header style="margin-bottom: 30px;">
-            <h1 id="branch-display">Branch</h1>
-            <p id="staff-display" style="color: #64748b;"></p>
-        </header>
-
-        <div id="dash-section" class="content-section">
-            <div class="data-card">
-                <h3>Welcome to Alfareeda POS</h3>
-                <p style="margin-top:10px; color:#64748b;">Select "New Sale Record" to start entering customer orders.</p>
-            </div>
-        </div>
-
-        <div id="order-section" class="content-section" style="display:none;">
-            <div class="data-card">
-                <h2><i class="fas fa-file-invoice"></i> Daily Sale Entry</h2>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top:20px;">
-                    <div class="form-group"><label>Invoice Number</label><input type="text" id="order-invoice"></div>
-                    <div class="form-group"><label>Customer Name</label><input type="text" id="order-name"></div>
-                    <div class="form-group"><label>Contact</label><input type="text" id="order-contact"></div>
-                </div>
-
-                <h3 style="font-size: 0.85rem; color: var(--accent); margin-top: 15px;">PRESCRIPTION DETAILS</h3>
-<table class="rx-table">
-    <thead>
-        <tr>
-            <th>EYE</th>
-            <th>SPH</th>
-            <th>CYL</th>
-            <th>AXIS</th>
-            <th>ADD</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Right Eye (RE)</td>
-            <td><input type="text" id="re-sph" placeholder="0.00"></td>
-            <td><input type="text" id="re-cyl" placeholder="0.00"></td>
-            <td><input type="text" id="re-axis" placeholder="0"></td>
-            <td><input type="text" id="re-add" placeholder="0.00"></td>
-        </tr>
-        <tr>
-            <td>Left Eye (LE)</td>
-            <td><input type="text" id="le-sph" placeholder="0.00"></td>
-            <td><input type="text" id="le-cyl" placeholder="0.00"></td>
-            <td><input type="text" id="le-axis" placeholder="0"></td>
-            <td><input type="text" id="le-add" placeholder="0.00"></td>
-        </tr>
-    </tbody>
-</table>
-                <div class="form-group"><label>Items (Frame & Lens details)</label><input type="text" id="order-items"></div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px;">
-                    <div class="form-group"><label>Total</label><input type="number" id="order-total" step="0.001" oninput="calcBalance()"></div>
-                    <div class="form-group"><label>Advance</label><input type="number" id="order-advance" step="0.001" oninput="calcBalance()"></div>
-                    <div class="form-group"><label>Balance</label><input type="number" id="order-balance" readonly style="background:#f1f5f9;"></div>
-                    <div class="form-group"><label>Payment</label>
-                        <select id="order-payment"><option>Cash</option><option>Bank Transfer</option><option>Card</option></select>
-                    </div>
-                </div>
-
-                <div class="form-group"><label>Status</label>
-                    <select id="order-status"><option>Processing</option><option>Ready</option><option>Delivered</option></select>
-                </div>
-
-                <button class="btn-primary" id="save-btn" onclick="saveOrderToCloud()">Save Order</button>
-            </div>
-        </div>
-
-<div id="expense-section" class="content-section" style="display:none;">
-    <div class="data-card">
-        <h2><i class="fas fa-receipt"></i> Daily Expense Entry</h2>
-        <p style="color: #64748b; margin-bottom: 20px;">Record any shop-related costs below.</p>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="form-group">
-                <label>Category</label>
-                <select id="exp-category">
-                    <option>Tea & Coffee</option>
-                    <option>Cleaning / Maintenance</option>
-                    <option>Stationery</option>
-                    <option>Electricity / Water</option>
-                    <option>Stock Purchase</option>
-                    <option>Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Amount (OMR)</label>
-                <input type="number" id="exp-amount" step="0.001" placeholder="0.000">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Description / Remarks</label>
-            <textarea id="exp-desc" rows="3" placeholder="Enter details..."></textarea>
-        </div>
-
-        <button class="btn-primary" id="exp-save-btn" onclick="saveExpense()">
-            <i class="fas fa-save"></i> Save Expense
-        </button>
-    </div>
-</div>
-
-<div id="expense-list-section" class="content-section" style="display:none;">
-    <div class="data-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2><i class="fas fa-history"></i> Expense History</h2>
-            <div id="expense-total-badge" style="background:var(--danger); color:white; padding:8px 15px; border-radius:8px; font-weight:bold;">
-                Total: 0.000 OMR
-            </div>
-        </div>
-
-<div class="data-card" style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-        <div style="flex: 1;">
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">START DATE</label>
-            <input type="date" id="exp-start-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-        </div>
-        <div style="flex: 1;">
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">END DATE</label>
-            <input type="date" id="exp-end-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-        </div>
-        <button onclick="loadExpenseList(true)" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-        <button onclick="resetExpFilter()" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            Reset
-        </button>
-    </div>
-        
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <thead>
-                    <tr style="background: #f1f5f9; text-align: left;">
-                        <th style="padding: 12px;">Date</th>
-                        <th style="padding: 12px;">Category</th>
-                        <th style="padding: 12px;">Description</th>
-                        <th style="padding: 12px;">Amount</th>
-                        <th id="exp-branch-header" style="padding: 12px; display:none;">Branch</th>
-                    </tr>
-                </thead>
-                <tbody id="expense-list-table"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-
-        <div id="staff-mgr-section" class="content-section" style="display:none;">
-            <div class="data-card">
-                <h3>Add New Staff Member</h3><br>
-                <div class="form-group"><label>Full Name</label><input type="text" id="new-name"></div>
-                <div class="form-group"><label>Username</label><input type="text" id="new-id"></div>
-                <div class="form-group"><label>Password</label><input type="password" id="new-pass"></div>
-                <div class="form-group"><label>Branch</label>
-                    <select id="new-branch"><option>Sumail</option><option>Izki</option><option>Sinaw</option></select>
-                </div>
-                <button class="btn-primary" onclick="createNewStaff()">Create Cloud Account</button>
-            </div>
-        </div>
-
-<div id="transactions-section" class="content-section" style="display:none;">
-    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div>
-            <h2 style="color: var(--primary); margin: 0;">Daily Cash Collections</h2>
-            <p style="color: #64748b; font-size: 0.85rem;">Tracking all advances and balance clearances</p>
-        </div>
-        <div id="trans-total-badge" style="background: var(--accent); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-            Total: 0.000 OMR
-        </div>
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <div class="lens-mark">
+        <svg width="30" height="18" viewBox="0 0 46 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#E7C067" stroke-width="2.6"/><circle cx="33" cy="13" r="11" fill="none" stroke="#E7C067" stroke-width="2.6"/><line x1="24" y1="13" x2="22" y2="13" stroke="#E7C067" stroke-width="2.6"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Alfareeda</div>
+        <div class="brand-tag">Pro POS</div>
+      </div>
     </div>
 
-    <div class="filter-bar" style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-        <div style="flex: 1;">
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">START DATE</label>
-            <input type="date" id="trans-start-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-        </div>
-        <div style="flex: 1;">
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">END DATE</label>
-            <input type="date" id="trans-end-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-        </div>
-        <button onclick="loadTransactionHistory(true)" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-        <button onclick="loadTransactionHistory(false)" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            Reset
-        </button>
+    <nav style="flex-grow:1;">
+      <div class="nav-item active" onclick="showSection('dash', event)"><i class="fas fa-chart-pie"></i> Dashboard</div>
+      <div class="nav-item" onclick="showSection('order', event)"><i class="fas fa-file-invoice"></i> New Order</div>
+      <div class="nav-item" onclick="showSection('order-list', event); loadOrderList();"><i class="fas fa-list-ul"></i> Order List</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="showSection('expense', event)"><i class="fas fa-wallet"></i> Record Expense</div>
+      <div class="nav-item" onclick="showSection('expense-list', event); loadExpenseList();"><i class="fas fa-receipt"></i> Expense History</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" id="nav-transactions" style="display:none;" onclick="showSection('transactions', event); loadTransactionHistory();"><i class="fas fa-hand-holding-dollar"></i> Transaction History</div>
+      <div class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr', event)"><i class="fas fa-user-shield"></i> Staff Management</div>
+    </nav>
+
+    <div class="nav-footer">
+      <div class="staff-pill">
+        <div class="name" id="staff-display">—</div>
+        <div class="role" id="branch-display">—</div>
+      </div>
+      <div class="nav-item" onclick="logout()" style="color:#E7A79F;"><i class="fas fa-sign-out-alt"></i> Logout</div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="dash-section" class="content-section visible">
+      <div class="topbar"><div><h1>Dashboard</h1><p>Live overview of sales and expenses</p></div></div>
+      <div id="dash-body"><div class="loading-box"><div class="lens-mark"><svg class="lens-spin" width="34" height="34" viewBox="0 0 46 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#B8862F" stroke-width="3"/><circle cx="33" cy="13" r="11" fill="none" stroke="#E7DFCF" stroke-width="3"/></svg></div><p style="margin-top:10px;">Calculating financials…</p></div></div>
     </div>
 
-    <div class="table-container" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
-        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead style="background: #f1f5f9;">
-                <tr>
-                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">DATE</th>
-                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">INVOICE</th>
-                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">CUSTOMER</th>
-                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">BRANCH</th>
-                    <th style="padding: 15px; color: #475569; font-size: 0.85rem;">TYPE</th>
-                    <th style="padding: 15px; color: #475569; font-size: 0.85rem; text-align: right;">AMOUNT</th>
-                </tr>
-            </thead>
-            <tbody id="transaction-list-table">
-                </tbody>
+    <!-- NEW ORDER -->
+    <div id="order-section" class="content-section">
+      <div class="topbar"><div><h1>New Order</h1><p>Daily sale entry</p></div></div>
+      <div class="card">
+        <div class="grid grid-3">
+          <div class="field"><label>Invoice Number</label><input type="text" id="order-invoice"></div>
+          <div class="field"><label>Customer Name</label><input type="text" id="order-name"></div>
+          <div class="field"><label>Contact</label><input type="text" id="order-contact"></div>
+        </div>
+
+        <h3>Prescription Details</h3>
+        <table class="rx-table">
+          <thead><tr><th style="text-align:left; padding-left:10px;">Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
+          <tbody>
+            <tr><td>Right Eye (RE)</td>
+              <td><input id="re-sph" placeholder="0.00"></td><td><input id="re-cyl" placeholder="0.00"></td>
+              <td><input id="re-axis" placeholder="0"></td><td><input id="re-add" placeholder="0.00"></td></tr>
+            <tr><td>Left Eye (LE)</td>
+              <td><input id="le-sph" placeholder="0.00"></td><td><input id="le-cyl" placeholder="0.00"></td>
+              <td><input id="le-axis" placeholder="0"></td><td><input id="le-add" placeholder="0.00"></td></tr>
+          </tbody>
         </table>
-    </div>
-</div>
 
-<div id="order-list-section" class="content-section" style="display:none;">
-    <div class="data-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2><i class="fas fa-history"></i> Recent Orders</h2>
-            <input type="text" 
-       id="search-box" 
-       oninput="searchOrders()" 
-       placeholder="Search Name, Mobile or Invoice..." 
-       style="width: 250px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+        <div class="field"><label>Items (Frame &amp; Lens details)</label><input type="text" id="order-items"></div>
+
+        <div class="grid grid-4">
+          <div class="field"><label>Total</label><input type="number" step="0.001" id="order-total" oninput="calcBalance()"></div>
+          <div class="field"><label>Advance</label><input type="number" step="0.001" id="order-advance" oninput="calcBalance()"></div>
+          <div class="field"><label>Balance</label><input type="number" id="order-balance" readonly></div>
+          <div class="field"><label>Payment</label><select id="order-payment"><option>Cash</option><option>Bank Transfer</option><option>Card</option></select></div>
         </div>
-        
-<div class="data-card" style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-        <div style="flex: 1;">
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">START DATE</label>
-            <input type="date" id="order-start-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-        </div>
-        <div style="flex: 1;">
-            <label style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: bold;">END DATE</label>
-            <input type="date" id="order-end-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-        </div>
-        <button onclick="loadOrderList(true)" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-        <button onclick="resetOrderFilter()" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            Reset
-        </button>
+        <div class="field"><label>Status</label><select id="order-status"><option>Processing</option><option>Ready</option><option>Delivered</option></select></div>
+
+        <button class="btn btn-primary" id="save-btn" onclick="saveOrderToCloud()"><i class="fas fa-cloud-upload-alt"></i> Save Order</button>
+      </div>
     </div>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <thead>
-    <tr style="background: #f1f5f9; text-align: left;">
-        <th style="padding: 12px;">Date</th>
-        <th style="padding: 12px;">Invoice</th>
-        <th style="padding: 12px;">Name</th>
-        <th style="padding: 12px;">Number</th>
-        <th style="padding: 12px;">Total</th>
-        <th style="padding: 12px;">Balance</th>
-        <th style="padding: 12px;">Status</th>
-        <th id="branch-header" style="padding: 12px; display: none;">Branch</th>
-        <th style="padding: 12px; text-align:right;">Actions</th>
-    </tr>
-</thead>
-<tbody id="order-list-table"></tbody>
-            </table>
+    <!-- ORDER LIST -->
+    <div id="order-list-section" class="content-section">
+      <div class="topbar"><div><h1>Order List</h1><p>Search, filter, print &amp; update orders</p></div>
+        <input type="text" id="search-box" oninput="searchOrders()" placeholder="Search name, mobile or invoice…" style="width:260px; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); font-family:inherit;">
+      </div>
+      <div class="filter-bar">
+        <div><label>Start Date</label><input type="date" id="order-start-date"></div>
+        <div><label>End Date</label><input type="date" id="order-end-date"></div>
+        <button class="btn btn-primary btn-sm" onclick="loadOrderList(true)"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetOrderFilter()">Reset</button>
+      </div>
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr>
+              <th>Date</th><th>Invoice</th><th>Name</th><th>Number</th><th>Total</th><th>Balance</th><th>Status</th>
+              <th id="branch-header" style="display:none;">Branch</th><th style="text-align:right;">Actions</th>
+            </tr></thead>
+            <tbody id="order-list-table"></tbody>
+          </table>
         </div>
+      </div>
     </div>
-</div>
 
-<div class="main-content" id="main-dashboard-area">
-    <div id="print-section">
-        <div class="medical-container">
-            </div>
-    </div>
-</div>
-    </main>
-</main>
-
-<div id="edit-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
-    <div class="data-card" style="width:350px; background:white; padding:20px; border-radius:15px;">
-        <h3 style="margin-bottom:15px;">Update Order</h3>
-        
-        <div class="form-group">
-            <label>Invoice Number</label>
-            <input type="text" id="up-invoice" readonly style="background:#f1f5f9; cursor:not-allowed;">
-        </div>
-
-        <div class="form-group" style="margin-top:10px;">
-            <label>Order Status</label>
-            <select id="up-status">
-                <option value="Pending">Pending</option>
-                <option value="Ready">Ready</option>
-                <option value="Delivered">Delivered</option>
+    <!-- RECORD EXPENSE -->
+    <div id="expense-section" class="content-section">
+      <div class="topbar"><div><h1>Record Expense</h1><p>Log any shop-related cost</p></div></div>
+      <div class="card">
+        <div class="grid grid-2">
+          <div class="field"><label>Category</label>
+            <select id="exp-category">
+              <option>Tea & Coffee</option><option>Cleaning / Maintenance</option><option>Stationery</option>
+              <option>Electricity / Water</option><option>Stock Purchase</option><option>Other</option>
             </select>
+          </div>
+          <div class="field"><label>Amount (OMR)</label><input type="number" step="0.001" id="exp-amount" placeholder="0.000"></div>
         </div>
-
-        <div class="form-group" style="margin-top:10px;">
-            <label>Remaining Balance (OMR)</label>
-            <input type="number" id="up-balance" step="0.001">
-        </div>
-
-        <div style="margin-top:20px;">
-            <button class="btn-primary" onclick="submitUpdate()">Save Changes</button>
-            <button onclick="closeModals()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">Cancel</button>
-        </div>
+        <div class="field"><label>Description / Remarks</label><textarea id="exp-desc" rows="3"></textarea></div>
+        <button class="btn btn-primary" id="exp-save-btn" onclick="saveExpense()"><i class="fas fa-save"></i> Save Expense</button>
+      </div>
     </div>
+
+    <!-- EXPENSE HISTORY -->
+    <div id="expense-list-section" class="content-section">
+      <div class="topbar">
+        <div><h1>Expense History</h1><p>Filterable log of shop costs</p></div>
+        <div class="badge" id="expense-total-badge" style="background:var(--rose); color:#fff; font-size:.9rem; padding:8px 16px;">Total: 0.000 OMR</div>
+      </div>
+      <div class="filter-bar">
+        <div><label>Start Date</label><input type="date" id="exp-start-date"></div>
+        <div><label>End Date</label><input type="date" id="exp-end-date"></div>
+        <button class="btn btn-primary btn-sm" onclick="loadExpenseList(true)"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetExpFilter()">Reset</button>
+      </div>
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th id="exp-branch-header" style="display:none;">Branch</th></tr></thead>
+            <tbody id="expense-list-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTION HISTORY (Manager) -->
+    <div id="transactions-section" class="content-section">
+      <div class="topbar">
+        <div><h1>Transaction History</h1><p>Daily cash collections — advances &amp; balance clearances</p></div>
+        <div class="badge" id="trans-total-badge" style="background:var(--navy); color:#fff; font-size:.9rem; padding:8px 16px;">Total: 0.000 OMR</div>
+      </div>
+      <div class="filter-bar">
+        <div><label>Start Date</label><input type="date" id="trans-start-date"></div>
+        <div><label>End Date</label><input type="date" id="trans-end-date"></div>
+        <button class="btn btn-primary btn-sm" onclick="loadTransactionHistory(true)"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadTransactionHistory(false)">Reset</button>
+      </div>
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Branch</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
+            <tbody id="transaction-list-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAFF MANAGEMENT (Manager) -->
+    <div id="staff-mgr-section" class="content-section">
+      <div class="topbar"><div><h1>Staff Management</h1><p>Add a new cloud account</p></div></div>
+      <div class="card" style="max-width:420px;">
+        <div class="field"><label>Full Name</label><input type="text" id="new-name"></div>
+        <div class="field"><label>Username</label><input type="text" id="new-id"></div>
+        <div class="field"><label>Password</label><input type="password" id="new-pass"></div>
+        <div class="field"><label>Branch</label><select id="new-branch"><option>Sumail</option><option>Izki</option><option>Sinaw</option></select></div>
+        <button class="btn btn-primary" onclick="createNewStaff()"><i class="fas fa-user-plus"></i> Create Cloud Account</button>
+      </div>
+    </div>
+
+  </main>
 </div>
 
-<div id="rx-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10001; align-items:center; justify-content:center;">
-    <div class="data-card" style="width:400px; background:white; padding:25px; border-radius:15px;">
-        <div id="rx-body"></div>
-        <button class="btn-primary" style="margin-top:20px;" onclick="closeModals()">Close</button>
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+<div id="edit-modal" class="modal">
+  <div class="card">
+    <h2><i class="fas fa-edit"></i> Update Order</h2>
+    <div class="field"><label>Invoice Number</label><input type="text" id="up-invoice" readonly></div>
+    <div class="field"><label>Order Status</label>
+      <select id="up-status"><option value="Pending">Pending</option><option value="Ready">Ready</option><option value="Delivered">Delivered</option></select>
     </div>
+    <div class="field"><label>Remaining Balance (OMR)</label><input type="number" step="0.001" id="up-balance"></div>
+    <button class="btn btn-primary" onclick="submitUpdate(event)">Save Changes</button>
+    <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModals()">Cancel</button>
+  </div>
 </div>
 
-    <div id="print-section">
-    <div class="medical-container">
-        <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; align-items: center; border-bottom: 3px solid #1a365d; padding-bottom: 20px;">
-            
-            <div style="font-size: 16px; color: #475569; line-height: 1.4;">
-                <div>C.R: 1019840</div>
-                <div>P.O. Box: 255</div>
-                <div>P.C: 614</div>
-                <div>Manzaliya, Izki</div>
-                <div>Near Bank Dhofar</div>
-                <div>Sultanate of Oman</div>
-                <div>GSM: 93036614</div>
-            </div>
-
-            <div style="text-align: center;">
-               <img src="https://i.ibb.co/ccc7KbfV/logo-jpg.jpg" alt="logo-jpg" border="0">
-                <h1 style="margin: 0; color: #1a365d; font-size: 28px; letter-spacing: 1px; text-transform: uppercase;">Al Fareeda Opticals</h1>
-                <div style="font-size: 16px; font-weight: 700; color: #64748b; margin-top: 5px;">
-                    <span id="p-branch-address" style="background: #f1f5f9; padding: 2px 12px; border-radius: 12px;">Izki Branch</span>
-                </div>
-            </div>
-
-           <div style="font-size: 16px; color: #475569; line-height: 1.4; text-align: right;">
-           <div>س.ت: ١٠١٩٨٤٠</div>
-           <div>ص.ب: ٢٥٥</div>
-           <div>ر.ب: ٦١٤</div>
-           <div>المنزلية، إزكي</div>
-           <div>بالقرب من بنك ظفار</div>
-           <div>سلطنة عمان</div>
-           <div>نقال: ٩٣٠٣٦٦١٤</div>
-           </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 30px; padding: 0 10px;">
-            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
-                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Invoice Number</label>
-                <div style="font-size: 18px; font-weight: 800; color: #1a365d;" id="p-inv-no">#00</div>
-            </div>
-            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
-                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Date of Issue</label>
-                <div style="font-size: 18px; font-weight: 800; color: #1a365d;" id="p-date">--/--/----</div>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin: 20px 0; padding: 0 10px;">
-            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
-                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">Patient Name</label>
-                <div id="p-cust-name" style="font-size: 20px; font-weight: 800; color: ##414e61; line-height: 1.2;">-</div>
-            </div>
-            <div style="border-left: 3px solid #1a365d; padding-left: 15px;">
-                <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 4px;">Contact Number</label>
-                <div id="p-cust-phone" style="font-size: 20px; font-weight: 600; color: #334155;">-</div>
-            </div>
-        </div>
-      
-
-        <div class="rx-header-main">Optical Prescription (Rx)</div>
-        <table class="medical-table">
-            <thead>
-                <tr>
-                    <th style="width: 30%;">EYE</th>
-                    <th>SPH</th>
-                    <th>CYL</th>
-                    <th>AXIS</th>
-                    <th>ADD</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="side-label">Right Eye (OD)</td>
-                    <td id="p-re-sph">0.00</td>
-                    <td id="p-re-cyl">0.00</td>
-                    <td id="p-re-axis">0</td>
-                    <td id="p-re-add">0.00</td>
-                </tr>
-                <tr>
-                    <td class="side-label">Left Eye (OS)</td>
-                    <td id="p-le-sph">0.00</td>
-                    <td id="p-le-cyl">0.00</td>
-                    <td id="p-le-axis">0</td>
-                    <td id="p-le-add">0.00</td>
-                </tr>
-            </tbody>
-        </table>
-
-        
-            <div style="margin-top: 30px;">
-    <div style="border-left: 3px solid #1a365d; padding-left: 15px; margin-bottom: 10px;">
-        <label style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block;">
-            Items & Description
-        </label>
-    </div>
-    <div id="p-items" style="font-size: 16px; color: #334155; line-height: 1.6; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; white-space: pre-line;">
-        <strong>Frame:</strong> Rayban Wayfarer (Black/G15)<br>
-        <strong>Lenses:</strong> Blue-Cut + Anti-Glare Coating
-    </div>
-</div>
-           
-<div class="financial-summary-medical">
-    <div class="summary-container">
-        <div class="summary-row">
-            <span>Sub-Total</span>
-            <span id="p-total">20.000</span>
-        </div>
-
-        <div class="summary-row" style="color: #16a34a;">
-            <span>Amount Paid (Advance)</span>
-            <span id="p-advance">10.000</span>
-        </div>
-
-        <div class="summary-row balance-due">
-            <span>Balance Due</span>
-            <span><span id="p-balance">10.000</span> OMR</span>
-        </div>
-    </div>
+<div id="rx-modal" class="modal">
+  <div class="card" id="rx-body"></div>
 </div>
 
-        <div style="margin-top: 80px; display: flex; justify-content: space-between;">
-            <div style="text-align: center; border-top: 1px solid #000; width: 200px; padding-top: 5px;">Customer Signature</div>
-            <div style="text-align: center; border-top: 1px solid #000; width: 200px; padding-top: 5px;">Optometrist Stamp</div>
-        </div>
+<!-- Hidden root — filled dynamically just before printing -->
+<div id="print-root"></div>
+
+<script>
+/* ============================================================
+   CONFIG — same Apps Script backend as the previous version
+   ============================================================ */
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxutx2Sgsgnty1lBV13BaegnClnmvcHyRZ-rQQrJVXwWK3SmlpIo4woUvN4FA5BKsIQqA/exec';
+
+const SHOP = {
+  nameEn: 'AL-FAREEDA OPTICALS',
+  nameAr: 'النظارات الفريدة',
+  cr: '1019840', po: '255', pc: '614',
+  addr: 'Manzaliya, Izki\nNear Bank Dhofar\nSultanate of Oman',
+  addrAr: 'المنزلية، إزكي\nبالقرب من بنك ظفار\nسلطنة عمان',
+  gsm: '93036614',
+  logo: 'https://i.ibb.co/ccc7KbfV/logo-jpg.jpg'
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let staffList = [];
+let currentOrders = [];
+let logoutTimer;
+let loginBranch = 'Sumail';
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+function selectBranch(el){
+  document.querySelectorAll('.branch-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  loginBranch = el.dataset.branch;
+}
+
+function resetLogoutTimer(){
+  clearTimeout(logoutTimer);
+  if (sessionStorage.getItem('alfareeda_user')){
+    logoutTimer = setTimeout(() => { alert('Session expired (30 mins)'); logout(); }, 30 * 60 * 1000);
+  }
+}
+['mousedown','mousemove','keypress'].forEach(e => document.addEventListener(e, resetLogoutTimer));
+
+async function loadStaff(){
+  try{
+    const res = await fetch(scriptURL + '?type=staff');
+    const data = await res.json();
+    staffList = data.map(r => ({ name:r[0], id:r[1], pass:r[2], branch:r[3], role:r[4] }));
+    staffList.push({ id:'admin', pass:'alf123', role:'Manager', branch:'All', name:'Master Admin' });
+  }catch(e){
+    staffList = [{ id:'admin', pass:'alf123', role:'Manager', branch:'All', name:'Master Admin' }];
+  }
+}
+
+async function handleLogin(){
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  const btn = document.getElementById('login-btn');
+
+  btn.disabled = true; btn.innerText = 'Connecting…';
+  await loadStaff();
+
+  const auth = staffList.find(s => s.id == user && s.pass == pass);
+  if (auth && (auth.role === 'Manager' || auth.branch === loginBranch)){
+    const sessionData = { ...auth, activeBranch: loginBranch };
+    sessionStorage.setItem('alfareeda_user', JSON.stringify(sessionData));
+    applyUI(sessionData);
+  } else {
+    alert('Login failed. Check Staff ID, password and branch.');
+    btn.disabled = false; btn.innerText = 'Login to Cloud';
+  }
+}
+
+function applyUI(auth){
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('branch-display').innerText = auth.activeBranch + ' · ' + auth.role;
+  document.getElementById('staff-display').innerText = auth.name || auth.id;
+
+  const isManager = auth.role === 'Manager';
+  document.getElementById('nav-staff').style.display = isManager ? 'flex' : 'none';
+  document.getElementById('nav-transactions').style.display = isManager ? 'flex' : 'none';
+
+  loadBranchStats(auth.role, auth.activeBranch);
+  resetLogoutTimer();
+}
+
+function logout(){
+  if (confirm('Logout?')){ sessionStorage.removeItem('alfareeda_user'); location.reload(); }
+}
+
+window.onload = async () => {
+  const saved = sessionStorage.getItem('alfareeda_user');
+  if (saved) applyUI(JSON.parse(saved));
+  await loadStaff();
+};
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function showSection(id, evt){
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('visible'));
+  document.getElementById(id + '-section').classList.add('visible');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function isToday(d){
+  const t = new Date(), x = new Date(d);
+  return t.getDate()===x.getDate() && t.getMonth()===x.getMonth() && t.getFullYear()===x.getFullYear();
+}
+function isThisMonth(d){
+  const t = new Date(), x = new Date(d);
+  return t.getMonth()===x.getMonth() && t.getFullYear()===x.getFullYear();
+}
+
+async function loadBranchStats(role, branch){
+  const box = document.getElementById('dash-body');
+  try{
+    const [salesRes, expRes] = await Promise.all([
+      fetch(scriptURL + '?type=Records'),
+      fetch(scriptURL + '?type=Expenses')
+    ]);
+    const allSales = await salesRes.json();
+    const allExpenses = await expRes.json();
+    role === 'Manager' ? renderManagerDash(allSales, allExpenses) : renderCashierDash(allSales, allExpenses, branch);
+  }catch(e){
+    box.innerHTML = '<p style="color:var(--rose);">Error loading dashboard data.</p>';
+  }
+}
+
+function renderCashierDash(allSales, allExpenses, branch){
+  const bSales = allSales.filter(r => r[12] === branch);
+  const bExp = allExpenses.filter(e => e[4] === branch);
+
+  const tSales = bSales.filter(r => isToday(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
+  const tExp = bExp.filter(e => isToday(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
+
+  const mSales = bSales.filter(r => isThisMonth(r[0]));
+  const mExp = bExp.filter(e => isThisMonth(e[0]));
+  const totalRev = mSales.reduce((s,r)=>s+(parseFloat(r[7])||0),0);
+  const totalExp = mExp.reduce((s,e)=>s+(parseFloat(e[2])||0),0);
+  const pending = bSales.reduce((s,r)=>s+(parseFloat(r[9])||0),0);
+
+  document.getElementById('dash-body').innerHTML = `
+    <h3>Today's Snapshot</h3>
+    <div class="grid grid-2" style="margin-bottom:26px;">
+      <div class="stat dark"><small>Today's Sales</small><h2 class="tabular">${tSales.toFixed(3)}</h2></div>
+      <div class="stat"><small style="color:var(--ink-soft);">Today's Expense</small><h2 class="tabular" style="color:var(--rose);">${tExp.toFixed(3)}</h2></div>
     </div>
-</div>
-
-
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxutx2Sgsgnty1lBV13BaegnClnmvcHyRZ-rQQrJVXwWK3SmlpIo4woUvN4FA5BKsIQqA/exec'; // <--- PUT YOUR URL HERE
-        let staffList = [];
-        let currentOrders = [];
-        let logoutTimer;
-
-        // --- SECURITY & SESSION ---
-        function resetLogoutTimer() {
-            clearTimeout(logoutTimer);
-            if (sessionStorage.getItem('alfareeda_user')) {
-                logoutTimer = setTimeout(() => { alert("Session Expired (30 mins)"); logout(); }, 30 * 60 * 1000);
-            }
-        }
-        ['mousedown', 'mousemove', 'keypress'].forEach(e => document.addEventListener(e, resetLogoutTimer));
-
-        async function loadStaff() {
-            try {
-                const res = await fetch(scriptURL + "?type=staff");
-                const data = await res.json();
-                staffList = data.map(r => ({ name:r[0], id:r[1], pass:r[2], branch:r[3], role:r[4] }));
-                staffList.push({ id:"admin", pass:"alf123", role:"Manager", branch:"All", name:"Master Admin" });
-            } catch(e) { staffList = [{ id:"admin", pass:"alf123", role:"Manager", branch:"All" }]; }
-        }
-
-        async function handleLogin() {
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            const branch = document.getElementById('login-branch').value;
-            const btn = document.getElementById('login-btn');
-            
-            btn.disabled = true; btn.innerText = "Connecting...";
-            await loadStaff();
-
-            const auth = staffList.find(s => s.id == user && s.pass == pass);
-            if (auth && (auth.role === "Manager" || auth.branch === branch)) {
-                const sessionData = { ...auth, activeBranch: branch };
-                sessionStorage.setItem('alfareeda_user', JSON.stringify(sessionData));
-                applyUI(sessionData);
-            } else {
-                alert("Login Failed");
-                btn.disabled = false; btn.innerText = "Login to Cloud";
-            }
-        }
-
-function applyUI(auth) {
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('sidebar').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'block';
-    document.getElementById('branch-display').innerText = auth.activeBranch + " Records";
-    document.getElementById('staff-display').innerText = "Logged in as: " + (auth.name || auth.id);
-
-    // --- ROLE BASED SIDEBAR RESTRICTIONS ---
-    if(auth.role === "Manager") {
-        document.getElementById('nav-staff').style.display = 'flex';         // Show Staff Management
-        document.getElementById('nav-transactions').style.display = 'flex';  // Show Transaction History
-    } else {
-        document.getElementById('nav-staff').style.display = 'none';
-        document.getElementById('nav-transactions').style.display = 'none';
-    }
-    
-    loadBranchStats(auth.role, auth.activeBranch); 
-    resetLogoutTimer();
+    <h3>Performance This Month — ${branch}</h3>
+    <div class="grid grid-3">
+      <div class="stat"><small style="color:var(--ink-soft);">Monthly Revenue</small><h3 class="tabular">${totalRev.toFixed(3)} OMR</h3></div>
+      <div class="stat"><small style="color:var(--ink-soft);">Monthly Expenses</small><h3 class="tabular" style="color:var(--rose);">${totalExp.toFixed(3)} OMR</h3></div>
+      <div class="stat" style="background:#FBEDEC; border-color:#F0D3D0;"><small style="color:#8C332C;">Total Pending Balances</small><h3 class="tabular" style="color:#8C332C;">${pending.toFixed(3)} OMR</h3></div>
+    </div>`;
 }
 
-        // --- BUSINESS LOGIC ---
-        function calcBalance() {
-            const t = parseFloat(document.getElementById('order-total').value) || 0;
-            const a = parseFloat(document.getElementById('order-advance').value) || 0;
-            document.getElementById('order-balance').value = (t - a).toFixed(3);
-        }
+function renderManagerDash(allSales, allExpenses){
+  const branches = ['Sumail','Izki','Sinaw'];
+  let html = `<h3 style="margin-top:0;">Branch Performance — This Month</h3><div class="grid grid-3">`;
 
-        async function saveOrderToCloud() {
-    const btn = document.getElementById('save-btn');
-    const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  branches.forEach(b => {
+    const bSales = allSales.filter(r => r[12] === b);
+    const bExp = allExpenses.filter(e => e[4] === b);
+    const tSales = bSales.filter(r=>isToday(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
+    const tExp = bExp.filter(e=>isToday(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
+    const totalRev = bSales.filter(r=>isThisMonth(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
+    const totalExp = bExp.filter(e=>isThisMonth(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
+    const net = tSales - tExp;
 
-    if (!sessionUser) return alert("Please log in again.");
-
-    const rePower = `S:${document.getElementById('re-sph').value || '0'} C:${document.getElementById('re-cyl').value || '0'} A:${document.getElementById('re-axis').value || '0'} Add:${document.getElementById('re-add').value || '0'}`;
-    const lePower = `S:${document.getElementById('le-sph').value || '0'} C:${document.getElementById('le-cyl').value || '0'} A:${document.getElementById('le-axis').value || '0'} Add:${document.getElementById('le-add').value || '0'}`;
-
-    const data = {
-        type: "order",
-        invoice: document.getElementById('order-invoice').value,
-        name: document.getElementById('order-name').value,
-        contact: document.getElementById('order-contact').value,
-        rightEye: rePower,
-        leftEye: lePower,
-        items: document.getElementById('order-items').value,
-        total: document.getElementById('order-total').value || 0,
-        advance: document.getElementById('order-advance').value || 0,
-        balance: document.getElementById('order-balance').value || 0,
-        payment: document.getElementById('order-payment').value,
-        status: document.getElementById('order-status').value,
-        branch: sessionUser.activeBranch // Crucial for filtering
-    };
-
-    if(!data.name || !data.invoice) return alert("Fill Name and Invoice");
-
-    btn.disabled = true;
-    btn.innerText = "Syncing with Cloud...";
-
-    try {
-        await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-        alert("Saved to " + sessionUser.activeBranch);
-        location.reload();
-    } catch(e) {
-        alert("Error!");
-        btn.disabled = false;
-        btn.innerText = "Save Record";
-    }
-}
-
-        async function createNewStaff() {
-            const data = {
-                type: "staff",
-                name: document.getElementById('new-name').value,
-                id: document.getElementById('new-id').value,
-                pass: document.getElementById('new-pass').value,
-                branch: document.getElementById('new-branch').value,
-                role: "Cashier"
-            };
-            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            alert("Staff Added"); location.reload();
-        }
-
-        function showSection(id) {
-            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
-            document.getElementById(id + '-section').style.display = 'block';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-        }
-
-        function logout(e) { 
-            if(confirm("Logout?")) { sessionStorage.removeItem('alfareeda_user'); location.reload(); }
-        }
-
-        async function loadOrderList(isFiltered = false) {
-    const tableBody = document.getElementById('order-list-table');
-    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-    if (!user) return;
-
-    const isAdmin = user.role === "Manager";
-    const branchHeader = document.getElementById('branch-header');
-    
-    // Toggle header visibility
-    if (branchHeader) {
-        branchHeader.style.display = isAdmin ? "table-cell" : "none";
-    }
-
-    // 1. Date Filtering Logic
-    let startDate = null;
-    let endDate = null;
-    if (isFiltered) {
-        const startVal = document.getElementById('order-start-date').value;
-        const endVal = document.getElementById('order-end-date').value;
-        if (!startVal || !endVal) {
-            alert("Please select both Start and End dates");
-            return;
-        }
-        startDate = new Date(startVal);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(endVal);
-        endDate.setHours(23, 59, 59, 999);
-    }
-
-    tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px;">Fetching Cloud Records...</td></tr>`;
-
-    try {
-        const res = await fetch(scriptURL + "?type=Records"); 
-        const allRecords = await res.json();
-        currentOrders = allRecords; // This saves the data so the print function can find it
-        
-        const displayRecords = allRecords.filter(r => {
-            const rowDate = new Date(r[0]);
-            const branchMatch = isAdmin ? true : r[12] === user.activeBranch;
-            
-            if (isFiltered) {
-                return branchMatch && rowDate >= startDate && rowDate <= endDate;
-            }
-            return branchMatch;
-        });
-
-        displayRecords.reverse(); 
-
-        tableBody.innerHTML = '';
-        if (displayRecords.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px;">No records found for this period.</td></tr>`;
-            return;
-        }
-
-        displayRecords.forEach(row => {
-            const dateStr = new Date(row[0]).toLocaleDateString('en-GB');
-            const inv = row[1];
-            const name = row[2];
-            const phone = row[3];
-            
-            // --- NEW: Extract Total Amount and Balance ---
-            const totalAmt = parseFloat(row[7]) || 0; 
-            const balance = parseFloat(row[9]) || 0;
-            
-            const status = row[11];
-            const branchName = row[12] || 'N/A';
-            
-            const rxData = JSON.stringify({
-                name: name, invoice: inv, re: row[4], le: row[5], items: row[6]
-            }).replace(/"/g, '&quot;');
-
-            let badgeColor = status === 'Delivered' ? '#10b981' : (status === 'Ready' ? '#3b82f6' : '#f59e0b');
-            let branchTd = isAdmin ? `<td style="padding: 12px; color:#64748b;">${branchName}</td>` : '';
-
-            tableBody.innerHTML += `
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 12px;">${dateStr}</td>
-                <td style="padding: 12px; font-weight:600;">${inv}</td>
-                <td style="padding: 12px;">${name}</td>
-                <td style="padding: 12px; color:#64748b;">${phone}</td>
-                
-                <td style="padding: 12px; font-weight:bold; color:#1e293b;">
-                    ${totalAmt.toFixed(3)}
-                </td>
-
-                <td style="padding: 12px; font-weight:bold; color:${balance > 0 ? '#f43f5e' : '#10b981'};">
-                    ${balance.toFixed(3)}
-                </td>
-                <td style="padding: 12px;">
-                    <span style="background:${badgeColor}22; color:${badgeColor}; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:bold;">
-                        ${status}
-                    </span>
-                </td>
-                ${branchTd}
-                <td style="padding: 12px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
-                    <button onclick="showRx('${rxData}')" style="background:#f1f5f9; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" title="View Rx">
-                        <i class="fas fa-eye"></i>
-                    </button>
-
-                    <button onclick="printOrder('${inv}')" style="background:#0ea5e9; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" title="Print Invoice">
-                        <i class="fas fa-print"></i>
-                    </button>
-
-                    <button onclick="openEditModal('${inv}', '${balance}', '${status}')" style="background:var(--accent); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" title="Edit Status">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                </td>
-            </tr>`;
-        });
-    } catch (e) {
-        console.error(e);
-        tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Connection Error</td></tr>';
-    }
-}        window.onload = async () => {
-            const saved = sessionStorage.getItem('alfareeda_user');
-            if(saved) applyUI(JSON.parse(saved));
-            await loadStaff();
-        };
-
-async function loadBranchStats(userRole, myBranch) {
-    const dashContainer = document.getElementById('dash-section');
-    dashContainer.innerHTML = '<div style="text-align:center; padding:50px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Calculating Financials...</p></div>';
-
-    try {
-        const [salesRes, expRes] = await Promise.all([
-            fetch(scriptURL + "?type=Records"),
-            fetch(scriptURL + "?type=Expenses")
-        ]);
-        
-        const allSales = await salesRes.json();
-        const allExpenses = await expRes.json();
-
-        if (userRole === "Manager") {
-            renderManagerDash(allSales, allExpenses);
-        } else {
-            renderCashierDash(allSales, allExpenses, myBranch);
-        }
-    } catch (e) {
-        dashContainer.innerHTML = '<p style="color:red;">Error loading dashboard data.</p>';
-    }
-}
-
-// Helper to check if a date is "Today"
-function isToday(dateString) {
-    const today = new Date();
-    const target = new Date(dateString);
-    return today.getDate() === target.getDate() &&
-           today.getMonth() === target.getMonth() &&
-           today.getFullYear() === target.getFullYear();
-}
-
-function isThisMonth(dateString) {
-    const now = new Date();
-    const target = new Date(dateString);
-    return now.getMonth() === target.getMonth() &&
-           now.getFullYear() === target.getFullYear();
-}
-
-function renderCashierDash(allSales, allExpenses, branch) {
-    const bSales = allSales.filter(r => r[12] === branch);
-    const bExp = allExpenses.filter(e => e[4] === branch);
-    
-    // Today's Calculations (Stays the same)
-    const todaySales = bSales.filter(r => isToday(r[0]));
-    const todayExp = bExp.filter(e => isToday(e[0]));
-    
-    let tSalesVal = todaySales.reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
-    let tExpVal = todayExp.reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
-    
-
-    // --- UPDATED: Monthly Calculations (Formerly Overall) ---
-    const monthlySales = bSales.filter(r => isThisMonth(r[0]));
-    const monthlyExp = bExp.filter(e => isThisMonth(e[0]));
-
-    let totalRev = monthlySales.reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
-    let totalExp = monthlyExp.reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
-    
-    // Note: Pending usually stays "All Time" so you don't lose track of old debt
-    let pending = bSales.reduce((s, r) => s + (parseFloat(r[9]) || 0), 0);
-
-    document.getElementById('dash-section').innerHTML = `
-        <h3 style="margin-bottom:15px; color:var(--primary); font-size:1rem; opacity:0.8;">TODAY'S SNAPSHOT</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom:30px;">
-            <div class="data-card" style="background:var(--primary); color:white; padding:1.5rem;">
-                <small>TODAY'S SALES</small>
-                <h2 style="margin:5px 0;">${tSalesVal.toFixed(3)}</h2>
-            </div>
-            <div class="data-card" style="border: 1px solid #e2e8f0; padding:1.5rem;">
-                <small style="color:#64748b;">TODAY'S EXPENSE</small>
-                <h2 style="margin:5px 0; color:var(--danger);">${tExpVal.toFixed(3)}</h2>
-            </div>
-            
+    html += `
+      <div class="branch-card">
+        <div class="head">${b} Branch</div>
+        <div class="body">
+          <div class="branch-row" style="border-bottom:1px dashed var(--border); padding-bottom:10px; margin-bottom:10px;">
+            <strong style="color:var(--ink);">Today's Net</strong>
+            <strong class="tabular" style="color:${net>=0?'var(--teal)':'var(--rose)'};">${net.toFixed(3)} OMR</strong>
+          </div>
+          <div class="branch-row"><span>Month Revenue</span><span class="tabular">${totalRev.toFixed(3)}</span></div>
+          <div class="branch-row"><span>Month Expenses</span><span class="tabular" style="color:var(--rose);">${totalExp.toFixed(3)}</span></div>
+          <div style="margin-top:12px; background:#F4F1E9; border-radius:10px; padding:10px; text-align:center;">
+            <small style="color:var(--brass); font-weight:700; letter-spacing:.05em; text-transform:uppercase; font-size:.68rem;">Monthly Net Profit</small>
+            <div class="tabular" style="font-size:1.15rem; font-weight:800; color:var(--navy);">${(totalRev-totalExp).toFixed(3)} OMR</div>
+          </div>
         </div>
-
-        <h3 style="margin-bottom:15px; color:var(--primary); font-size:1rem; opacity:0.8;">PERFORMANCE THIS MONTH (${branch})</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
-            <div class="data-card">
-                <small style="color:#64748b;">MONTHLY REVENUE</small>
-                <h3>${totalRev.toFixed(3)} OMR</h3>
-            </div>
-            <div class="data-card">
-                <small style="color:#64748b;">MONTHLY EXPENSES</small>
-                <h3>${totalExp.toFixed(3)} OMR</h3>
-            </div>
-            <div class="data-card" style="background: #fff1f2; border: 1px solid #fecdd3;">
-                <small style="color:#9f1239;">TOTAL PENDING BALANCES</small>
-                <h3 style="color:#9f1239;">${pending.toFixed(3)} OMR</h3>
-            </div>
-        </div>
-    `;
+      </div>`;
+  });
+  html += `</div>`;
+  document.getElementById('dash-body').innerHTML = html;
 }
 
-function renderManagerDash(allSales, allExpenses) {
-    const branches = ["Sumail", "Izki", "Sinaw"];
-    let html = `<h2>Branch Performance (This Month)</h2>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:25px;">`;
+/* ============================================================
+   ORDERS
+   ============================================================ */
+function calcBalance(){
+  const t = parseFloat(document.getElementById('order-total').value) || 0;
+  const a = parseFloat(document.getElementById('order-advance').value) || 0;
+  document.getElementById('order-balance').value = (t - a).toFixed(3);
+}
 
-    branches.forEach(b => {
-        const bSales = allSales.filter(r => r[12] === b);
-        const bExp = allExpenses.filter(e => e[4] === b);
-        
-        const tSalesVal = bSales.filter(r => isToday(r[0])).reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
-        const tExpVal = bExp.filter(e => isToday(e[0])).reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
+async function saveOrderToCloud(){
+  const btn = document.getElementById('save-btn');
+  const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!sessionUser) return alert('Please log in again.');
 
-        // --- UPDATED: Filtering for current month only ---
-        let totalRev = bSales.filter(r => isThisMonth(r[0])).reduce((s, r) => s + (parseFloat(r[7]) || 0), 0);
-        let totalExp = bExp.filter(e => isThisMonth(e[0])).reduce((s, e) => s + (parseFloat(e[2]) || 0), 0);
+  const rePower = `S:${document.getElementById('re-sph').value||'0'} C:${document.getElementById('re-cyl').value||'0'} A:${document.getElementById('re-axis').value||'0'} Add:${document.getElementById('re-add').value||'0'}`;
+  const lePower = `S:${document.getElementById('le-sph').value||'0'} C:${document.getElementById('le-cyl').value||'0'} A:${document.getElementById('le-axis').value||'0'} Add:${document.getElementById('le-add').value||'0'}`;
 
-        html += `
-            <div class="data-card" style="padding:0; overflow:hidden;">
-                <div style="background:var(--primary); color:white; padding:1.2rem;">
-                    <h3 style="margin:0;">${b} Branch</h3>
-                </div>
-                <div style="padding:1.5rem;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #eee;">
-                        <span><strong>Today's Net:</strong></span>
-                        <span style="color:${(tSalesVal - tExpVal) >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:bold;">
-                            ${(tSalesVal - tExpVal).toFixed(3)} OMR
-                        </span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
-                        <span style="color:#64748b;">Month Revenue:</span>
-                        <span>${totalRev.toFixed(3)}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
-                        <span style="color:#64748b;">Month Expenses:</span>
-                        <span style="color:var(--danger);">${totalExp.toFixed(3)}</span>
-                    </div>
-                    <div style="margin-top:15px; background:#f0f9ff; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="color:#0369a1; font-weight:bold;">MONTHLY NET PROFIT</small>
-                        <div style="font-size:1.2rem; font-weight:800; color:var(--accent);">${(totalRev - totalExp).toFixed(3)} OMR</div>
-                    </div>
-                </div>
-            </div>`;
+  const data = {
+    type: 'order',
+    invoice: document.getElementById('order-invoice').value,
+    name: document.getElementById('order-name').value,
+    contact: document.getElementById('order-contact').value,
+    rightEye: rePower,
+    leftEye: lePower,
+    items: document.getElementById('order-items').value,
+    total: document.getElementById('order-total').value || 0,
+    advance: document.getElementById('order-advance').value || 0,
+    balance: document.getElementById('order-balance').value || 0,
+    payment: document.getElementById('order-payment').value,
+    status: document.getElementById('order-status').value,
+    branch: sessionUser.activeBranch
+  };
+  if (!data.name || !data.invoice) return alert('Fill Name and Invoice');
+
+  btn.disabled = true; btn.innerText = 'Syncing with Cloud…';
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+    alert('Saved to ' + sessionUser.activeBranch);
+    location.reload();
+  }catch(e){
+    alert('Error saving order.'); btn.disabled = false; btn.innerText = 'Save Order';
+  }
+}
+
+async function loadOrderList(isFiltered = false){
+  const tableBody = document.getElementById('order-list-table');
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!user) return;
+  const isAdmin = user.role === 'Manager';
+  document.getElementById('branch-header').style.display = isAdmin ? 'table-cell' : 'none';
+
+  let startDate=null, endDate=null;
+  if (isFiltered){
+    const s = document.getElementById('order-start-date').value, e = document.getElementById('order-end-date').value;
+    if (!s || !e) return alert('Please select both Start and End dates');
+    startDate = new Date(s); startDate.setHours(0,0,0,0);
+    endDate = new Date(e); endDate.setHours(23,59,59,999);
+  }
+
+  tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px;">Fetching cloud records…</td></tr>`;
+  try{
+    const res = await fetch(scriptURL + '?type=Records');
+    const all = await res.json();
+    currentOrders = all;
+
+    const rows = all.filter(r => {
+      const rowDate = new Date(r[0]);
+      const branchMatch = isAdmin ? true : r[12] === user.activeBranch;
+      return isFiltered ? (branchMatch && rowDate >= startDate && rowDate <= endDate) : branchMatch;
+    }).reverse();
+
+    if (rows.length === 0){
+      tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px;">No records found.</td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = rows.map(row => {
+      const dateStr = new Date(row[0]).toLocaleDateString('en-GB');
+      const totalAmt = parseFloat(row[7]) || 0;
+      const balance = parseFloat(row[9]) || 0;
+      const status = row[11];
+      const branchName = row[12] || 'N/A';
+      const rxData = JSON.stringify({ name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6] }).replace(/"/g,'&quot;');
+      const color = status==='Delivered' ? 'var(--teal)' : (status==='Ready' ? 'var(--navy)' : 'var(--amber)');
+      const branchTd = isAdmin ? `<td>${branchName}</td>` : '';
+      return `
+        <tr>
+          <td>${dateStr}</td>
+          <td style="font-weight:700;">${row[1]}</td>
+          <td>${row[2]}</td>
+          <td style="color:var(--ink-soft);">${row[3]}</td>
+          <td class="tabular" style="font-weight:700;">${totalAmt.toFixed(3)}</td>
+          <td class="tabular" style="font-weight:700; color:${balance>0?'var(--rose)':'var(--teal)'};">${balance.toFixed(3)}</td>
+          <td><span class="badge" style="background:${color}22; color:${color};">${status}</span></td>
+          ${branchTd}
+          <td style="text-align:right; white-space:nowrap;">
+            <button class="btn btn-ghost btn-icon" title="View Rx" onclick="showRx('${rxData}')"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-brass btn-icon" title="Print Invoice" onclick="printOrder('${row[1]}')"><i class="fas fa-print"></i></button>
+            <button class="btn btn-primary btn-icon" title="Edit Status" onclick="openEditModal('${row[1]}','${balance}','${status}')"><i class="fas fa-edit"></i></button>
+          </td>
+        </tr>`;
+    }).join('');
+  }catch(e){
+    console.error(e);
+    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--rose);">Connection error</td></tr>';
+  }
+}
+
+function resetOrderFilter(){
+  document.getElementById('order-start-date').value = '';
+  document.getElementById('order-end-date').value = '';
+  loadOrderList(false);
+}
+
+function searchOrders(){
+  const filter = document.getElementById('search-box').value.toLowerCase();
+  const rows = document.getElementById('order-list-table').getElementsByTagName('tr');
+  for (let i=0;i<rows.length;i++){
+    rows[i].style.display = (rows[i].textContent.toLowerCase().indexOf(filter) > -1) ? '' : 'none';
+  }
+}
+
+function openEditModal(inv, bal, stat){
+  document.getElementById('up-invoice').value = inv;
+  document.getElementById('up-balance').value = bal;
+  document.getElementById('up-status').value = stat;
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+async function submitUpdate(evt){
+  const inv = document.getElementById('up-invoice').value;
+  const bal = document.getElementById('up-balance').value;
+  const stat = document.getElementById('up-status').value;
+  const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!inv) return alert('Error: invoice number missing.');
+
+  const btn = evt.target;
+  const original = btn.innerText;
+  btn.innerText = 'Updating…'; btn.disabled = true;
+
+  const oldOrder = currentOrders.find(r => String(r[1]) === String(inv));
+  const oldBalance = oldOrder ? parseFloat(oldOrder[9]) : 0;
+  const customerName = oldOrder ? oldOrder[2] : 'Unknown';
+  const amountPaidNow = oldBalance - parseFloat(bal);
+
+  const data = {
+    action: 'update', invoice: inv, balance: bal, status: stat,
+    amountCollected: amountPaidNow > 0 ? amountPaidNow : 0,
+    branch: sessionUser ? sessionUser.activeBranch : 'Unknown',
+    customerName
+  };
+
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+    alert('Order ' + inv + ' updated and cash logged!');
+    closeModals(); location.reload();
+  }catch(e){
+    alert('Connection error. Try again.'); btn.innerText = original; btn.disabled = false;
+  }
+}
+
+function parseRx(str){
+  if (!str || str === 'N/A') return { s:'-', c:'-', a:'-', ad:'-' };
+  return {
+    s: str.match(/S:([^ ]+)/)?.[1] || '-',
+    c: str.match(/C:([^ ]+)/)?.[1] || '-',
+    a: str.match(/A:([^ ]+)/)?.[1] || '-',
+    ad: str.match(/Add:([^ ]+)/)?.[1] || '-'
+  };
+}
+
+function showRx(jsonStr){
+  const data = JSON.parse(jsonStr);
+  const re = parseRx(data.re), le = parseRx(data.le);
+  document.getElementById('rx-body').innerHTML = `
+    <h2><i class="fas fa-glasses"></i> Prescription Card</h2>
+    <p style="color:var(--ink-soft); font-size:.85rem; margin-bottom:14px;">Invoice ${data.invoice} · ${data.name}</p>
+    <table class="rx-table">
+      <thead><tr><th>Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
+      <tbody>
+        <tr><td>R.E</td><td class="tabular">${re.s}</td><td class="tabular">${re.c}</td><td class="tabular">${re.a}</td><td class="tabular">${re.ad}</td></tr>
+        <tr><td>L.E</td><td class="tabular">${le.s}</td><td class="tabular">${le.c}</td><td class="tabular">${le.a}</td><td class="tabular">${le.ad}</td></tr>
+      </tbody>
+    </table>
+    <div style="background:#FBF3E6; border-left:4px solid var(--brass); padding:10px 12px; border-radius:6px; margin-top:12px;">
+      <strong style="font-size:.8rem;">Lens/Description</strong>
+      <p style="margin-top:4px; font-size:.88rem; color:#6b4c14;">${data.items || 'None'}</p>
+    </div>
+    <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="closeModals()">Close</button>`;
+  document.getElementById('rx-modal').style.display = 'flex';
+}
+
+function closeModals(){
+  document.getElementById('rx-modal').style.display = 'none';
+  document.getElementById('edit-modal').style.display = 'none';
+}
+
+/* ============================================================
+   EXPENSES
+   ============================================================ */
+async function saveExpense(){
+  const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!sessionUser) return alert('Session expired. Please login again.');
+  const amount = document.getElementById('exp-amount').value;
+  if (!amount) return alert('Please enter an amount');
+
+  const data = {
+    type: 'expense',
+    category: document.getElementById('exp-category').value,
+    amount,
+    description: document.getElementById('exp-desc').value,
+    branch: sessionUser.activeBranch,
+    staff: sessionUser.id
+  };
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+    alert('Expense sent to cloud!'); location.reload();
+  }catch(e){ alert('Network error.'); }
+}
+
+async function loadExpenseList(isFiltered = false){
+  const tableBody = document.getElementById('expense-list-table');
+  const totalBadge = document.getElementById('expense-total-badge');
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!user) return;
+  const isAdmin = user.role === 'Manager';
+  document.getElementById('exp-branch-header').style.display = isAdmin ? 'table-cell' : 'none';
+
+  let startDate=null, endDate=null;
+  if (isFiltered){
+    const s = document.getElementById('exp-start-date').value, e = document.getElementById('exp-end-date').value;
+    if (!s || !e) return alert('Please select both Start and End dates');
+    startDate = new Date(s); startDate.setHours(0,0,0,0);
+    endDate = new Date(e); endDate.setHours(23,59,59,999);
+  }
+
+  tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Loading expenses…</td></tr>';
+  try{
+    const res = await fetch(scriptURL + '?type=Expenses');
+    const all = await res.json();
+    const rows = all.filter(e => {
+      const rowDate = new Date(e[0]);
+      const branchMatch = isAdmin ? true : e[4] === user.activeBranch;
+      return isFiltered ? (branchMatch && rowDate >= startDate && rowDate <= endDate) : branchMatch;
+    }).reverse();
+
+    let total = 0;
+    tableBody.innerHTML = rows.map(row => {
+      const amount = parseFloat(row[2]) || 0;
+      total += amount;
+      return `<tr>
+        <td>${new Date(row[0]).toLocaleDateString('en-GB')}</td>
+        <td><span class="badge" style="background:#EFEAdd; color:var(--ink-soft);">${row[1]}</span></td>
+        <td style="color:var(--ink-soft);">${row[3]}</td>
+        <td class="tabular" style="font-weight:700; color:var(--rose);">${amount.toFixed(3)}</td>
+        ${isAdmin ? `<td>${row[4]}</td>` : ''}
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" style="text-align:center; padding:20px;">No expenses found.</td></tr>';
+
+    totalBadge.innerText = `Total: ${total.toFixed(3)} OMR`;
+  }catch(e){
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--rose);">Failed to load data.</td></tr>';
+  }
+}
+
+function resetExpFilter(){
+  document.getElementById('exp-start-date').value = '';
+  document.getElementById('exp-end-date').value = '';
+  loadExpenseList(false);
+}
+
+/* ============================================================
+   STAFF
+   ============================================================ */
+async function createNewStaff(){
+  const data = {
+    type: 'staff',
+    name: document.getElementById('new-name').value,
+    id: document.getElementById('new-id').value,
+    pass: document.getElementById('new-pass').value,
+    branch: document.getElementById('new-branch').value,
+    role: 'Cashier'
+  };
+  await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+  alert('Staff added'); location.reload();
+}
+
+/* ============================================================
+   TRANSACTION HISTORY (Manager)
+   ============================================================ */
+async function loadTransactionHistory(isFiltered = false){
+  const tableBody = document.getElementById('transaction-list-table');
+  const totalBadge = document.getElementById('trans-total-badge');
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!user || user.role !== 'Manager') return;
+
+  tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px;">Loading transactions…</td></tr>';
+  try{
+    const res = await fetch(scriptURL + '?type=Collections');
+    let all = await res.json();
+    let startDate = isFiltered ? new Date(document.getElementById('trans-start-date').value) : null;
+    let endDate = isFiltered ? new Date(document.getElementById('trans-end-date').value) : null;
+    if (startDate) startDate.setHours(0,0,0,0);
+    if (endDate) endDate.setHours(23,59,59,999);
+
+    all.reverse();
+    let total = 0;
+    let html = '';
+    all.forEach(row => {
+      const rowDate = new Date(row[0]);
+      const amount = parseFloat(row[5]) || 0;
+      if (isFiltered && startDate && endDate && (rowDate < startDate || rowDate > endDate)) return;
+      total += amount;
+      const isAdvance = row[4] === 'Advance';
+      html += `<tr>
+        <td>${rowDate.toLocaleDateString('en-GB')}</td>
+        <td style="font-weight:700; color:var(--navy);">#${row[1]}</td>
+        <td>${row[2]}</td>
+        <td style="color:var(--ink-soft);">${row[3]}</td>
+        <td><span class="badge" style="background:${isAdvance?'#E4EEF7':'#E1F0EA'}; color:${isAdvance?'#245985':'#1D6E4D'};">${row[4]}</span></td>
+        <td class="tabular" style="text-align:right; font-weight:800; color:var(--brass);">${amount.toFixed(3)}</td>
+      </tr>`;
     });
-
-    html += `</div>`;
-    document.getElementById('dash-section').innerHTML = html;
+    tableBody.innerHTML = html || '<tr><td colspan="6" style="text-align:center; padding:24px;">No transactions found.</td></tr>';
+    totalBadge.innerText = 'Total: ' + total.toFixed(3) + ' OMR';
+  }catch(e){
+    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--rose);">Failed to load history.</td></tr>';
+  }
 }
 
-// This function opens the Edit window when the pencil icon is clicked
-function openEditModal(inv, bal, stat) {
-    const modal = document.getElementById('edit-modal');
-    const invField = document.getElementById('up-invoice');
-    const balField = document.getElementById('up-balance');
-    const statField = document.getElementById('up-status');
+/* ============================================================
+   PRINT — builds a two-copy carbon-style invoice
+   (top half "For Shop", bottom half "For Customer")
+   ============================================================ */
+function buildInvoiceCopy(order, copyLabel, showDelivery){
+  const re = parseRx(order[4]);
+  const le = parseRx(order[5]);
+  const dateStr = new Date(order[0]).toLocaleDateString('en-GB');
+  const total = (parseFloat(order[7]) || 0).toFixed(3);
+  const advance = (parseFloat(order[8]) || 0).toFixed(3);
+  const balance = (parseFloat(order[9]) || 0).toFixed(3);
+  const branch = order[12] || 'Main';
 
-    if (modal && invField && balField && statField) {
-        invField.value = inv;
-        balField.value = bal;
-        statField.value = stat;
-        modal.style.display = 'flex';
-    } else {
-        console.error("One or more Edit Modal elements are missing from HTML");
-    }
+  return `
+    <div class="inv-copy">
+      <div class="inv-head">
+        <div class="en">C.R: ${SHOP.cr}<br>P.O. Box: ${SHOP.po}<br>P.C: ${SHOP.pc}<br>${SHOP.addr.replace(/\n/g,'<br>')}<br>GSM: ${SHOP.gsm}</div>
+        <div class="brandbox">
+          <img src="${SHOP.logo}" style="height:34px;">
+          <div class="name-en">${SHOP.nameEn}</div>
+          <div class="name-ar">${SHOP.nameAr}</div>
+          <div class="copy-tag">${copyLabel}</div>
+        </div>
+        <div class="ar">${SHOP.addrAr.replace(/\n/g,'<br>')}<br>نقال: ${SHOP.gsm}</div>
+      </div>
+
+      <div class="inv-meta">
+        <div><span class="lbl">Name</span><br><span class="val">${order[2] || '-'}</span></div>
+        <div><span class="lbl">Date</span><br><span class="val">${dateStr}</span></div>
+        <div><span class="lbl">Contact No.</span><br><span class="val">${order[3] || '-'}</span></div>
+        <div><span class="lbl">Invoice No.</span><br><span class="val">#${order[1]}</span></div>
+        ${showDelivery ? `
+        <div><span class="lbl">Date of Delivery</span><br><span class="val">&nbsp;</span></div>
+        <div><span class="lbl">Time of Delivery</span><br><span class="val">&nbsp;</span></div>` : ''}
+      </div>
+
+      <table class="inv-rx">
+        <caption>Prescription</caption>
+        <thead><tr><th style="width:22%;"></th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
+        <tbody>
+          <tr><td class="side">Right Eye (RE)</td><td>${re.s}</td><td>${re.c}</td><td>${re.a}</td><td>${re.ad}</td></tr>
+          <tr><td class="side">Left Eye (LE)</td><td>${le.s}</td><td>${le.c}</td><td>${le.a}</td><td>${le.ad}</td></tr>
+        </tbody>
+      </table>
+
+      <div class="inv-line"><span class="lbl">Frame &amp; Lens Details</span><br>${order[6] || '-'}</div>
+      <div class="inv-line"><span class="lbl">Remarks</span> ________________________________</div>
+
+      <table class="inv-amounts">
+        <tr><td>Total Amount</td><td>${total}</td></tr>
+        <tr><td>Cash Paid</td><td>${advance}</td></tr>
+        <tr><td>Balance</td><td>${balance} OMR</td></tr>
+      </table>
+
+      <div class="inv-foot">
+        <span>Branch: ${branch}</span>
+        <div class="sig">Signature</div>
+      </div>
+
+      ${showDelivery ? `
+      <div class="inv-note-ar">
+        ١- لايمكن الغاء امر الشغل الذي تم تسجيله. الصيانة والاصلاح تحت مسئولية الزبون.<br>
+        ٢- اننا غير مسئولين عن الطلب بعد مضي ٣ أشهر.
+      </div>` : ''}
+    </div>`;
 }
 
-// This function sends the updated status and balance to your Google Sheet
-async function submitUpdate() {
-    const inv = document.getElementById('up-invoice').value;
-    const bal = document.getElementById('up-balance').value;
-    const stat = document.getElementById('up-status').value;
-    
-    // Get session user to know which branch is collecting the money
-    const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+function printOrder(invoiceId){
+  const order = currentOrders.find(r => String(r[1]) === String(invoiceId));
+  if (!order) return alert('Order data not found.');
 
-    if (!inv) {
-        alert("Error: Invoice number is missing.");
-        return;
-    }
+  const shopCopy = buildInvoiceCopy(order, 'For Shop', false);
+  const cut = `<div class="inv-cut">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  ✂</div>`;
+  const customerCopy = buildInvoiceCopy(order, 'For Customer', true);
 
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = "Updating Cloud...";
-    btn.disabled = true;
-
-    // FIND OLD DATA: We need the previous balance and name to calculate the payment
-    const oldOrder = currentOrders.find(r => String(r[1]) === String(inv));
-    const oldBalance = oldOrder ? parseFloat(oldOrder[9]) : 0;
-    const customerName = oldOrder ? oldOrder[2] : "Unknown";
-    
-    // Calculate how much cash was actually handed over right now
-    const amountPaidNow = oldBalance - parseFloat(bal);
-
-    console.log("Old Balance from Memory:", oldBalance); // DEBUG LINE 1
-    console.log("New Balance from Input:", bal);   // DEBUG LINE 2
-    
-    const data = {
-        action: "update",
-        invoice: inv,
-        balance: bal,
-        status: stat,
-        // New fields for the Collection Sheet
-        amountCollected: amountPaidNow > 0 ? amountPaidNow : 0, 
-        branch: sessionUser ? sessionUser.activeBranch : "Unknown",
-        customerName: customerName
-    };
-
-console.log("FINAL DATA TO SEND:", data); // DEBUG LINE 3 
-    
-    try {
-        await fetch(scriptURL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(data) 
-        });
-
-        alert("Order " + inv + " updated and cash logged!");
-        closeModals();
-        location.reload(); 
-    } catch (e) {
-        console.error("Update Error:", e);
-        alert("Connection Error. Please try again.");
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
+  document.getElementById('print-root').innerHTML = shopCopy + cut + customerCopy;
+  window.print();
 }
-// This function handles the "Prescription" button
-function showRx(jsonStr) {
-    const modal = document.getElementById('rx-modal');
-    const body = document.getElementById('rx-body');
-    const data = JSON.parse(jsonStr);
-
-    // Helper to parse "S:0.00 C:0.00..." strings into neat objects
-    const parse = (str) => {
-        if (!str || str === "N/A") return { s: '-', c: '-', a: '-', ad: '-' };
-        return {
-            s: str.match(/S:([^ ]+)/)?.[1] || '-',
-            c: str.match(/C:([^ ]+)/)?.[1] || '-',
-            a: str.match(/A:([^ ]+)/)?.[1] || '-',
-            ad: str.match(/Add:([^ ]+)/)?.[1] || '-'
-        };
-    };
-
-    const re = parse(data.re);
-    const le = parse(data.le);
-
-    if (modal && body) {
-        body.innerHTML = `
-            <div style="text-align:center; border-bottom:2px solid #eee; margin-bottom:15px; padding-bottom:10px;">
-                <h2 style="color:var(--primary); margin:0;">PRESCRIPTION CARD</h2>
-                <small style="color:#64748b;">Invoice: ${data.invoice}</small>
-            </div>
-
-            <div style="margin-bottom:15px;">
-                <p style="margin:2px 0;"><strong>Customer:</strong> ${data.name}</p>
-            </div>
-
-            <table style="width:100%; border-collapse: collapse; text-align:center; margin-bottom:15px; border:1px solid #e2e8f0;">
-                <thead>
-                    <tr style="background:#f8fafc; color:#64748b; font-size:0.8rem;">
-                        <th style="padding:8px; border:1px solid #e2e8f0;">EYE</th>
-                        <th style="padding:8px; border:1px solid #e2e8f0;">SPH</th>
-                        <th style="padding:8px; border:1px solid #e2e8f0;">CYL</th>
-                        <th style="padding:8px; border:1px solid #e2e8f0;">AXIS</th>
-                        <th style="padding:8px; border:1px solid #e2e8f0;">ADD</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold; background:#f1f5f9;">R.E</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.s}</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.c}</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.a}</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${re.ad}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold; background:#f1f5f9;">L.E</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.s}</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.c}</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.a}</td>
-                        <td style="padding:10px; border:1px solid #e2e8f0;">${le.ad}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="background:#fff7ed; padding:10px; border-radius:6px; border-left:4px solid #f97316;">
-                <p style="margin:0; font-size:0.9rem;"><strong>Lens/Description:</strong></p>
-                <p style="margin:5px 0 0 0; color:#7c2d12;">${data.items || 'None'}</p>
-            </div>
-        `;
-        modal.style.display = 'flex';
-    }
-}
-
-        
-// Function to close any open popup
-function closeModals() {
-    if(document.getElementById('rx-modal')) document.getElementById('rx-modal').style.display = 'none';
-    if(document.getElementById('edit-modal')) document.getElementById('edit-modal').style.display = 'none';
-}
-
-function searchOrders() {
-    // 1. Get the search input
-    const input = document.getElementById('search-box');
-    if (!input) return;
-    const filter = input.value.toLowerCase();
-    
-    // 2. Target YOUR specific table body ID
-    const tableBody = document.getElementById('order-list-table');
-    if (!tableBody) return;
-
-    // 3. Get all rows inside that table body
-    const rows = tableBody.getElementsByTagName('tr');
-
-    // 4. Loop through the rows
-    for (let i = 0; i < rows.length; i++) {
-        // Get the text from Name (3rd column) and Invoice (2nd column)
-        const rowText = rows[i].textContent || rows[i].innerText;
-        
-        if (rowText.toLowerCase().indexOf(filter) > -1) {
-            rows[i].style.display = ""; // Show
-        } else {
-            rows[i].style.display = "none"; // Hide
-        }
-    }
-}
-
-async function saveExpense() {
-    const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-    if (!sessionUser) {
-        alert("Session expired. Please login again.");
-        return;
-    }
-
-    const amount = document.getElementById('exp-amount').value;
-    if (!amount) {
-        alert("Please enter an amount");
-        return;
-    }
-
-    const data = {
-        type: "expense",
-        category: document.getElementById('exp-category').value,
-        amount: amount,
-        description: document.getElementById('exp-desc').value,
-        branch: sessionUser.activeBranch,
-        staff: sessionUser.id
-    };
-
-    console.log("Sending data:", data); // This helps you see if the data is ready
-
-    try {
-        await fetch(scriptURL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(data) 
-        });
-        alert("Expense Sent to Cloud!");
-        location.reload(); 
-    } catch(e) {
-        console.error("Fetch error:", e);
-        alert("Network Error");
-    }
-}
-
-async function loadExpenseList(isFiltered = false) {
-    const tableBody = document.getElementById('expense-list-table');
-    const totalBadge = document.getElementById('expense-total-badge');
-    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-    if (!user) return;
-
-    const isAdmin = user.role === "Manager";
-    const branchHeader = document.getElementById('exp-branch-header');
-    if (branchHeader) {
-        branchHeader.style.display = isAdmin ? "table-cell" : "none";
-    }
-
-    // 1. Get Date Values if filtering is active
-    let startDate = null;
-    let endDate = null;
-    if (isFiltered) {
-        const startVal = document.getElementById('exp-start-date').value;
-        const endVal = document.getElementById('exp-end-date').value;
-        if (!startVal || !endVal) {
-            alert("Please select both Start and End dates");
-            return;
-        }
-        startDate = new Date(startVal);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(endVal);
-        endDate.setHours(23, 59, 59, 999);
-    }
-
-    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Loading Expenses...</td></tr>';
-
-    try {
-        const res = await fetch(scriptURL + "?type=Expenses"); 
-        const allExpenses = await res.json();
-        
-        // 2. Combined Filter: Branch Security + Date Range
-        const displayData = allExpenses.filter(e => {
-            const rowDate = new Date(e[0]);
-            const branchMatch = isAdmin ? true : e[4] === user.activeBranch;
-            
-            if (isFiltered) {
-                return branchMatch && rowDate >= startDate && rowDate <= endDate;
-            }
-            return branchMatch;
-        });
-
-        displayData.reverse(); // Newest first
-
-        let html = '';
-        let totalSum = 0;
-
-        displayData.forEach(row => {
-            const date = new Date(row[0]).toLocaleDateString('en-GB');
-            const category = row[1];
-            const amount = parseFloat(row[2]) || 0;
-            const desc = row[3];
-            const branch = row[4];
-            
-            totalSum += amount;
-
-            html += `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 12px;">${date}</td>
-                    <td style="padding: 12px;"><span style="background:#eee; padding:3px 8px; border-radius:4px; font-size:0.8rem;">${category}</span></td>
-                    <td style="padding: 12px; color:#64748b;">${desc}</td>
-                    <td style="padding: 12px; font-weight:bold; color:var(--danger);">${amount.toFixed(3)}</td>
-                    ${isAdmin ? `<td style="padding: 12px;">${branch}</td>` : ''}
-                </tr>`;
-        });
-
-        tableBody.innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding:20px;">No expenses found for this period.</td></tr>';
-        
-        // 3. Update the Total Badge with the filtered sum
-        totalBadge.innerText = `Total: ${totalSum.toFixed(3)} OMR`;
-
-    } catch (e) {
-        console.error(e);
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Failed to load data.</td></tr>';
-    }
-}
-
-function printOrder(invoiceId) {
-    const order = currentOrders.find(r => String(r[1]) === String(invoiceId)); 
-    if(!order) {
-        alert("Order data not found.");
-        return;
-    }
-
-    // 1. Map Header & Customer Data
-    document.getElementById('p-inv-no').innerText = "#" + order[1]; // [cite: 9]
-    document.getElementById('p-date').innerText = "Date: " + new Date(order[0]).toLocaleDateString('en-GB'); // [cite: 10]
-    document.getElementById('p-branch-address').innerText = (order[12] || "Main") + " Branch"; // [cite: 2]
-    document.getElementById('p-cust-name').innerText = order[2]; // [cite: 4]
-    document.getElementById('p-cust-phone').innerText = order[3]; // [cite: 5]
-    
-    // 2. Parse and Fill Prescription (Rx) Table
-    const re = parseRx(order[4]); // [cite: 11]
-    const le = parseRx(order[5]); // [cite: 11]
-
-    document.getElementById('p-re-sph').innerText = re.s;
-    document.getElementById('p-re-cyl').innerText = re.c;
-    document.getElementById('p-re-axis').innerText = re.a;
-    document.getElementById('p-re-add').innerText = re.ad;
-
-    document.getElementById('p-le-sph').innerText = le.s;
-    document.getElementById('p-le-cyl').innerText = le.c;
-    document.getElementById('p-le-axis').innerText = le.a;
-    document.getElementById('p-le-add').innerText = le.ad;
-    
-    // 3. Fill Items & Financials
-    document.getElementById('p-items').innerText = order[6] || 'N/A'; // [cite: 13]
-    
-    // Fixed: Direct ID access instead of querySelector('.financial-box')
-    document.getElementById('p-total').innerText = parseFloat(order[7]).toFixed(3); // 
-    document.getElementById('p-advance').innerText = parseFloat(order[8] || 0).toFixed(3); // 
-    document.getElementById('p-balance').innerText = parseFloat(order[9]).toFixed(3); // 
-
-    window.print();
-}
-
-// Helper function to extract SPH, CYL, AXIS, and ADD from the saved string
-function parseRx(rxStr) {
-    if (!rxStr || rxStr === "N/A") {
-        return { s: '-', c: '-', a: '-', ad: '-' };
-    }
-    
-    // This matches the format "S:1.25 C:1.00 A:80 Add:0" used in your records
-    return {
-        s: rxStr.match(/S:([^ ]+)/)?.[1] || '-',
-        c: rxStr.match(/C:([^ ]+)/)?.[1] || '-',
-        a: rxStr.match(/A:([^ ]+)/)?.[1] || '-',
-        ad: rxStr.match(/Add:([^ ]+)/)?.[1] || '-'
-    };
-}
-
-
-async function loadTransactionHistory(isFiltered = false) {
-    const tableBody = document.getElementById('transaction-list-table');
-    const totalBadge = document.getElementById('trans-total-badge');
-    const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-    
-    // Security check
-    if (!user || user.role !== "Manager") return;
-
-    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading Transactions...</td></tr>';
-
-    try {
-        const res = await fetch(scriptURL + "?type=Collections");
-        const allTrans = await res.json();
-        
-        let startDate = isFiltered ? new Date(document.getElementById('trans-start-date').value) : null;
-        let endDate = isFiltered ? new Date(document.getElementById('trans-end-date').value) : null;
-        if(startDate) startDate.setHours(0,0,0,0);
-        if(endDate) endDate.setHours(23,59,59,999);
-
-        // Sort: Newest at the top
-        allTrans.reverse();
-
-        let html = '';
-        let totalSum = 0;
-
-        allTrans.forEach(row => {
-            const rowDate = new Date(row[0]);
-            const amount = parseFloat(row[5]) || 0;
-
-            // Date filtering logic
-            if (isFiltered && startDate && endDate) {
-                if (rowDate < startDate || rowDate > endDate) return;
-            }
-
-            totalSum += amount;
-
-            html += `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 15px; font-size: 0.9rem;">${rowDate.toLocaleDateString('en-GB')}</td>
-                    <td style="padding: 15px; font-weight: bold; color: var(--primary);">#${row[1]}</td>
-                    <td style="padding: 15px; color: #1e293b;">${row[2]}</td>
-                    <td style="padding: 15px; color: #64748b;">${row[3]}</td>
-                    <td style="padding: 15px;">
-                        <span style="background:${row[4] === 'Advance' ? '#e0f2fe' : '#dcfce7'}; 
-                                     color:${row[4] === 'Advance' ? '#0369a1' : '#166534'}; 
-                                     padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">
-                            ${row[4]}
-                        </span>
-                    </td>
-                    <td style="padding: 15px; text-align: right; font-weight: 800; color: var(--accent);">
-                        ${amount.toFixed(3)}
-                    </td>
-                </tr>`;
-        });
-
-        tableBody.innerHTML = html || '<tr><td colspan="6" style="text-align:center; padding:30px;">No transactions found for this period.</td></tr>';
-        totalBadge.innerText = "Total: " + totalSum.toFixed(3) + " OMR";
-
-    } catch (e) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding:30px;">Failed to load history. Check "Collections" sheet.</td></tr>';
-    }
-}
-
-    </script>
-
+</script>
 </body>
 </html>
