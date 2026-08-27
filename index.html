@@ -978,10 +978,11 @@ async function loadTransactionHistory(isFiltered = false){
 }
 
 /* ============================================================
-   PRINT — builds a two-copy carbon-style invoice
-   (top half "For Shop", bottom half "For Customer")
-   ============================================================ */
-function buildInvoiceCopy(order, copyLabel, showDelivery){
+ /* ==========================================
+   PRINT INVOICE ENGINE (Shop & Customer Copies)
+   ========================================== */
+
+function buildInvoiceCopy(order, copyLabel, showRx = true) {
   const re = parseRx(order[4]);
   const le = parseRx(order[5]);
   const dateStr = new Date(order[0]).toLocaleDateString('en-GB');
@@ -990,69 +991,83 @@ function buildInvoiceCopy(order, copyLabel, showDelivery){
   const balance = (parseFloat(order[9]) || 0).toFixed(3);
   const branch = order[12] || 'Main';
 
+  const rxTableHtml = `
+    <table class="inv-rx">
+      <caption>Prescription</caption>
+      <thead>
+        <tr><th style="width:22%;"></th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="side">Right Eye (RE)</td><td>${re.s}</td><td>${re.c}</td><td>${re.a}</td><td>${re.ad}</td></tr>
+        <tr><td class="side">Left Eye (LE)</td><td>${le.s}</td><td>${le.c}</td><td>${le.a}</td><td>${le.ad}</td></tr>
+      </tbody>
+    </table>
+  `;
+
   return `
     <div class="inv-copy">
       <div class="inv-head">
-        <div class="en">C.R: ${SHOP.cr}<br>P.O. Box: ${SHOP.po}<br>P.C: ${SHOP.pc}<br>${SHOP.addr.replace(/\n/g,'<br>')}<br>GSM: ${SHOP.gsm}</div>
+        <div class="en">
+          C.R: ${SHOP.cr}<br>
+          P.O. Box: ${SHOP.po} | P.C: ${SHOP.pc}<br>
+          ${SHOP.addr.replace(/\n/g, '<br>')}<br>
+          GSM: ${SHOP.gsm}
+        </div>
         <div class="brandbox">
-          <img src="${SHOP.logo}" style="height:34px;">
+          <img src="${SHOP.logo}" style="height:42px; width:auto;" alt="Logo">
           <div class="name-en">${SHOP.nameEn}</div>
           <div class="name-ar">${SHOP.nameAr}</div>
           <div class="copy-tag">${copyLabel}</div>
         </div>
-        <div class="ar">${SHOP.addrAr.replace(/\n/g,'<br>')}<br>نقال: ${SHOP.gsm}</div>
+        <div class="ar">
+          ${SHOP.addrAr ? SHOP.addrAr.replace(/\n/g, '<br>') : ''}<br>
+          هاتف: ${SHOP.gsm}
+        </div>
       </div>
 
       <div class="inv-meta">
-        <div><span class="lbl">Name</span><br><span class="val">${order[2] || '-'}</span></div>
+        <div><span class="lbl">Customer Name</span><br><span class="val">${order[2] || '-'}</span></div>
         <div><span class="lbl">Date</span><br><span class="val">${dateStr}</span></div>
         <div><span class="lbl">Contact No.</span><br><span class="val">${order[3] || '-'}</span></div>
         <div><span class="lbl">Invoice No.</span><br><span class="val">#${order[1]}</span></div>
-        ${showDelivery ? `
-        <div><span class="lbl">Date of Delivery</span><br><span class="val">&nbsp;</span></div>
-        <div><span class="lbl">Time of Delivery</span><br><span class="val">&nbsp;</span></div>` : ''}
       </div>
 
-      <table class="inv-rx">
-        <caption>Prescription</caption>
-        <thead><tr><th style="width:22%;"></th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
-        <tbody>
-          <tr><td class="side">Right Eye (RE)</td><td>${re.s}</td><td>${re.c}</td><td>${re.a}</td><td>${re.ad}</td></tr>
-          <tr><td class="side">Left Eye (LE)</td><td>${le.s}</td><td>${le.c}</td><td>${le.a}</td><td>${le.ad}</td></tr>
-        </tbody>
-      </table>
+      ${showRx ? rxTableHtml : ''}
 
-      <div class="inv-line"><span class="lbl">Frame &amp; Lens Details</span><br>${order[6] || '-'}</div>
-      <div class="inv-line"><span class="lbl">Remarks</span> ________________________________</div>
+      <div class="inv-line" style="margin-top: 10px;">
+        <span class="lbl">Frame & Lens / Items</span><br>
+        <div style="font-weight:600; font-size:12px; margin-top:2px;">${order[6] || '-'}</div>
+      </div>
 
-      <table class="inv-amounts">
-        <tr><td>Total Amount</td><td>${total}</td></tr>
-        <tr><td>Cash Paid</td><td>${advance}</td></tr>
-        <tr><td>Balance</td><td>${balance} OMR</td></tr>
-      </table>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:12px;">
+        <div style="font-size:11px;">
+          <span>Branch: <strong>${branch}</strong></span>
+        </div>
+        <table class="inv-amounts">
+          <tr><td>Total Amount</td><td>${total} OMR</td></tr>
+          <tr><td>Advance Paid</td><td>${advance} OMR</td></tr>
+          <tr><td>Balance Due</td><td><strong>${balance} OMR</strong></td></tr>
+        </table>
+      </div>
 
       <div class="inv-foot">
-        <span>Branch: ${branch}</span>
-        <div class="sig">Signature</div>
+        <div class="sig">Customer Signature</div>
+        <div class="sig">Authorized Signature</div>
       </div>
-
-      ${showDelivery ? `
-      <div class="inv-note-ar">
-        ١- لايمكن الغاء امر الشغل الذي تم تسجيله. الصيانة والاصلاح تحت مسئولية الزبون.<br>
-        ٢- اننا غير مسئولين عن الطلب بعد مضي ٣ أشهر.
-      </div>` : ''}
-    </div>`;
+    </div>
+  `;
 }
 
-function printOrder(invoiceId){
+function printOrder(invoiceId) {
   const order = currentOrders.find(r => String(r[1]) === String(invoiceId));
   if (!order) return alert('Order data not found.');
 
-  const shopCopy = buildInvoiceCopy(order, 'For Shop', false);
-  const cut = `<div class="inv-cut">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  ✂</div>`;
-  const customerCopy = buildInvoiceCopy(order, 'For Customer', true);
+  // Render Shop Copy (with Rx) and Customer Copy (without Rx)
+  const shopCopy = buildInvoiceCopy(order, 'For Shop', true);
+  const cutLine = '<div class="inv-cut">✂------------------------------------------------------------------✂</div>';
+  const customerCopy = buildInvoiceCopy(order, 'For Customer', false);
 
-  document.getElementById('print-root').innerHTML = shopCopy + cut + customerCopy;
+  document.getElementById('print-root').innerHTML = shopCopy + cutLine + customerCopy;
   window.print();
 }
 </script>
