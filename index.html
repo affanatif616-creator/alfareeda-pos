@@ -297,10 +297,20 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
     <div id="order-section" class="content-section">
       <div class="topbar"><div><h1>New Order</h1><p>Daily sale entry</p></div></div>
       <div class="card">
-        <div class="grid grid-3">
+        <div class="grid grid-4">
+          <div class="field"><label>Date</label><input type="date" id="order-date"></div>
           <div class="field"><label>Invoice Number</label><input type="text" id="order-invoice"></div>
           <div class="field"><label>Customer Name</label><input type="text" id="order-name"></div>
           <div class="field"><label>Contact</label><input type="text" id="order-contact"></div>
+        </div>
+
+        <div class="field" style="max-width:280px;">
+          <label>Eye Examination</label>
+          <select id="order-exam">
+            <option>Hospital</option>
+            <option>Clinic</option>
+            <option>Old</option>
+          </select>
         </div>
 
         <h3>Prescription Details</h3>
@@ -547,6 +557,8 @@ window.onload = async () => {
   const saved = sessionStorage.getItem('alfareeda_user');
   if (saved) applyUI(JSON.parse(saved));
   await loadStaff();
+  const dateField = document.getElementById('order-date');
+  if (dateField) dateField.value = new Date().toISOString().slice(0, 10);
 };
 
 /* ============================================================
@@ -666,9 +678,11 @@ async function saveOrderToCloud(){
 
   const data = {
     type: 'order',
+    date: document.getElementById('order-date').value,
     invoice: document.getElementById('order-invoice').value,
     name: document.getElementById('order-name').value,
     contact: document.getElementById('order-contact').value,
+    examSource: document.getElementById('order-exam').value,
     rightEye: rePower,
     leftEye: lePower,
     items: document.getElementById('order-items').value,
@@ -978,10 +992,8 @@ async function loadTransactionHistory(isFiltered = false){
 }
 
 /* ============================================================
- /* ==========================================
- /* ==========================================
    PRINT ENGINE (Exact Paper Receipt Match)
-   ========================================== */
+   ============================================================ */
 
 function buildShopCopy(order) {
   const re = parseRx(order[4]);
