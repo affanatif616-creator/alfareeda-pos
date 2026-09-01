@@ -326,7 +326,11 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
           </tbody>
         </table>
 
-        <div class="field"><label>Items (Frame &amp; Lens details)</label><input type="text" id="order-items"></div>
+        <div class="grid grid-3">
+          <div class="field"><label>Frame</label><input type="text" id="order-frame"></div>
+          <div class="field"><label>Lens</label><input type="text" id="order-lens"></div>
+          <div class="field"><label>Description</label><input type="text" id="order-desc"></div>
+        </div>
 
         <div class="grid grid-4">
           <div class="field"><label>Total</label><input type="number" step="0.001" id="order-total" oninput="calcBalance()"></div>
@@ -355,7 +359,7 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
         <div class="table-wrap">
           <table class="data">
             <thead><tr>
-              <th>Date</th><th>Invoice</th><th>Name</th><th>Number</th><th>Total</th><th>Balance</th><th>Status</th>
+              <th>Date</th><th>Invoice</th><th>Name</th><th>Number</th><th>Total</th><th>Balance</th><th>Status</th><th>Eye Exam</th>
               <th id="branch-header" style="display:none;">Branch</th><th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody id="order-list-table"></tbody>
@@ -468,7 +472,7 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
 /* ============================================================
    CONFIG — same Apps Script backend as the previous version
    ============================================================ */
-const scriptURL = 'https://script.google.com/macros/s/AKfycbzCTUx7N3cDg-d62KWFfZVsN1VAVVUnm9665HDbYdow45R2KvYVRaAneFHLQXs1amh5kQ/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyOE2rUIfPrOCnTHN4Fs0VquDz3SQCVFxJkQvgJJSqlkSiqRWs4XdMnHf1yO1zyEGSYOQ/exec';
 
 const SHOP = {
   nameEn: 'AL-FAREEDA OPTICALS',
@@ -685,7 +689,10 @@ async function saveOrderToCloud(){
     examSource: document.getElementById('order-exam').value,
     rightEye: rePower,
     leftEye: lePower,
-    items: document.getElementById('order-items').value,
+    frame: document.getElementById('order-frame').value,
+    lens: document.getElementById('order-lens').value,
+    description: document.getElementById('order-desc').value,
+    items: [document.getElementById('order-frame').value, document.getElementById('order-lens').value, document.getElementById('order-desc').value].filter(Boolean).join(' + '),
     total: document.getElementById('order-total').value || 0,
     advance: document.getElementById('order-advance').value || 0,
     balance: document.getElementById('order-balance').value || 0,
@@ -743,7 +750,8 @@ async function loadOrderList(isFiltered = false){
       const balance = parseFloat(row[9]) || 0;
       const status = row[11];
       const branchName = row[12] || 'N/A';
-      const rxData = JSON.stringify({ name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6] }).replace(/"/g,'&quot;');
+      const examVal = row[13] || '-';
+      const rxData = JSON.stringify({ name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6], exam:row[13], frame:row[14], lens:row[15], description:row[16] }).replace(/"/g,'&quot;');
       const color = status==='Delivered' ? 'var(--teal)' : (status==='Ready' ? 'var(--navy)' : 'var(--amber)');
       const branchTd = isAdmin ? `<td>${branchName}</td>` : '';
       return `
@@ -755,6 +763,7 @@ async function loadOrderList(isFiltered = false){
           <td class="tabular" style="font-weight:700;">${totalAmt.toFixed(3)}</td>
           <td class="tabular" style="font-weight:700; color:${balance>0?'var(--rose)':'var(--teal)'};">${balance.toFixed(3)}</td>
           <td><span class="badge" style="background:${color}22; color:${color};">${status}</span></td>
+          <td><span class="badge" style="background:#EFEAdd; color:var(--brass);">${examVal}</span></td>
           ${branchTd}
           <td style="text-align:right; white-space:nowrap;">
             <button class="btn btn-ghost btn-icon" title="View Rx" onclick="showRx('${rxData}')"><i class="fas fa-eye"></i></button>
@@ -835,9 +844,11 @@ function parseRx(str){
 function showRx(jsonStr){
   const data = JSON.parse(jsonStr);
   const re = parseRx(data.re), le = parseRx(data.le);
+  const hasSplit = data.frame || data.lens || data.description;
   document.getElementById('rx-body').innerHTML = `
     <h2><i class="fas fa-glasses"></i> Prescription Card</h2>
-    <p style="color:var(--ink-soft); font-size:.85rem; margin-bottom:14px;">Invoice ${data.invoice} · ${data.name}</p>
+    <p style="color:var(--ink-soft); font-size:.85rem; margin-bottom:6px;">Invoice ${data.invoice} · ${data.name}</p>
+    ${data.exam ? `<span class="badge" style="background:#EFEAdd; color:var(--brass); margin-bottom:12px; display:inline-block;">Eye Exam: ${data.exam}</span>` : ''}
     <table class="rx-table">
       <thead><tr><th>Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
       <tbody>
@@ -845,10 +856,25 @@ function showRx(jsonStr){
         <tr><td>L.E</td><td class="tabular">${le.s}</td><td class="tabular">${le.c}</td><td class="tabular">${le.a}</td><td class="tabular">${le.ad}</td></tr>
       </tbody>
     </table>
+    ${hasSplit ? `
+    <div style="margin-top:12px; display:grid; gap:8px;">
+      <div style="background:#FBF3E6; border-left:4px solid var(--brass); padding:9px 12px; border-radius:6px;">
+        <strong style="font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; color:var(--brass);">Frame</strong>
+        <p style="margin-top:3px; font-size:.87rem; color:#6b4c14;">${data.frame || 'None'}</p>
+      </div>
+      <div style="background:#FBF3E6; border-left:4px solid var(--brass); padding:9px 12px; border-radius:6px;">
+        <strong style="font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; color:var(--brass);">Lens</strong>
+        <p style="margin-top:3px; font-size:.87rem; color:#6b4c14;">${data.lens || 'None'}</p>
+      </div>
+      <div style="background:#FBF3E6; border-left:4px solid var(--brass); padding:9px 12px; border-radius:6px;">
+        <strong style="font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; color:var(--brass);">Description</strong>
+        <p style="margin-top:3px; font-size:.87rem; color:#6b4c14;">${data.description || 'None'}</p>
+      </div>
+    </div>` : `
     <div style="background:#FBF3E6; border-left:4px solid var(--brass); padding:10px 12px; border-radius:6px; margin-top:12px;">
       <strong style="font-size:.8rem;">Lens/Description</strong>
       <p style="margin-top:4px; font-size:.88rem; color:#6b4c14;">${data.items || 'None'}</p>
-    </div>
+    </div>`}
     <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="closeModals()">Close</button>`;
   document.getElementById('rx-modal').style.display = 'flex';
 }
@@ -1044,6 +1070,7 @@ function buildShopCopy(order) {
         <div style="flex:1;"><strong>Ref.:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">#${order[1]}</span></div>
         <div><strong>Contact No.:</strong> <span style="border-bottom:1px dotted #000; min-width:120px; display:inline-block;">${order[3] || ''}</span></div>
       </div>
+      <div style="margin-top:4px; font-size:11px;"><strong>Eye Exam:</strong> <span style="border-bottom:1px dotted #000; min-width:100px; display:inline-block;">${order[13] || '-'}</span></div>
 
       <!-- PRESCRIPTION TABLE FOR SHOP -->
       <table class="inv-rx" style="margin-top:8px; width:100%; border-collapse:collapse; text-align:center; font-size:10px;">
@@ -1077,10 +1104,9 @@ function buildShopCopy(order) {
 
       <!-- ITEMS / REMARKS -->
       <div style="font-size:10.5px; margin-top:8px; line-height:1.7;">
-        <div><strong>LENS TYPE:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${order[6] || ''}</span></div>
-        <div><strong>FRAME TYPE:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:78%;"></span></div>
-        <div><strong>SUN GLASS TYPE:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:74%;"></span></div>
-        <div><strong>REMARKS:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:82%;"></span></div>
+        <div><strong>FRAME:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:82%;">${order[14] || ''}</span></div>
+        <div><strong>LENS:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:84%;">${order[15] || ''}</span></div>
+        <div><strong>DESCRIPTION:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:74%;">${order[16] || order[6] || ''}</span></div>
       </div>
 
       <!-- AMOUNTS & SIGNATURE -->
