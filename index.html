@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Al Fareeda Opticals — POS</title>
+<link rel="icon" type="image/jpeg" href="https://i.ibb.co/ccc7KbfV/logo-jpg.jpg">
+<link rel="apple-touch-icon" href="https://i.ibb.co/ccc7KbfV/logo-jpg.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -27,7 +29,10 @@
   --border:      #E7DFCF;   /* hairline borders */
   --radius:      14px;
   --radius-sm:   8px;
+  --shadow-sm:   0 2px 8px -2px rgba(18,42,78,.10);
   --shadow:      0 10px 30px -14px rgba(18,42,78,.25);
+  --shadow-lg:   0 20px 48px -16px rgba(18,42,78,.35);
+  --ease:        cubic-bezier(.22,1,.36,1);
   --font-display:'Fraunces', serif;
   --font-body:   'Inter', sans-serif;
   --font-mono:   'IBM Plex Mono', monospace;
@@ -59,24 +64,35 @@ body{
    ============================================================ */
 .login-screen{
   position:fixed; inset:0; z-index:1000;
-  background:radial-gradient(circle at 20% 20%, #1a3a63, var(--navy-deep) 70%);
+  background:
+    radial-gradient(circle at 15% 15%, rgba(184,134,47,.16), transparent 42%),
+    radial-gradient(circle at 85% 85%, rgba(184,134,47,.10), transparent 45%),
+    radial-gradient(circle at 20% 20%, #1a3a63, var(--navy-deep) 70%);
   display:flex; align-items:center; justify-content:center; padding:20px;
 }
-.login-card{
-  background:var(--surface); width:400px; max-width:100%;
-  border-radius:20px; padding:2.75rem 2.25rem;
-  box-shadow:0 40px 80px -20px rgba(0,0,0,.5);
-  text-align:center;
+.login-screen::before{
+  content:''; position:absolute; inset:0; opacity:.05; pointer-events:none;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 26px 26px;
 }
+.login-card{
+  position:relative; background:var(--surface); width:400px; max-width:100%;
+  border-radius:22px; padding:2.75rem 2.25rem;
+  box-shadow:0 40px 90px -20px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04);
+  text-align:center;
+  animation: login-in .5s var(--ease) both;
+}
+@keyframes login-in{ from{ opacity:0; transform:translateY(14px) scale(.98); } to{ opacity:1; transform:none; } }
 .login-brand-title{ font-family:var(--font-display); font-weight:700; font-size:1.6rem; color:var(--navy); margin:.6rem 0 0; }
 .login-brand-sub{ font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.8rem; }
 .branch-chips{ display:flex; gap:8px; margin-bottom:1.1rem; }
 .branch-chip{
   flex:1; padding:10px 4px; border-radius:var(--radius-sm); border:1.5px solid var(--border);
   background:var(--paper); color:var(--ink-soft); font-weight:600; font-size:.85rem; cursor:pointer;
-  transition:.15s;
+  transition:.18s var(--ease);
 }
-.branch-chip.active{ background:var(--navy); border-color:var(--navy); color:#fff; }
+.branch-chip:hover{ border-color:var(--brass-light); color:var(--navy); transform:translateY(-1px); }
+.branch-chip.active{ background:var(--navy); border-color:var(--navy); color:#fff; box-shadow:0 6px 16px -6px rgba(18,42,78,.5); }
 .field{ margin-bottom:15px; text-align:left; }
 .field label{ display:block; margin-bottom:5px; font-weight:600; font-size:.78rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
 .field input, .field select, .field textarea{
@@ -89,17 +105,19 @@ body{
 .btn{
   border:none; border-radius:var(--radius-sm); font-weight:700; cursor:pointer;
   font-family:inherit; padding:13px; font-size:.92rem; display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  transition:.15s;
+  transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease);
 }
-.btn-primary{ background:var(--navy); color:#fff; width:100%; }
-.btn-primary:hover{ background:#0e2140; }
-.btn-primary:disabled{ opacity:.6; cursor:not-allowed; }
-.btn-brass{ background:var(--brass); color:#fff; }
-.btn-brass:hover{ background:#a3781f; }
+.btn-primary{ background:var(--navy); color:#fff; width:100%; box-shadow:0 4px 14px -4px rgba(18,42,78,.5); }
+.btn-primary:hover{ background:#0e2140; transform:translateY(-1px); box-shadow:0 8px 20px -6px rgba(18,42,78,.55); }
+.btn-primary:active{ transform:translateY(0); box-shadow:0 2px 8px -3px rgba(18,42,78,.5); }
+.btn-primary:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+.btn-brass{ background:var(--brass); color:#fff; box-shadow:0 4px 12px -4px rgba(184,134,47,.5); }
+.btn-brass:hover{ background:#a3781f; transform:translateY(-1px); }
 .btn-ghost{ background:transparent; color:var(--ink-soft); border:1.5px solid var(--border); }
-.btn-ghost:hover{ background:#F1ECDF; }
+.btn-ghost:hover{ background:#F1ECDF; border-color:var(--brass-light); color:var(--navy); }
 .btn-sm{ padding:7px 10px; font-size:.8rem; border-radius:7px; }
 .btn-icon{ width:34px; height:34px; padding:0; border-radius:8px; }
+.btn-icon:hover{ transform:translateY(-1px); }
 
 /* ============================================================
    5. APP SHELL
@@ -117,19 +135,27 @@ body{
 
 .nav-item{
   display:flex; align-items:center; gap:12px; color:#AEBBCF; padding:11px 14px; border-radius:10px;
-  margin-bottom:3px; cursor:pointer; font-size:.88rem; font-weight:600; transition:.15s;
+  margin-bottom:3px; cursor:pointer; font-size:.88rem; font-weight:600; transition:.15s var(--ease);
+  border-left:3px solid transparent;
 }
 .nav-item i{ width:18px; text-align:center; opacity:.9; }
 .nav-item:hover{ background:rgba(255,255,255,.06); color:#fff; }
-.nav-item.active{ background:var(--brass); color:#fff; }
+.nav-item.active{ background:linear-gradient(90deg, rgba(184,134,47,.22), rgba(184,134,47,.08)); color:#fff; border-left:3px solid var(--brass-light); }
 .nav-divider{ height:1px; background:rgba(255,255,255,.1); margin:10px 4px; }
 .nav-footer{ margin-top:auto; }
-.staff-pill{ padding:10px 12px; border-radius:10px; background:rgba(255,255,255,.05); margin-bottom:10px; }
+.staff-pill{ padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+.staff-avatar{
+  width:36px; height:36px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg, var(--brass-light), var(--brass));
+  color:#1a1200; font-weight:800; font-size:.8rem; letter-spacing:.02em;
+  display:flex; align-items:center; justify-content:center;
+}
 .staff-pill .name{ font-weight:700; font-size:.85rem; }
 .staff-pill .role{ font-size:.72rem; color:#9FB0C8; }
 
-.main{ margin-left:250px; padding:2.2rem 2.6rem 4rem; }
-.topbar{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1.8rem; flex-wrap:wrap; gap:10px; }
+.main{ margin-left:250px; padding:2.2rem 2.6rem 4rem; animation:page-in .35s var(--ease) both; }
+@keyframes page-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+.topbar{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1.8rem; flex-wrap:wrap; gap:10px; padding-bottom:1rem; border-bottom:1px solid var(--border); }
 .topbar h1{ font-family:var(--font-display); font-weight:700; font-size:1.7rem; color:var(--navy); }
 .topbar p{ color:var(--ink-soft); font-size:.85rem; margin-top:2px; }
 
@@ -160,19 +186,26 @@ body{
 .table-wrap{ overflow-x:auto; }
 table.data{ width:100%; border-collapse:collapse; font-size:.87rem; }
 table.data thead tr{ background:#F4F1E9; text-align:left; }
+table.data thead th{ position:sticky; top:0; z-index:1; background:#F4F1E9; box-shadow:inset 0 -1px 0 var(--border); }
 table.data th{ padding:12px; color:var(--ink-soft); font-weight:700; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
-table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
-.badge{ padding:4px 11px; border-radius:20px; font-size:.72rem; font-weight:700; display:inline-block; }
+table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; transition:background .12s var(--ease); }
+table.data tbody tr:nth-child(even) td{ background:#FBF9F3; }
+table.data tbody tr:hover td{ background:#F5EFE0; }
+.badge{ padding:4px 11px; border-radius:20px; font-size:.72rem; font-weight:700; display:inline-block; letter-spacing:.01em; }
 .filter-bar{ background:#F8F5EC; border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; gap:10px; align-items:flex-end; margin-bottom:18px; flex-wrap:wrap; }
 .filter-bar > div{ flex:1; min-width:130px; }
 .filter-bar label{ display:block; font-size:.7rem; font-weight:700; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
 
 /* Stat cards */
-.stat{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.3rem; }
+.stat{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.3rem; transition:transform .18s var(--ease), box-shadow .18s var(--ease); }
+.stat:hover{ transform:translateY(-2px); box-shadow:var(--shadow-sm); }
 .stat.dark{ background:var(--navy); color:#fff; border:none; }
 .stat small{ font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; opacity:.75; font-weight:700; }
 .stat h2, .stat h3{ font-family:var(--font-mono); margin-top:6px; }
-.branch-card{ border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:#fff; }
+.stat-head{ display:flex; align-items:flex-start; justify-content:space-between; }
+.stat-icon{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.8rem; opacity:.85; }
+.branch-card{ border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:#fff; transition:transform .2s var(--ease), box-shadow .2s var(--ease); }
+.branch-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow); }
 .branch-card .head{ background:var(--navy); color:#fff; padding:1rem 1.3rem; font-family:var(--font-display); font-weight:600; }
 .branch-card .body{ padding:1.3rem; }
 .branch-row{ display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:8px; color:var(--ink-soft); }
@@ -186,10 +219,10 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
    6. PRINT — two-copy carbon-style invoice
    ============================================================ */
 #print-root{ display:none; }
-.inv-copy{ padding:14px 22px; font-family:var(--font-body); color:#111; }
-.inv-cut{ text-align:center; font-size:11px; letter-spacing:.3em; color:#888; border-top:1px dashed #999; border-bottom:1px dashed #999; padding:3px 0; margin:6px 0; }
+.inv-copy{ padding:16px 24px; font-family:var(--font-body); color:#000; font-size:13px; }
+.inv-cut{ text-align:center; font-size:11px; letter-spacing:.3em; color:#888; border-top:1px dashed #999; border-bottom:1px dashed #999; padding:4px 0; margin:10px 0; }
 .inv-head{ display:grid; grid-template-columns:1fr 1.5fr 1fr; gap:14px; align-items:center; border-bottom:2.5px solid var(--navy); padding-bottom:10px; }
-.inv-head .en, .inv-head .ar{ font-size:11px; line-height:1.5; color:#333; }
+.inv-head .en, .inv-head .ar{ font-size:12.5px; line-height:1.55; color:#111; }
 .inv-head .ar{ text-align:right; direction:rtl; }
 .inv-head .brandbox{ text-align:center; }
 .inv-head .brandbox .name-en{ font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--navy); letter-spacing:.02em; }
@@ -200,25 +233,24 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
 .inv-meta .val{ font-weight:700; border-bottom:1px dotted #bbb; padding-bottom:1px; font-family:var(--font-mono); font-size:12.5px; }
 .inv-rx{ width:100%; border-collapse:collapse; margin-top:6px; }
 .inv-rx caption{ text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:var(--brass); font-weight:700; padding-bottom:3px; }
-.inv-rx th{ background:#F1EEE4; border:1px solid #999; padding:4px; font-size:9px; text-transform:uppercase; }
-.inv-rx td{ border:1px solid #999; padding:5px; text-align:center; font-size:12px; font-family:var(--font-mono); font-weight:700; }
-.inv-rx td.side{ text-align:left; padding-left:8px; font-family:var(--font-body); font-weight:700; background:#FAF8F2; font-size:10.5px; }
+.inv-rx th{ background:#F1EEE4; border:1px solid #999; padding:5px; font-size:11px; text-transform:uppercase; }
+.inv-rx td{ border:1px solid #999; padding:6px; text-align:center; font-size:14px; font-family:var(--font-mono); font-weight:700; }
+.inv-rx td.side{ text-align:left; padding-left:8px; font-family:var(--font-body); font-weight:700; background:#FAF8F2; font-size:12px; }
 .inv-line{ font-size:11px; margin-top:6px; }
 .inv-line .lbl{ color:#888; font-size:9px; text-transform:uppercase; letter-spacing:.08em; margin-right:5px; }
 .inv-amounts{ width:220px; margin-top:8px; margin-left:auto; border:1px solid #999; }
-.inv-amounts tr td{ padding:4px 8px; font-size:11px; border-bottom:1px solid #ddd; }
-.inv-amounts tr td:first-child{ color:#555; }
+.inv-amounts tr td{ padding:6px 9px; font-size:13px; border-bottom:1px solid #ddd; }
+.inv-amounts tr td:first-child{ color:#333; }
 .inv-amounts tr td:last-child{ text-align:right; font-family:var(--font-mono); font-weight:700; }
-.inv-amounts tr:last-child td{ border-bottom:none; background:#F1EEE4; font-size:12.5px; }
-.inv-foot{ display:flex; justify-content:space-between; margin-top:14px; font-size:10.5px; }
-.inv-foot .sig{ border-top:1px solid #333; width:150px; text-align:center; padding-top:3px; }
-.inv-note-ar{ direction:rtl; text-align:right; font-size:9.5px; color:#7a2b26; margin-top:8px; line-height:1.6; }
+.inv-amounts tr:last-child td{ border-bottom:none; background:#F1EEE4; font-size:14px; }
+.inv-foot{ display:flex; justify-content:space-between; margin-top:14px; font-size:12px; }
+.inv-foot .sig{ border-top:1px solid #333; width:150px; text-align:center; padding-top:4px; }
+.inv-note-ar{ direction:rtl; text-align:right; font-size:11px; color:#7a2b26; margin-top:8px; line-height:1.7; }
 
 @media print{
-  @page{ margin:10mm; }
-  body *{ visibility:hidden; }
-  #print-root, #print-root *{ visibility:visible; }
-  #print-root{ display:block; position:absolute; top:0; left:0; width:100%; }
+  @page{ margin:8mm; }
+  #login-overlay, #app, .modal{ display:none !important; }
+  #print-root{ display:block !important; }
 }
 </style>
 </head>
@@ -278,8 +310,11 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
 
     <div class="nav-footer">
       <div class="staff-pill">
-        <div class="name" id="staff-display">—</div>
-        <div class="role" id="branch-display">—</div>
+        <div class="staff-avatar" id="staff-avatar">—</div>
+        <div>
+          <div class="name" id="staff-display">—</div>
+          <div class="role" id="branch-display">—</div>
+        </div>
       </div>
       <div class="nav-item" onclick="logout()" style="color:#E7A79F;"><i class="fas fa-sign-out-alt"></i> Logout</div>
     </div>
@@ -472,7 +507,7 @@ table.data td{ padding:12px; border-bottom:1px solid #F1ECDF; }
 /* ============================================================
    CONFIG — same Apps Script backend as the previous version
    ============================================================ */
-const scriptURL = 'https://script.google.com/macros/s/AKfycbyOE2rUIfPrOCnTHN4Fs0VquDz3SQCVFxJkQvgJJSqlkSiqRWs4XdMnHf1yO1zyEGSYOQ/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzCTUx7N3cDg-d62KWFfZVsN1VAVVUnm9665HDbYdow45R2KvYVRaAneFHLQXs1amh5kQ/exec';
 
 const SHOP = {
   nameEn: 'AL-FAREEDA OPTICALS',
@@ -543,7 +578,10 @@ function applyUI(auth){
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('branch-display').innerText = auth.activeBranch + ' · ' + auth.role;
-  document.getElementById('staff-display').innerText = auth.name || auth.id;
+  const displayName = auth.name || auth.id;
+  document.getElementById('staff-display').innerText = displayName;
+  const initials = displayName.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+  document.getElementById('staff-avatar').innerText = initials || '?';
 
   const isManager = auth.role === 'Manager';
   document.getElementById('nav-staff').style.display = isManager ? 'flex' : 'none';
@@ -618,14 +656,14 @@ function renderCashierDash(allSales, allExpenses, branch){
   document.getElementById('dash-body').innerHTML = `
     <h3>Today's Snapshot</h3>
     <div class="grid grid-2" style="margin-bottom:26px;">
-      <div class="stat dark"><small>Today's Sales</small><h2 class="tabular">${tSales.toFixed(3)}</h2></div>
-      <div class="stat"><small style="color:var(--ink-soft);">Today's Expense</small><h2 class="tabular" style="color:var(--rose);">${tExp.toFixed(3)}</h2></div>
+      <div class="stat dark"><div class="stat-head"><small>Today's Sales</small><span class="stat-icon" style="background:rgba(255,255,255,.12); color:var(--brass-light);"><i class="fas fa-coins"></i></span></div><h2 class="tabular">${tSales.toFixed(3)}</h2></div>
+      <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Today's Expense</small><span class="stat-icon" style="background:#FBEDEC; color:var(--rose);"><i class="fas fa-receipt"></i></span></div><h2 class="tabular" style="color:var(--rose);">${tExp.toFixed(3)}</h2></div>
     </div>
     <h3>Performance This Month — ${branch}</h3>
     <div class="grid grid-3">
-      <div class="stat"><small style="color:var(--ink-soft);">Monthly Revenue</small><h3 class="tabular">${totalRev.toFixed(3)} OMR</h3></div>
-      <div class="stat"><small style="color:var(--ink-soft);">Monthly Expenses</small><h3 class="tabular" style="color:var(--rose);">${totalExp.toFixed(3)} OMR</h3></div>
-      <div class="stat" style="background:#FBEDEC; border-color:#F0D3D0;"><small style="color:#8C332C;">Total Pending Balances</small><h3 class="tabular" style="color:#8C332C;">${pending.toFixed(3)} OMR</h3></div>
+      <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Monthly Revenue</small><span class="stat-icon" style="background:#EAF3EF; color:var(--teal);"><i class="fas fa-arrow-trend-up"></i></span></div><h3 class="tabular">${totalRev.toFixed(3)} OMR</h3></div>
+      <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Monthly Expenses</small><span class="stat-icon" style="background:#FBEDEC; color:var(--rose);"><i class="fas fa-arrow-trend-down"></i></span></div><h3 class="tabular" style="color:var(--rose);">${totalExp.toFixed(3)} OMR</h3></div>
+      <div class="stat" style="background:#FBEDEC; border-color:#F0D3D0;"><div class="stat-head"><small style="color:#8C332C;">Total Pending Balances</small><span class="stat-icon" style="background:rgba(140,51,44,.12); color:#8C332C;"><i class="fas fa-hourglass-half"></i></span></div><h3 class="tabular" style="color:#8C332C;">${pending.toFixed(3)} OMR</h3></div>
     </div>`;
 }
 
@@ -1033,7 +1071,7 @@ function buildShopCopy(order) {
     <div class="inv-copy">
       <!-- HEADER matching original pad -->
       <div class="inv-head" style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div class="en" style="font-size:10px; line-height:1.3;">
+        <div class="en" style="font-size:12.5px; line-height:1.3;">
           <strong>C.R: 1019840</strong><br>
           P.O. Box: 255<br>
           P.C: 614<br>
@@ -1047,10 +1085,10 @@ function buildShopCopy(order) {
           <div style="font-size:18px; font-weight:700; color:#122A4E;">النظارات الفريدة</div>
           <div style="font-size:16px; font-weight:800; color:#122A4E; letter-spacing:0.5px;">AL-FAREEDA OPTICALS</div>
           <img src="${SHOP.logo}" style="height:26px; margin:2px 0;" alt="Logo">
-          <div style="font-weight:700; font-size:11px; margin-top:2px;">فاتورة نقدية<br>Cash Memo</div>
+          <div style="font-weight:700; font-size:13px; margin-top:2px;">فاتورة نقدية<br>Cash Memo</div>
         </div>
 
-        <div class="ar" style="font-size:10px; line-height:1.3; text-align:right; direction:rtl;">
+        <div class="ar" style="font-size:12.5px; line-height:1.3; text-align:right; direction:rtl;">
           <strong>س.ت: ١٠١٩٨٤٠</strong><br>
           ص.ب: ٢٥٥<br>
           ر.ب: ٦١٤<br>
@@ -1062,18 +1100,18 @@ function buildShopCopy(order) {
       </div>
 
       <!-- META ROW -->
-      <div style="margin-top:10px; font-size:11px; display:flex; flex-wrap:wrap; gap:6px 20px;">
+      <div style="margin-top:10px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
         <div style="flex:1;"><strong>Name:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${order[2] || ''}</span></div>
         <div><strong>Date:</strong> <span style="border-bottom:1px dotted #000; min-width:80px; display:inline-block;">${dateStr}</span></div>
       </div>
-      <div style="margin-top:4px; font-size:11px; display:flex; flex-wrap:wrap; gap:6px 20px;">
+      <div style="margin-top:4px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
         <div style="flex:1;"><strong>Ref.:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">#${order[1]}</span></div>
         <div><strong>Contact No.:</strong> <span style="border-bottom:1px dotted #000; min-width:120px; display:inline-block;">${order[3] || ''}</span></div>
       </div>
-      <div style="margin-top:4px; font-size:11px;"><strong>Eye Exam:</strong> <span style="border-bottom:1px dotted #000; min-width:100px; display:inline-block;">${order[13] || '-'}</span></div>
+      <div style="margin-top:4px; font-size:13px;"><strong>Eye Exam:</strong> <span style="border-bottom:1px dotted #000; min-width:100px; display:inline-block;">${order[13] || '-'}</span></div>
 
       <!-- PRESCRIPTION TABLE FOR SHOP -->
-      <table class="inv-rx" style="margin-top:8px; width:100%; border-collapse:collapse; text-align:center; font-size:10px;">
+      <table class="inv-rx" style="margin-top:8px; width:100%; border-collapse:collapse; text-align:center; font-size:12.5px;">
         <thead>
           <tr style="background:#f0f0f0;">
             <th rowspan="2" style="border:1px solid #000; width:22%;">Prescription:</th>
@@ -1103,7 +1141,7 @@ function buildShopCopy(order) {
       </table>
 
       <!-- ITEMS / REMARKS -->
-      <div style="font-size:10.5px; margin-top:8px; line-height:1.7;">
+      <div style="font-size:12.5px; margin-top:8px; line-height:1.7;">
         <div><strong>FRAME:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:82%;">${order[14] || ''}</span></div>
         <div><strong>LENS:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:84%;">${order[15] || ''}</span></div>
         <div><strong>DESCRIPTION:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:74%;">${order[16] || order[6] || ''}</span></div>
@@ -1111,7 +1149,7 @@ function buildShopCopy(order) {
 
       <!-- AMOUNTS & SIGNATURE -->
       <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
-        <table style="border-collapse:collapse; font-size:10.5px; width:220px; border:1px solid #000;">
+        <table style="border-collapse:collapse; font-size:12.5px; width:220px; border:1px solid #000;">
           <tr style="border-bottom:1px solid #000;">
             <td style="padding:2px 4px; border-right:1px solid #000;">TOTAL AMOUNT :</td>
             <td style="padding:2px 4px; text-align:right;">${total}</td>
@@ -1125,7 +1163,7 @@ function buildShopCopy(order) {
             <td style="padding:2px 4px; text-align:right;">${balance}</td>
           </tr>
         </table>
-        <div style="font-size:10.5px; font-weight:bold;">
+        <div style="font-size:12.5px; font-weight:bold;">
           Signature / توقيع: .................................
         </div>
       </div>
@@ -1143,7 +1181,7 @@ function buildCustomerCopy(order) {
     <div class="inv-copy" style="margin-top:15px;">
       <!-- HEADER matching original pad -->
       <div class="inv-head" style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div class="en" style="font-size:10px; line-height:1.3;">
+        <div class="en" style="font-size:12.5px; line-height:1.3;">
           <strong>C.R: 1019840</strong><br>
           P.O. Box: 255<br>
           P.C: 614<br>
@@ -1160,7 +1198,7 @@ function buildCustomerCopy(order) {
           <div style="color:#B23A32; font-weight:800; font-size:15px; margin-top:2px;">#${order[1]}</div>
         </div>
 
-        <div class="ar" style="font-size:10px; line-height:1.3; text-align:right; direction:rtl;">
+        <div class="ar" style="font-size:12.5px; line-height:1.3; text-align:right; direction:rtl;">
           <strong>س.ت: ١٠١٩٨٤٠</strong><br>
           ص.ب: ٢٥٥<br>
           ر.ب: ٦١٤<br>
@@ -1172,19 +1210,19 @@ function buildCustomerCopy(order) {
       </div>
 
       <!-- META ROW (NO PRESCRIPTION / NO LENS DETAIL) -->
-      <div style="margin-top:12px; font-size:11px; display:flex; flex-wrap:wrap; gap:6px 20px;">
+      <div style="margin-top:12px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
         <div style="flex:1;"><strong>Name:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${order[2] || ''}</span></div>
         <div><strong>Date:</strong> <span style="border-bottom:1px dotted #000; min-width:80px; display:inline-block;">${dateStr}</span></div>
       </div>
 
-      <div style="margin-top:8px; font-size:11px; display:flex; flex-wrap:wrap; gap:6px 20px;">
+      <div style="margin-top:8px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
         <div style="flex:1;"><strong>Date of Delivery:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:60%;"></span></div>
-        <div><strong>Time of Delivery:</strong> <span style="border-bottom:1px dotted #000; min-width:60px; display:inline-block;"></span> <span style="font-size:10px; direction:rtl;">وقت التسليم </span></div>
+        <div><strong>Time of Delivery:</strong> <span style="border-bottom:1px dotted #000; min-width:60px; display:inline-block;"></span> <span style="font-size:12.5px; direction:rtl;">:وقت التسليم</span></div>
       </div>
 
       <!-- AMOUNTS & ARABIC TERMS -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:18px;">
-        <table style="border-collapse:collapse; font-size:10.5px; width:220px; border:1px solid #000;">
+        <table style="border-collapse:collapse; font-size:12.5px; width:220px; border:1px solid #000;">
           <tr style="border-bottom:1px solid #000;">
             <td style="padding:2px 4px; border-right:1px solid #000;">TOTAL AMOUNT :</td>
             <td style="padding:2px 4px; text-align:right;">${total}</td>
