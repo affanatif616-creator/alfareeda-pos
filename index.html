@@ -304,6 +304,9 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
       <div class="nav-item" onclick="showSection('expense', event)"><i class="fas fa-wallet"></i> Record Expense</div>
       <div class="nav-item" onclick="showSection('expense-list', event); loadExpenseList();"><i class="fas fa-receipt"></i> Expense History</div>
       <div class="nav-divider"></div>
+      <div class="nav-item" onclick="showSection('rop', event); prepROPForm();"><i class="fas fa-eye"></i> ROP Eye Exam</div>
+      <div class="nav-item" onclick="showSection('rop-list', event); loadROPList();"><i class="fas fa-clipboard-list"></i> ROP Exam History</div>
+      <div class="nav-divider"></div>
       <div class="nav-item" id="nav-transactions" style="display:none;" onclick="showSection('transactions', event); loadTransactionHistory();"><i class="fas fa-hand-holding-dollar"></i> Transaction History</div>
       <div class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr', event)"><i class="fas fa-user-shield"></i> Staff Management</div>
     </nav>
@@ -339,14 +342,16 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
           <div class="field"><label>Contact</label><input type="text" id="order-contact"></div>
         </div>
 
-        <div class="field" style="max-width:280px;">
-          <label>Eye Examination</label>
-          <select id="order-exam">
-            <option>Hospital</option>
-            <option>Clinic</option>
-            <option>Old</option>
-            <option>None</option>
-          </select>
+        <div class="grid grid-2" style="max-width:580px;">
+          <div class="field">
+            <label>Eye Examination</label>
+            <select id="order-exam">
+              <option>Hospital</option>
+              <option>Clinic</option>
+              <option>Old</option>
+            </select>
+          </div>
+          <div class="field"><label>Date of Birth</label><input type="date" id="order-dob"></div>
         </div>
 
         <h3>Prescription Details</h3>
@@ -466,6 +471,61 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
       </div>
     </div>
 
+    <!-- ROP EYE EXAM -->
+    <div id="rop-section" class="content-section">
+      <div class="topbar"><div><h1>ROP Eye Exam</h1><p>Vision screening entry</p></div></div>
+      <div class="card">
+        <div class="grid grid-4">
+          <div class="field"><label>No.</label><input type="text" id="rop-no" readonly></div>
+          <div class="field"><label>Date</label><input type="date" id="rop-date"></div>
+          <div class="field"><label>Mobile No</label><input type="text" id="rop-mobile"></div>
+          <div class="field"><label>ID No</label><input type="text" id="rop-idno"></div>
+        </div>
+        <div class="grid grid-4">
+          <div class="field"><label>RE</label>
+            <select id="rop-re"><option>6/6</option><option>6/9</option><option>6/12</option><option>6/18</option><option>6/24</option><option>6/36</option><option>6/60</option></select>
+          </div>
+          <div class="field"><label>LE</label>
+            <select id="rop-le"><option>6/6</option><option>6/9</option><option>6/12</option><option>6/18</option><option>6/24</option><option>6/36</option><option>6/60</option></select>
+          </div>
+          <div class="field"><label>Glass</label><select id="rop-glass"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>Gender</label><select id="rop-gender"><option>M</option><option>F</option></select></div>
+        </div>
+        <div class="grid grid-3">
+          <div class="field"><label>Nationality</label>
+            <select id="rop-nat">
+              <option>OM</option><option>Pak</option><option>India</option><option>Bangladesh</option>
+              <option>Nepal</option><option>Sri Lanka</option><option>Egypt</option><option>Philippines</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Payment Method</label>
+            <select id="rop-payment"><option>Cash</option><option>Card</option></select>
+          </div>
+          <div class="field"><label>Date of Birth</label><input type="date" id="rop-dob"></div>
+        </div>
+        <button class="btn btn-primary" id="rop-save-btn" onclick="saveROPToCloud()"><i class="fas fa-eye"></i> Save Exam Record</button>
+      </div>
+    </div>
+
+    <!-- ROP EXAM HISTORY -->
+    <div id="rop-list-section" class="content-section">
+      <div class="topbar"><div><h1>ROP Exam History</h1><p>Vision screening records</p></div></div>
+      <div class="filter-bar">
+        <div><label>Start Date</label><input type="date" id="rop-start-date"></div>
+        <div><label>End Date</label><input type="date" id="rop-end-date"></div>
+        <button class="btn btn-primary btn-sm" onclick="loadROPList(true)"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetROPFilter()">Reset</button>
+      </div>
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>No.</th><th>Date</th><th>Mobile</th><th>ID No</th><th>RE</th><th>LE</th><th>Glass</th><th>G/N</th><th>Payment</th><th>DOB</th></tr></thead>
+            <tbody id="rop-list-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- STAFF MANAGEMENT (Manager) -->
     <div id="staff-mgr-section" class="content-section">
       <div class="topbar"><div><h1>Staff Management</h1><p>Add a new cloud account</p></div></div>
@@ -508,7 +568,7 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
 /* ============================================================
    CONFIG — same Apps Script backend as the previous version
    ============================================================ */
-const scriptURL = 'https://script.google.com/macros/s/AKfycbx8flo1ZUEDcXgD6lo4AQgcLcxqbEXR-TNire91YYMjBmVQutAyXE-LU9OfPKmDGutOrg/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbznoDCIZc4XjtW7JvJghoXTxBobCdmcGLJMNydrTHWO-k4td-NKm9BeoR7p6oOq5Wgsyg/exec';
 
 const SHOP = {
   nameEn: 'AL-FAREEDA OPTICALS',
@@ -629,56 +689,123 @@ function isThisMonth(d){
 async function loadBranchStats(role, branch){
   const box = document.getElementById('dash-body');
   try{
-    const [salesRes, expRes] = await Promise.all([
+    const [salesRes, expRes, ropRes] = await Promise.all([
       fetch(scriptURL + '?type=Records'),
-      fetch(scriptURL + '?type=Expenses')
+      fetch(scriptURL + '?type=Expenses'),
+      fetch(scriptURL + '?type=ROP Eye Exam')
     ]);
     const allSales = await salesRes.json();
     const allExpenses = await expRes.json();
-    role === 'Manager' ? renderManagerDash(allSales, allExpenses) : renderCashierDash(allSales, allExpenses, branch);
+    const allRop = await ropRes.json().catch(() => []);
+    const birthdayHtml = buildBirthdayWidget(allSales, allRop, role === 'Manager' ? null : branch);
+    role === 'Manager' ? renderManagerDash(allSales, allExpenses, birthdayHtml, allRop) : renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop);
   }catch(e){
     box.innerHTML = '<p style="color:var(--rose);">Error loading dashboard data.</p>';
   }
 }
 
-function renderCashierDash(allSales, allExpenses, branch){
+function revenueForContact(allSales, contact, year){
+  if (!contact) return 0;
+  return (allSales || [])
+    .filter(r => r[3] === contact && new Date(r[0]).getFullYear() === year)
+    .reduce((s,r) => s + (parseFloat(r[7]) || 0), 0);
+}
+
+function buildBirthdayWidget(allSales, allRop, branchFilter){
+  const today = new Date();
+  const todayKey = (today.getMonth()+1) + '-' + today.getDate();
+  const thisYear = today.getFullYear();
+  const matches = new Map();
+
+  (allSales || []).forEach(r => {
+    const dob = r[17];
+    if (!dob) return;
+    if (branchFilter && r[12] !== branchFilter) return;
+    const d = new Date(dob);
+    if (isNaN(d)) return;
+    if ((d.getMonth()+1) + '-' + d.getDate() === todayKey){
+      matches.set('o-' + (r[3] || r[2]), { name: r[2] || 'Customer', contact: r[3] || '' });
+    }
+  });
+
+  (allRop || []).forEach(r => {
+    const dob = r[11];
+    if (!dob) return;
+    if (branchFilter && r[12] !== branchFilter) return;
+    const d = new Date(dob);
+    if (isNaN(d)) return;
+    if ((d.getMonth()+1) + '-' + d.getDate() === todayKey){
+      matches.set('r-' + r[2], { name: 'ROP client', contact: r[2] || '' });
+    }
+  });
+
+  const body = matches.size === 0
+    ? `<p style="color:var(--ink-soft); font-size:.88rem; padding:6px 0;">No birthday today.</p>`
+    : Array.from(matches.values()).map(m => {
+        const rev = revenueForContact(allSales, m.contact, thisYear);
+        return `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px dashed var(--border);">
+      <div><strong>${m.name}</strong><div style="font-size:.78rem; color:var(--ink-soft);">${m.contact}</div></div>
+      <div style="text-align:right;">
+        <span class="badge" style="background:#FBEDEC; color:#8C332C;"><i class="fas fa-cake-candles"></i> Offer discount</span>
+        <div class="tabular" style="font-size:.78rem; color:var(--ink-soft); margin-top:4px;">${rev.toFixed(3)} OMR this year</div>
+      </div>
+    </div>`;
+      }).join('');
+
+  return `
+    <div class="card" style="border-left:4px solid var(--rose); margin-bottom:20px;">
+      <h2 style="margin-bottom:4px;"><i class="fas fa-cake-candles"></i> Birthdays Today</h2>
+      <p style="color:var(--ink-soft); font-size:.85rem; margin-bottom:6px;">Call and wish them — consider a birthday discount.</p>
+      ${body}
+    </div>`;
+}
+function renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop){
   const bSales = allSales.filter(r => r[12] === branch);
   const bExp = allExpenses.filter(e => e[4] === branch);
+  const bRop = (allRop || []).filter(r => r[12] === branch);
 
   const tSales = bSales.filter(r => isToday(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
   const tExp = bExp.filter(e => isToday(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
+  const tRop = bRop.filter(r => isToday(r[1])).reduce((s,r)=>s+(parseFloat(r[9])||0)+(parseFloat(r[10])||0),0);
 
   const mSales = bSales.filter(r => isThisMonth(r[0]));
   const mExp = bExp.filter(e => isThisMonth(e[0]));
+  const mRop = bRop.filter(r => isThisMonth(r[1])).reduce((s,r)=>s+(parseFloat(r[9])||0)+(parseFloat(r[10])||0),0);
   const totalRev = mSales.reduce((s,r)=>s+(parseFloat(r[7])||0),0);
   const totalExp = mExp.reduce((s,e)=>s+(parseFloat(e[2])||0),0);
   const pending = bSales.reduce((s,r)=>s+(parseFloat(r[9])||0),0);
 
   document.getElementById('dash-body').innerHTML = `
+    ${birthdayHtml || ''}
     <h3>Today's Snapshot</h3>
-    <div class="grid grid-2" style="margin-bottom:26px;">
+    <div class="grid grid-3" style="margin-bottom:26px;">
       <div class="stat dark"><div class="stat-head"><small>Today's Sales</small><span class="stat-icon" style="background:rgba(255,255,255,.12); color:var(--brass-light);"><i class="fas fa-coins"></i></span></div><h2 class="tabular">${tSales.toFixed(3)}</h2></div>
       <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Today's Expense</small><span class="stat-icon" style="background:#FBEDEC; color:var(--rose);"><i class="fas fa-receipt"></i></span></div><h2 class="tabular" style="color:var(--rose);">${tExp.toFixed(3)}</h2></div>
+      <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Today's ROP Revenue</small><span class="stat-icon" style="background:#EAF3EF; color:var(--teal);"><i class="fas fa-eye"></i></span></div><h2 class="tabular" style="color:var(--teal);">${tRop.toFixed(3)}</h2></div>
     </div>
     <h3>Performance This Month — ${branch}</h3>
-    <div class="grid grid-3">
+    <div class="grid grid-4">
       <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Monthly Revenue</small><span class="stat-icon" style="background:#EAF3EF; color:var(--teal);"><i class="fas fa-arrow-trend-up"></i></span></div><h3 class="tabular">${totalRev.toFixed(3)} OMR</h3></div>
       <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Monthly Expenses</small><span class="stat-icon" style="background:#FBEDEC; color:var(--rose);"><i class="fas fa-arrow-trend-down"></i></span></div><h3 class="tabular" style="color:var(--rose);">${totalExp.toFixed(3)} OMR</h3></div>
+      <div class="stat"><div class="stat-head"><small style="color:var(--ink-soft);">Monthly ROP Revenue</small><span class="stat-icon" style="background:#EAF3EF; color:var(--teal);"><i class="fas fa-eye"></i></span></div><h3 class="tabular" style="color:var(--teal);">${mRop.toFixed(3)} OMR</h3></div>
       <div class="stat" style="background:#FBEDEC; border-color:#F0D3D0;"><div class="stat-head"><small style="color:#8C332C;">Total Pending Balances</small><span class="stat-icon" style="background:rgba(140,51,44,.12); color:#8C332C;"><i class="fas fa-hourglass-half"></i></span></div><h3 class="tabular" style="color:#8C332C;">${pending.toFixed(3)} OMR</h3></div>
     </div>`;
 }
 
-function renderManagerDash(allSales, allExpenses){
+function renderManagerDash(allSales, allExpenses, birthdayHtml, allRop){
   const branches = ['Sumail','Izki','Sinaw'];
-  let html = `<h3 style="margin-top:0;">Branch Performance — This Month</h3><div class="grid grid-3">`;
+  let html = `${birthdayHtml || ''}<h3 style="margin-top:0;">Branch Performance — This Month</h3><div class="grid grid-3">`;
 
   branches.forEach(b => {
     const bSales = allSales.filter(r => r[12] === b);
     const bExp = allExpenses.filter(e => e[4] === b);
+    const bRop = (allRop || []).filter(r => r[12] === b);
     const tSales = bSales.filter(r=>isToday(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
     const tExp = bExp.filter(e=>isToday(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
     const totalRev = bSales.filter(r=>isThisMonth(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
     const totalExp = bExp.filter(e=>isThisMonth(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
+    const totalRop = bRop.filter(r=>isThisMonth(r[1])).reduce((s,r)=>s+(parseFloat(r[9])||0)+(parseFloat(r[10])||0),0);
     const net = tSales - tExp;
 
     html += `
@@ -691,6 +818,7 @@ function renderManagerDash(allSales, allExpenses){
           </div>
           <div class="branch-row"><span>Month Revenue</span><span class="tabular">${totalRev.toFixed(3)}</span></div>
           <div class="branch-row"><span>Month Expenses</span><span class="tabular" style="color:var(--rose);">${totalExp.toFixed(3)}</span></div>
+          <div class="branch-row"><span>Month ROP Revenue</span><span class="tabular" style="color:var(--teal);">${totalRop.toFixed(3)}</span></div>
           <div style="margin-top:12px; background:#F4F1E9; border-radius:10px; padding:10px; text-align:center;">
             <small style="color:var(--brass); font-weight:700; letter-spacing:.05em; text-transform:uppercase; font-size:.68rem;">Monthly Net Profit</small>
             <div class="tabular" style="font-size:1.15rem; font-weight:800; color:var(--navy);">${(totalRev-totalExp).toFixed(3)} OMR</div>
@@ -726,6 +854,7 @@ async function saveOrderToCloud(){
     name: document.getElementById('order-name').value,
     contact: document.getElementById('order-contact').value,
     examSource: document.getElementById('order-exam').value,
+    dob: document.getElementById('order-dob').value,
     rightEye: rePower,
     leftEye: lePower,
     frame: document.getElementById('order-frame').value,
@@ -1057,6 +1186,116 @@ async function loadTransactionHistory(isFiltered = false){
 }
 
 /* ============================================================
+   ROP EYE EXAM
+   ============================================================ */
+async function nextROPNumber(){
+  try{
+    const res = await fetch(scriptURL + '?type=ROP Eye Exam');
+    const all = await res.json();
+    return all.length + 1;
+  }catch(e){
+    return 1;
+  }
+}
+
+async function prepROPForm(){
+  const dateField = document.getElementById('rop-date');
+  if (dateField && !dateField.value) dateField.value = new Date().toISOString().slice(0, 10);
+  const noField = document.getElementById('rop-no');
+  noField.value = 'Loading…';
+  noField.value = await nextROPNumber();
+}
+
+async function saveROPToCloud(){
+  const btn = document.getElementById('rop-save-btn');
+  const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!sessionUser) return alert('Please log in again.');
+  const method = document.getElementById('rop-payment').value;
+  const FEE = 2;
+  const data = {
+    type: 'ropExam',
+    no: document.getElementById('rop-no').value,
+    date: document.getElementById('rop-date').value,
+    mobile: document.getElementById('rop-mobile').value,
+    idNo: document.getElementById('rop-idno').value,
+    re: document.getElementById('rop-re').value,
+    le: document.getElementById('rop-le').value,
+    glass: document.getElementById('rop-glass').value,
+    gender: document.getElementById('rop-gender').value,
+    nationality: document.getElementById('rop-nat').value,
+    cash: method === 'Cash' ? FEE : 0,
+    card: method === 'Card' ? FEE : 0,
+    dob: document.getElementById('rop-dob').value,
+    branch: sessionUser.activeBranch
+  };
+  if (!data.mobile) return alert('Enter Mobile No');
+
+  btn.disabled = true; btn.innerText = 'Saving…';
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+    alert('Eye exam record saved');
+    location.reload();
+  }catch(e){
+    alert('Error saving record.'); btn.disabled = false; btn.innerText = 'Save Exam Record';
+  }
+}
+
+async function loadROPList(isFiltered = false){
+  const tableBody = document.getElementById('rop-list-table');
+  let startDate=null, endDate=null;
+  if (isFiltered){
+    const s = document.getElementById('rop-start-date').value, e = document.getElementById('rop-end-date').value;
+    if (!s || !e) return alert('Please select both Start and End dates');
+    startDate = new Date(s); startDate.setHours(0,0,0,0);
+    endDate = new Date(e); endDate.setHours(23,59,59,999);
+  }
+
+  tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px;">Fetching records…</td></tr>`;
+  try{
+    const res = await fetch(scriptURL + '?type=ROP Eye Exam');
+    const all = await res.json();
+    const rows = all.filter(r => {
+      const rowDate = new Date(r[1]);
+      return isFiltered ? (rowDate >= startDate && rowDate <= endDate) : true;
+    }).reverse();
+
+    if (rows.length === 0){
+      tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px;">No records found.</td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = rows.map(row => {
+      const dateStr = new Date(row[1]).toLocaleDateString('en-GB');
+      const cash = parseFloat(row[9]) || 0;
+      const card = parseFloat(row[10]) || 0;
+      const method = card > 0 ? 'Card' : 'Cash';
+      const dobStr = row[11] ? new Date(row[11]).toLocaleDateString('en-GB') : '-';
+      return `<tr>
+        <td style="font-weight:700;">${row[0]}</td>
+        <td>${dateStr}</td>
+        <td>${row[2]}</td>
+        <td>${row[3]}</td>
+        <td class="tabular">${row[4]}</td>
+        <td class="tabular">${row[5]}</td>
+        <td>${row[6]}</td>
+        <td><span class="badge" style="background:#EFEAdd; color:var(--brass);">${row[7]}/${row[8]}</span></td>
+        <td><span class="badge" style="background:${method==='Cash'?'#E1F0EA':'#E4EEF7'}; color:${method==='Cash'?'#1D6E4D':'#245985'};">${method}</span></td>
+        <td>${dobStr}</td>
+      </tr>`;
+    }).join('');
+  }catch(e){
+    console.error(e);
+    tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--rose);">Connection error</td></tr>';
+  }
+}
+
+function resetROPFilter(){
+  document.getElementById('rop-start-date').value = '';
+  document.getElementById('rop-end-date').value = '';
+  loadROPList(false);
+}
+
+/* ============================================================
    PRINT ENGINE (Exact Paper Receipt Match)
    ============================================================ */
 
@@ -1218,7 +1457,7 @@ function buildCustomerCopy(order) {
 
       <div style="margin-top:8px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
         <div style="flex:1;"><strong>Date of Delivery:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:60%;"></span></div>
-        <div><strong>Time of Delivery:</strong> <span style="border-bottom:1px dotted #000; min-width:60px; display:inline-block;"></span> <span style="font-size:12.5px; direction:rtl;">:وقت التسليم</span></div>
+        <div><strong>Time of Delivery:</strong> <span style="border-bottom:1px dotted #000; min-width:60px; display:inline-block;">6 Pm</span> <span style="font-size:12.5px; direction:rtl;">وقت التسليم ٦ مساء</span></div>
       </div>
 
       <!-- AMOUNTS & ARABIC TERMS -->
