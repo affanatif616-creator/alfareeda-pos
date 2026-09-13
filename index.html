@@ -101,6 +101,7 @@ body{
 }
 .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--brass); }
 .field input[readonly]{ background:#F4F1E9; color:var(--ink-soft); }
+input[type="date"]{ cursor:pointer; }
 
 .btn{
   border:none; border-radius:var(--radius-sm); font-weight:700; cursor:pointer;
@@ -215,6 +216,36 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
 .modal{ position:fixed; inset:0; background:rgba(11,27,51,.72); z-index:2000; display:none; align-items:center; justify-content:center; padding:20px; }
 .modal .card{ width:380px; max-width:100%; margin:0; }
 
+/* Toast notifications */
+.toast-container{ position:fixed; top:20px; right:20px; z-index:5000; display:flex; flex-direction:column; gap:10px; max-width:360px; }
+.toast{
+  padding:14px 16px; border-radius:10px; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:10px;
+  font-size:.88rem; font-weight:600; color:#fff; animation:toast-in .3s var(--ease) both;
+}
+.toast.success{ background:var(--teal); }
+.toast.error{ background:var(--rose); }
+.toast.info{ background:var(--navy); }
+.toast i{ flex-shrink:0; font-size:1rem; }
+.toast.out{ animation:toast-out .25s var(--ease) forwards; }
+@keyframes toast-in{ from{ opacity:0; transform:translateX(30px); } to{ opacity:1; transform:none; } }
+@keyframes toast-out{ to{ opacity:0; transform:translateX(30px); } }
+@media(max-width:600px){ .toast-container{ left:12px; right:12px; top:12px; max-width:none; } }
+
+/* Sortable table headers */
+table.data th.sortable{ cursor:pointer; user-select:none; }
+table.data th.sortable:hover{ color:var(--navy); }
+table.data th.sortable .sort-hint{ opacity:.4; margin-left:4px; font-size:.68rem; }
+table.data th.sortable:hover .sort-hint{ opacity:.8; }
+
+/* Skeleton loading state */
+.skeleton-row td{ padding:14px 12px; }
+.skeleton-bar{
+  height:13px; border-radius:6px;
+  background:linear-gradient(90deg, #F1ECDF 25%, #FBF7EF 37%, #F1ECDF 63%);
+  background-size:400% 100%; animation:skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer{ 0%{ background-position:100% 50%; } 100%{ background-position:0 50%; } }
+
 /* ============================================================
    6. PRINT — two-copy carbon-style invoice
    ============================================================ */
@@ -297,7 +328,7 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
     </div>
 
     <nav style="flex-grow:1;">
-      <div class="nav-item active" onclick="showSection('dash', event)"><i class="fas fa-chart-pie"></i> Dashboard</div>
+      <div class="nav-item active" onclick="showSection('dash', event); refreshDashboard();"><i class="fas fa-chart-pie"></i> Dashboard</div>
       <div class="nav-item" onclick="showSection('order', event)"><i class="fas fa-file-invoice"></i> New Order</div>
       <div class="nav-item" onclick="showSection('order-list', event); loadOrderList();"><i class="fas fa-list-ul"></i> Order List</div>
       <div class="nav-divider"></div>
@@ -401,7 +432,14 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
         <div class="table-wrap">
           <table class="data">
             <thead><tr>
-              <th>Date</th><th>Invoice</th><th>Name</th><th>Number</th><th>Total</th><th>Balance</th><th>Status</th><th>Eye Exam</th>
+              <th class="sortable" onclick="sortTableBy('order-list-table',0,'date')">Date <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('order-list-table',1,'text')">Invoice <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('order-list-table',2,'text')">Name <span class="sort-hint">⇅</span></th>
+              <th>Number</th>
+              <th class="sortable" onclick="sortTableBy('order-list-table',4,'number')">Total <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('order-list-table',5,'number')">Balance <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('order-list-table',6,'text')">Status <span class="sort-hint">⇅</span></th>
+              <th>Eye Exam</th>
               <th id="branch-header" style="display:none;">Branch</th><th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody id="order-list-table"></tbody>
@@ -443,7 +481,12 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
       <div class="card" style="padding:0;">
         <div class="table-wrap">
           <table class="data">
-            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th id="exp-branch-header" style="display:none;">Branch</th></tr></thead>
+            <thead><tr>
+              <th class="sortable" onclick="sortTableBy('expense-list-table',0,'date')">Date <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('expense-list-table',1,'text')">Category <span class="sort-hint">⇅</span></th>
+              <th>Description</th>
+              <th class="sortable" onclick="sortTableBy('expense-list-table',3,'number')">Amount <span class="sort-hint">⇅</span></th>
+              <th id="exp-branch-header" style="display:none;">Branch</th></tr></thead>
             <tbody id="expense-list-table"></tbody>
           </table>
         </div>
@@ -465,7 +508,14 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
       <div class="card" style="padding:0;">
         <div class="table-wrap">
           <table class="data">
-            <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Branch</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
+            <thead><tr>
+              <th class="sortable" onclick="sortTableBy('transaction-list-table',0,'date')">Date <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('transaction-list-table',1,'text')">Invoice <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('transaction-list-table',2,'text')">Customer <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('transaction-list-table',3,'text')">Branch <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('transaction-list-table',4,'text')">Type <span class="sort-hint">⇅</span></th>
+              <th class="sortable" style="text-align:right;" onclick="sortTableBy('transaction-list-table',5,'number')">Amount <span class="sort-hint">⇅</span></th>
+            </tr></thead>
             <tbody id="transaction-list-table"></tbody>
           </table>
         </div>
@@ -520,7 +570,15 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
       <div class="card" style="padding:0;">
         <div class="table-wrap">
           <table class="data">
-            <thead><tr><th>No.</th><th>Date</th><th>Mobile</th><th>ID No</th><th>RE</th><th>LE</th><th>Glass</th><th>G/N</th><th>Payment</th><th>DOB</th></tr></thead>
+            <thead><tr>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',0,'number')">No. <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',1,'date')">Date <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',2,'text')">Mobile <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',3,'text')">ID No <span class="sort-hint">⇅</span></th>
+              <th>RE</th><th>LE</th><th>Glass</th><th>G/N</th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',8,'text')">Payment <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',9,'date')">DOB <span class="sort-hint">⇅</span></th>
+            </tr></thead>
             <tbody id="rop-list-table"></tbody>
           </table>
         </div>
@@ -550,9 +608,9 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
     <h2><i class="fas fa-edit"></i> Update Order</h2>
     <div class="field"><label>Invoice Number</label><input type="text" id="up-invoice" readonly></div>
     <div class="field"><label>Order Status</label>
-      <select id="up-status"><option value="Pending">Pending</option><option value="Ready">Ready</option><option value="Delivered">Delivered</option></select>
+      <select id="up-status"><option value="Processing">Processing</option><option value="Ready">Ready</option><option value="Delivered">Delivered</option></select>
     </div>
-    <div class="field"><label>Remaining Balance (OMR)</label><input type="number" step="0.001" id="up-balance"></div>
+    <div class="field"><label>Remaining Balance (OMR)</label><input type="number" step="0.001" id="up-balance" oninput="autoSetDeliveredIfPaid()"></div>
     <button class="btn btn-primary" onclick="submitUpdate(event)">Save Changes</button>
     <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModals()">Cancel</button>
   </div>
@@ -564,6 +622,9 @@ table.data tbody tr:hover td{ background:#F5EFE0; }
 
 <!-- Hidden root — filled dynamically just before printing -->
 <div id="print-root"></div>
+
+<!-- Toast notifications -->
+<div class="toast-container" id="toast-container"></div>
 
 <script>
 /* ============================================================
@@ -590,6 +651,91 @@ let logoutTimer;
 let loginBranch = 'Sumail';
 
 /* ============================================================
+   UI HELPERS — toasts, sortable tables, skeleton loaders,
+   date-picker tap fix, in-place dashboard refresh
+   ============================================================ */
+function showToast(message, type = 'info', duration = 3200){
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 250);
+  }, duration);
+}
+
+// Open the native date picker on tap anywhere in a date field, not just the tiny icon
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t && t.tagName === 'INPUT' && t.type === 'date' && typeof t.showPicker === 'function'){
+    try{ t.showPicker(); }catch(err){ /* ignore unsupported */ }
+  }
+});
+
+// Generic column sort for any of the app's data tables.
+// type: 'text' | 'number' | 'date'. Uses a td's data-sort attribute when present
+// (used for date columns, to avoid ambiguous DD/MM vs MM/DD string parsing).
+window.__sortState = {};
+function sortTableBy(tbodyId, colIndex, type){
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  if (!rows.length || !rows[0].children[colIndex]) return;
+  const key = tbodyId + '-' + colIndex;
+  const asc = !window.__sortState[key];
+  window.__sortState[key] = asc;
+  rows.sort((a, b) => {
+    const at = a.children[colIndex], bt = b.children[colIndex];
+    let av = at.dataset.sort !== undefined ? at.dataset.sort : at.innerText.trim();
+    let bv = bt.dataset.sort !== undefined ? bt.dataset.sort : bt.innerText.trim();
+    if (type === 'number'){
+      av = parseFloat(String(av).replace(/[^0-9.\-]/g,'')) || 0;
+      bv = parseFloat(String(bv).replace(/[^0-9.\-]/g,'')) || 0;
+      return asc ? av - bv : bv - av;
+    }
+    if (type === 'date'){
+      av = new Date(av).getTime() || 0;
+      bv = new Date(bv).getTime() || 0;
+      return asc ? av - bv : bv - av;
+    }
+    return asc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// Shimmering placeholder rows shown while a table is loading
+function skeletonRows(cols, rows = 4){
+  let out = '';
+  for (let i = 0; i < rows; i++){
+    let tds = '';
+    for (let c = 0; c < cols; c++){
+      const w = 55 + Math.floor(Math.random() * 35);
+      tds += `<td><div class="skeleton-bar" style="width:${w}%;"></div></td>`;
+    }
+    out += `<tr class="skeleton-row">${tds}</tr>`;
+  }
+  return out;
+}
+
+// Refreshes dashboard numbers in place (used after saves, instead of a full page reload)
+function refreshDashboard(){
+  const u = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (u) loadBranchStats(u.role, u.activeBranch);
+}
+
+// When clearing a balance to zero in the Update Order modal, auto-suggest Delivered
+function autoSetDeliveredIfPaid(){
+  const bal = parseFloat(document.getElementById('up-balance').value);
+  if (!isNaN(bal) && bal <= 0){
+    document.getElementById('up-status').value = 'Delivered';
+  }
+}
+
+/* ============================================================
    AUTH
    ============================================================ */
 function selectBranch(el){
@@ -601,7 +747,11 @@ function selectBranch(el){
 function resetLogoutTimer(){
   clearTimeout(logoutTimer);
   if (sessionStorage.getItem('alfareeda_user')){
-    logoutTimer = setTimeout(() => { alert('Session expired (30 mins)'); logout(); }, 30 * 60 * 1000);
+    logoutTimer = setTimeout(() => {
+      showToast('Session expired after 30 minutes of inactivity', 'error');
+      sessionStorage.removeItem('alfareeda_user');
+      setTimeout(() => location.reload(), 1200);
+    }, 30 * 60 * 1000);
   }
 }
 ['mousedown','mousemove','keypress'].forEach(e => document.addEventListener(e, resetLogoutTimer));
@@ -631,7 +781,7 @@ async function handleLogin(){
     sessionStorage.setItem('alfareeda_user', JSON.stringify(sessionData));
     applyUI(sessionData);
   } else {
-    alert('Login failed. Check Staff ID, password and branch.');
+    showToast('Login failed. Check Staff ID, password and branch.', 'error');
     btn.disabled = false; btn.innerText = 'Login to Cloud';
   }
 }
@@ -661,8 +811,9 @@ window.onload = async () => {
   const saved = sessionStorage.getItem('alfareeda_user');
   if (saved) applyUI(JSON.parse(saved));
   await loadStaff();
+  const now = new Date();
   const dateField = document.getElementById('order-date');
-  if (dateField) dateField.value = new Date().toISOString().slice(0, 10);
+  if (dateField) dateField.value = now.toISOString().slice(0, 10);
 };
 
 /* ============================================================
@@ -761,6 +912,7 @@ function buildBirthdayWidget(allSales, allRop, branchFilter){
       ${body}
     </div>`;
 }
+
 function renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop){
   const bSales = allSales.filter(r => r[12] === branch);
   const bExp = allExpenses.filter(e => e[4] === branch);
@@ -840,17 +992,40 @@ function calcBalance(){
   document.getElementById('order-balance').value = (t - a).toFixed(3);
 }
 
+function resetOrderForm(){
+  document.getElementById('order-invoice').value = '';
+  document.getElementById('order-name').value = '';
+  document.getElementById('order-contact').value = '';
+  document.getElementById('order-exam').selectedIndex = 0;
+  document.getElementById('order-dob').value = '';
+  ['re-sph','re-cyl','re-axis','re-add','le-sph','le-cyl','le-axis','le-add'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('order-frame').value = '';
+  document.getElementById('order-lens').value = '';
+  document.getElementById('order-desc').value = '';
+  document.getElementById('order-total').value = '';
+  document.getElementById('order-advance').value = '';
+  document.getElementById('order-balance').value = '';
+  document.getElementById('order-payment').selectedIndex = 0;
+  document.getElementById('order-status').selectedIndex = 0;
+  const now = new Date();
+  document.getElementById('order-date').value = now.toISOString().slice(0, 10);
+}
+
 async function saveOrderToCloud(){
   const btn = document.getElementById('save-btn');
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-  if (!sessionUser) return alert('Please log in again.');
+  if (!sessionUser) return showToast('Please log in again.', 'error');
 
   const rePower = `S:${document.getElementById('re-sph').value||'0'} C:${document.getElementById('re-cyl').value||'0'} A:${document.getElementById('re-axis').value||'0'} Add:${document.getElementById('re-add').value||'0'}`;
   const lePower = `S:${document.getElementById('le-sph').value||'0'} C:${document.getElementById('le-cyl').value||'0'} A:${document.getElementById('le-axis').value||'0'} Add:${document.getElementById('le-add').value||'0'}`;
 
+  const dateVal = document.getElementById('order-date').value;
+  const nowTime = new Date().toTimeString().slice(0, 8); // real clock time at the moment of saving
+  const combinedDateTime = dateVal ? `${dateVal}T${nowTime}` : '';
+
   const data = {
     type: 'order',
-    date: document.getElementById('order-date').value,
+    date: combinedDateTime,
     invoice: document.getElementById('order-invoice').value,
     name: document.getElementById('order-name').value,
     contact: document.getElementById('order-contact').value,
@@ -869,15 +1044,17 @@ async function saveOrderToCloud(){
     status: document.getElementById('order-status').value,
     branch: sessionUser.activeBranch
   };
-  if (!data.name || !data.invoice) return alert('Fill Name and Invoice');
+  if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
 
   btn.disabled = true; btn.innerText = 'Syncing with Cloud…';
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    alert('Saved to ' + sessionUser.activeBranch);
-    location.reload();
+    showToast('Order saved to ' + sessionUser.activeBranch, 'success');
+    resetOrderForm();
+    refreshDashboard();
+    btn.disabled = false; btn.innerText = 'Save Order';
   }catch(e){
-    alert('Error saving order.'); btn.disabled = false; btn.innerText = 'Save Order';
+    showToast('Error saving order. Try again.', 'error'); btn.disabled = false; btn.innerText = 'Save Order';
   }
 }
 
@@ -891,12 +1068,12 @@ async function loadOrderList(isFiltered = false){
   let startDate=null, endDate=null;
   if (isFiltered){
     const s = document.getElementById('order-start-date').value, e = document.getElementById('order-end-date').value;
-    if (!s || !e) return alert('Please select both Start and End dates');
+    if (!s || !e) return showToast('Please select both Start and End dates', 'error');
     startDate = new Date(s); startDate.setHours(0,0,0,0);
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
-  tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px;">Fetching cloud records…</td></tr>`;
+  tableBody.innerHTML = skeletonRows(9);
   try{
     const res = await fetch(scriptURL + '?type=Records');
     const all = await res.json();
@@ -906,7 +1083,7 @@ async function loadOrderList(isFiltered = false){
       const rowDate = new Date(r[0]);
       const branchMatch = isAdmin ? true : r[12] === user.activeBranch;
       return isFiltered ? (branchMatch && rowDate >= startDate && rowDate <= endDate) : branchMatch;
-    }).reverse();
+    }).sort((a, b) => new Date(b[0]) - new Date(a[0])); // newest date first, regardless of save order
 
     if (rows.length === 0){
       tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px;">No records found.</td></tr>`;
@@ -925,7 +1102,7 @@ async function loadOrderList(isFiltered = false){
       const branchTd = isAdmin ? `<td>${branchName}</td>` : '';
       return `
         <tr>
-          <td>${dateStr}</td>
+          <td data-sort="${row[0]}">${dateStr}</td>
           <td style="font-weight:700;">${row[1]}</td>
           <td>${row[2]}</td>
           <td style="color:var(--ink-soft);">${row[3]}</td>
@@ -973,7 +1150,7 @@ async function submitUpdate(evt){
   const bal = document.getElementById('up-balance').value;
   const stat = document.getElementById('up-status').value;
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-  if (!inv) return alert('Error: invoice number missing.');
+  if (!inv) return showToast('Error: invoice number missing.', 'error');
 
   const btn = evt.target;
   const original = btn.innerText;
@@ -993,10 +1170,13 @@ async function submitUpdate(evt){
 
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    alert('Order ' + inv + ' updated and cash logged!');
-    closeModals(); location.reload();
+    showToast('Order ' + inv + ' updated and cash logged!', 'success');
+    closeModals();
+    btn.innerText = original; btn.disabled = false;
+    loadOrderList();
+    refreshDashboard();
   }catch(e){
-    alert('Connection error. Try again.'); btn.innerText = original; btn.disabled = false;
+    showToast('Connection error. Try again.', 'error'); btn.innerText = original; btn.disabled = false;
   }
 }
 
@@ -1056,11 +1236,17 @@ function closeModals(){
 /* ============================================================
    EXPENSES
    ============================================================ */
+function resetExpenseForm(){
+  document.getElementById('exp-category').selectedIndex = 0;
+  document.getElementById('exp-amount').value = '';
+  document.getElementById('exp-desc').value = '';
+}
+
 async function saveExpense(){
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-  if (!sessionUser) return alert('Session expired. Please login again.');
+  if (!sessionUser) return showToast('Session expired. Please login again.', 'error');
   const amount = document.getElementById('exp-amount').value;
-  if (!amount) return alert('Please enter an amount');
+  if (!amount) return showToast('Please enter an amount', 'error');
 
   const data = {
     type: 'expense',
@@ -1072,8 +1258,10 @@ async function saveExpense(){
   };
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    alert('Expense sent to cloud!'); location.reload();
-  }catch(e){ alert('Network error.'); }
+    showToast('Expense sent to cloud!', 'success');
+    resetExpenseForm();
+    refreshDashboard();
+  }catch(e){ showToast('Network error. Try again.', 'error'); }
 }
 
 async function loadExpenseList(isFiltered = false){
@@ -1087,12 +1275,12 @@ async function loadExpenseList(isFiltered = false){
   let startDate=null, endDate=null;
   if (isFiltered){
     const s = document.getElementById('exp-start-date').value, e = document.getElementById('exp-end-date').value;
-    if (!s || !e) return alert('Please select both Start and End dates');
+    if (!s || !e) return showToast('Please select both Start and End dates', 'error');
     startDate = new Date(s); startDate.setHours(0,0,0,0);
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
-  tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Loading expenses…</td></tr>';
+  tableBody.innerHTML = skeletonRows(5);
   try{
     const res = await fetch(scriptURL + '?type=Expenses');
     const all = await res.json();
@@ -1100,14 +1288,14 @@ async function loadExpenseList(isFiltered = false){
       const rowDate = new Date(e[0]);
       const branchMatch = isAdmin ? true : e[4] === user.activeBranch;
       return isFiltered ? (branchMatch && rowDate >= startDate && rowDate <= endDate) : branchMatch;
-    }).reverse();
+    }).sort((a, b) => new Date(b[0]) - new Date(a[0]));
 
     let total = 0;
     tableBody.innerHTML = rows.map(row => {
       const amount = parseFloat(row[2]) || 0;
       total += amount;
       return `<tr>
-        <td>${new Date(row[0]).toLocaleDateString('en-GB')}</td>
+        <td data-sort="${row[0]}">${new Date(row[0]).toLocaleDateString('en-GB')}</td>
         <td><span class="badge" style="background:#EFEAdd; color:var(--ink-soft);">${row[1]}</span></td>
         <td style="color:var(--ink-soft);">${row[3]}</td>
         <td class="tabular" style="font-weight:700; color:var(--rose);">${amount.toFixed(3)}</td>
@@ -1139,8 +1327,17 @@ async function createNewStaff(){
     branch: document.getElementById('new-branch').value,
     role: 'Cashier'
   };
-  await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-  alert('Staff added'); location.reload();
+  if (!data.name || !data.id || !data.pass) return showToast('Fill Name, Username and Password', 'error');
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+    showToast('Staff account created', 'success');
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-id').value = '';
+    document.getElementById('new-pass').value = '';
+    document.getElementById('new-branch').selectedIndex = 0;
+  }catch(e){
+    showToast('Error creating staff account.', 'error');
+  }
 }
 
 /* ============================================================
@@ -1152,7 +1349,7 @@ async function loadTransactionHistory(isFiltered = false){
   const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!user || user.role !== 'Manager') return;
 
-  tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px;">Loading transactions…</td></tr>';
+  tableBody.innerHTML = skeletonRows(6);
   try{
     const res = await fetch(scriptURL + '?type=Collections');
     let all = await res.json();
@@ -1161,7 +1358,7 @@ async function loadTransactionHistory(isFiltered = false){
     if (startDate) startDate.setHours(0,0,0,0);
     if (endDate) endDate.setHours(23,59,59,999);
 
-    all.reverse();
+    all.sort((a, b) => new Date(b[0]) - new Date(a[0]));
     let total = 0;
     let html = '';
     all.forEach(row => {
@@ -1171,7 +1368,7 @@ async function loadTransactionHistory(isFiltered = false){
       total += amount;
       const isAdvance = row[4] === 'Advance';
       html += `<tr>
-        <td>${rowDate.toLocaleDateString('en-GB')}</td>
+        <td data-sort="${row[0]}">${rowDate.toLocaleDateString('en-GB')}</td>
         <td style="font-weight:700; color:var(--navy);">#${row[1]}</td>
         <td>${row[2]}</td>
         <td style="color:var(--ink-soft);">${row[3]}</td>
@@ -1207,16 +1404,32 @@ async function prepROPForm(){
   noField.value = await nextROPNumber();
 }
 
+function resetROPForm(){
+  document.getElementById('rop-mobile').value = '';
+  document.getElementById('rop-idno').value = '';
+  document.getElementById('rop-re').selectedIndex = 0;
+  document.getElementById('rop-le').selectedIndex = 0;
+  document.getElementById('rop-glass').selectedIndex = 0;
+  document.getElementById('rop-gender').selectedIndex = 0;
+  document.getElementById('rop-nat').selectedIndex = 0;
+  document.getElementById('rop-payment').selectedIndex = 0;
+  document.getElementById('rop-dob').value = '';
+  document.getElementById('rop-date').value = new Date().toISOString().slice(0, 10);
+  prepROPForm();
+}
+
 async function saveROPToCloud(){
   const btn = document.getElementById('rop-save-btn');
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-  if (!sessionUser) return alert('Please log in again.');
+  if (!sessionUser) return showToast('Please log in again.', 'error');
   const method = document.getElementById('rop-payment').value;
   const FEE = 2;
+  const ropDateVal = document.getElementById('rop-date').value;
+  const ropNowTime = new Date().toTimeString().slice(0, 8); // real clock time at the moment of saving
   const data = {
     type: 'ropExam',
     no: document.getElementById('rop-no').value,
-    date: document.getElementById('rop-date').value,
+    date: ropDateVal ? `${ropDateVal}T${ropNowTime}` : '',
     mobile: document.getElementById('rop-mobile').value,
     idNo: document.getElementById('rop-idno').value,
     re: document.getElementById('rop-re').value,
@@ -1229,15 +1442,17 @@ async function saveROPToCloud(){
     dob: document.getElementById('rop-dob').value,
     branch: sessionUser.activeBranch
   };
-  if (!data.mobile) return alert('Enter Mobile No');
+  if (!data.mobile) return showToast('Enter Mobile No', 'error');
 
   btn.disabled = true; btn.innerText = 'Saving…';
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    alert('Eye exam record saved');
-    location.reload();
+    showToast('Eye exam record saved', 'success');
+    resetROPForm();
+    refreshDashboard();
+    btn.disabled = false; btn.innerText = 'Save Exam Record';
   }catch(e){
-    alert('Error saving record.'); btn.disabled = false; btn.innerText = 'Save Exam Record';
+    showToast('Error saving record.', 'error'); btn.disabled = false; btn.innerText = 'Save Exam Record';
   }
 }
 
@@ -1246,19 +1461,19 @@ async function loadROPList(isFiltered = false){
   let startDate=null, endDate=null;
   if (isFiltered){
     const s = document.getElementById('rop-start-date').value, e = document.getElementById('rop-end-date').value;
-    if (!s || !e) return alert('Please select both Start and End dates');
+    if (!s || !e) return showToast('Please select both Start and End dates', 'error');
     startDate = new Date(s); startDate.setHours(0,0,0,0);
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
-  tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px;">Fetching records…</td></tr>`;
+  tableBody.innerHTML = skeletonRows(10);
   try{
     const res = await fetch(scriptURL + '?type=ROP Eye Exam');
     const all = await res.json();
     const rows = all.filter(r => {
       const rowDate = new Date(r[1]);
       return isFiltered ? (rowDate >= startDate && rowDate <= endDate) : true;
-    }).reverse();
+    }).sort((a, b) => new Date(b[1]) - new Date(a[1]));
 
     if (rows.length === 0){
       tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px;">No records found.</td></tr>`;
@@ -1273,7 +1488,7 @@ async function loadROPList(isFiltered = false){
       const dobStr = row[11] ? new Date(row[11]).toLocaleDateString('en-GB') : '-';
       return `<tr>
         <td style="font-weight:700;">${row[0]}</td>
-        <td>${dateStr}</td>
+        <td data-sort="${row[1]}">${dateStr}</td>
         <td>${row[2]}</td>
         <td>${row[3]}</td>
         <td class="tabular">${row[4]}</td>
@@ -1281,7 +1496,7 @@ async function loadROPList(isFiltered = false){
         <td>${row[6]}</td>
         <td><span class="badge" style="background:#EFEAdd; color:var(--brass);">${row[7]}/${row[8]}</span></td>
         <td><span class="badge" style="background:${method==='Cash'?'#E1F0EA':'#E4EEF7'}; color:${method==='Cash'?'#1D6E4D':'#245985'};">${method}</span></td>
-        <td>${dobStr}</td>
+        <td data-sort="${row[11] || ''}">${dobStr}</td>
       </tr>`;
     }).join('');
   }catch(e){
@@ -1490,7 +1705,7 @@ function buildCustomerCopy(order) {
 
 function printOrder(invoiceId) {
   const order = currentOrders.find(r => String(r[1]) === String(invoiceId));
-  if (!order) return alert('Order data not found.');
+  if (!order) return showToast('Order data not found.', 'error');
 
   const topCopy = buildShopCopy(order);
   const separator = '<div class="inv-cut" style="text-align:center; margin:10px 0; border-top:1px dashed #999;"></div>';
