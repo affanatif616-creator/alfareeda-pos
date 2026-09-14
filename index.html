@@ -38,6 +38,33 @@
   --font-mono:   'IBM Plex Mono', monospace;
 }
 
+[data-theme="dark"]{
+  --navy:        #1B2E4D;
+  --navy-deep:   #0A1220;
+  --paper:       #14181F;
+  --surface:     #1D222C;
+  --brass:       #D6A84A;
+  --brass-light: #E9C777;
+  --rose:        #E06157;
+  --teal:        #4FB8A0;
+  --amber:       #E0B24A;
+  --ink:         #EDEFF3;
+  --ink-soft:    #A4ACBB;
+  --border:      #2C323E;
+  --shadow-sm:   0 2px 8px -2px rgba(0,0,0,.35);
+  --shadow:      0 10px 30px -14px rgba(0,0,0,.55);
+  --shadow-lg:   0 20px 48px -16px rgba(0,0,0,.65);
+}
+[data-theme="dark"] .field input,
+[data-theme="dark"] .field select,
+[data-theme="dark"] .field textarea{ background:var(--surface); color:var(--ink); }
+[data-theme="dark"] .field input[readonly]{ background:#252B37; }
+[data-theme="dark"] table.data tbody tr:nth-child(even) td{ background:#20262F; }
+[data-theme="dark"] table.data tbody tr:hover td{ background:#2A3140; }
+[data-theme="dark"] .filter-bar{ background:#1A1F28; }
+[data-theme="dark"] .rx-table th{ background:#20262F; }
+[data-theme="dark"] .rx-table td{ background:var(--surface); border-color:var(--border); }
+
 /* ============================================================
    2. RESET & BASE
    ============================================================ */
@@ -101,7 +128,14 @@ body{
 }
 .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--brass); }
 .field input[readonly]{ background:#F4F1E9; color:var(--ink-soft); }
-input[type="date"]{ cursor:pointer; }
+.date-wrap{ position:relative; }
+.date-wrap input.date-field{ padding-right:38px; }
+.date-pick-btn{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  width:28px; height:28px; border:none; background:transparent; color:var(--ink-soft);
+  cursor:pointer; border-radius:6px; display:flex; align-items:center; justify-content:center;
+}
+.date-pick-btn:hover{ background:#F1ECDF; color:var(--navy); }
 
 .btn{
   border:none; border-radius:var(--radius-sm); font-weight:700; cursor:pointer;
@@ -170,12 +204,60 @@ input[type="date"]{ cursor:pointer; }
 .grid-3{ grid-template-columns:repeat(3,1fr); }
 .grid-4{ grid-template-columns:repeat(4,1fr); }
 .grid-2{ grid-template-columns:repeat(2,1fr); }
-@media(max-width:900px){ .grid-3,.grid-4,.grid-2{ grid-template-columns:1fr 1fr; } .main{ margin-left:0; padding:1.2rem; } .sidebar{ display:none; } }
+/* ============================================================
+   7. MOBILE / TABLET NAVIGATION — hamburger + slide-in drawer
+   ============================================================ */
+.mobile-topbar{ display:none; }
+.sidebar-backdrop{ display:none; }
+
+@media(max-width:900px){
+  .grid-3,.grid-4,.grid-2{ grid-template-columns:1fr 1fr; }
+  .main{ margin-left:0; padding:1.2rem; padding-top:4.6rem; }
+  .sidebar{
+    left:-270px; transition:left .25s var(--ease); box-shadow:var(--shadow-lg);
+  }
+  .sidebar.open{ left:0; }
+  .mobile-topbar{
+    display:flex; align-items:center; gap:12px; position:fixed; top:0; left:0; right:0; z-index:200;
+    background:var(--navy); color:#fff; padding:.9rem 1.1rem; box-shadow:var(--shadow-sm);
+  }
+  .mobile-topbar .hamburger{
+    background:none; border:none; color:#fff; font-size:1.3rem; cursor:pointer; padding:4px 6px;
+  }
+  .mobile-topbar .brand-name{ font-family:var(--font-display); font-weight:700; font-size:1.05rem; }
+  .sidebar-backdrop{
+    display:block; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:90;
+    opacity:0; pointer-events:none; transition:opacity .25s var(--ease);
+  }
+  .sidebar-backdrop.visible{ opacity:1; pointer-events:auto; }
+}
+@media(max-width:480px){
+  .grid-2,.grid-3,.grid-4{ grid-template-columns:1fr; }
+  .topbar{ flex-direction:column; align-items:flex-start; }
+  .login-card{ padding:2rem 1.4rem; }
+}
 
 .content-section{ display:none; }
 .content-section.visible{ display:block; }
 
 /* Rx table (data entry) */
+/* Quick Sale toggle */
+.qs-toggle{
+  display:flex; align-items:center; gap:12px; margin-bottom:1.4rem; padding:12px 16px;
+  background:#FBF3E6; border:1px solid #F0DCB0; border-radius:10px; cursor:pointer;
+  font-weight:600; font-size:.88rem; color:#6b4c14;
+}
+.qs-toggle input{
+  appearance:none; -webkit-appearance:none; width:38px; height:22px; background:#D8CDB5;
+  border-radius:20px; position:relative; cursor:pointer; transition:background .2s var(--ease); flex-shrink:0;
+}
+.qs-toggle input::before{
+  content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; background:#fff;
+  border-radius:50%; transition:left .2s var(--ease); box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.qs-toggle input:checked{ background:var(--brass); }
+.qs-toggle input:checked::before{ left:18px; }
+
 .rx-table{ width:100%; border-collapse:collapse; margin:6px 0 4px; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
 .rx-table th{ background:#F4F1E9; padding:9px; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
 .rx-table td{ background:#fff; padding:4px; border:1px solid #F1ECDF; }
@@ -316,7 +398,12 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
      APP SHELL
      ============================================================ -->
 <div id="app">
-  <aside class="sidebar">
+  <div class="mobile-topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <span class="brand-name">Alfareeda POS</span>
+  </div>
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="app-sidebar">
     <div class="brand-row">
       <div class="lens-mark">
         <svg width="30" height="18" viewBox="0 0 46 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#E7C067" stroke-width="2.6"/><circle cx="33" cy="13" r="11" fill="none" stroke="#E7C067" stroke-width="2.6"/><line x1="24" y1="13" x2="22" y2="13" stroke="#E7C067" stroke-width="2.6"/></svg>
@@ -350,6 +437,7 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
           <div class="role" id="branch-display">—</div>
         </div>
       </div>
+      <div class="nav-item" onclick="toggleTheme()"><i class="fas fa-circle-half-stroke" id="theme-icon"></i> <span id="theme-label">Dark Mode</span></div>
       <div class="nav-item" onclick="logout()" style="color:#E7A79F;"><i class="fas fa-sign-out-alt"></i> Logout</div>
     </div>
   </aside>
@@ -366,14 +454,19 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
     <div id="order-section" class="content-section">
       <div class="topbar"><div><h1>New Order</h1><p>Daily sale entry</p></div></div>
       <div class="card">
+        <label class="qs-toggle">
+          <input type="checkbox" id="quick-sale-toggle" onchange="toggleQuickSaleMode()">
+          <span><i class="fas fa-bolt"></i> Quick Sale — sunglasses / contact lens, no invoice needed</span>
+        </label>
+
         <div class="grid grid-4">
-          <div class="field"><label>Date</label><input type="date" id="order-date"></div>
+          <div class="field"><label>Date</label><div class="date-wrap"><input type="text" class="date-field" id="order-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('order-date')"><i class="fas fa-calendar"></i></button></div></div>
           <div class="field"><label>Invoice Number</label><input type="text" id="order-invoice"></div>
           <div class="field"><label>Customer Name</label><input type="text" id="order-name"></div>
           <div class="field"><label>Contact</label><input type="text" id="order-contact"></div>
         </div>
 
-        <div class="grid grid-2" style="max-width:580px;">
+        <div id="exam-dob-wrap" class="grid grid-2" style="max-width:580px;">
           <div class="field">
             <label>Eye Examination</label>
             <select id="order-exam">
@@ -383,26 +476,32 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
               <option>None</option>
             </select>
           </div>
-          <div class="field"><label>Date of Birth</label><input type="date" id="order-dob"></div>
+          <div class="field"><label>Date of Birth</label><div class="date-wrap"><input type="text" class="date-field" id="order-dob" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('order-dob')"><i class="fas fa-calendar"></i></button></div></div>
         </div>
 
-        <h3>Prescription Details</h3>
-        <table class="rx-table">
-          <thead><tr><th style="text-align:left; padding-left:10px;">Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
-          <tbody>
-            <tr><td>Right Eye (RE)</td>
-              <td><input id="re-sph" placeholder="0.00"></td><td><input id="re-cyl" placeholder="0.00"></td>
-              <td><input id="re-axis" placeholder="0"></td><td><input id="re-add" placeholder="0.00"></td></tr>
-            <tr><td>Left Eye (LE)</td>
-              <td><input id="le-sph" placeholder="0.00"></td><td><input id="le-cyl" placeholder="0.00"></td>
-              <td><input id="le-axis" placeholder="0"></td><td><input id="le-add" placeholder="0.00"></td></tr>
-          </tbody>
-        </table>
+        <div id="rx-section-wrap">
+          <h3>Prescription Details</h3>
+          <table class="rx-table">
+            <thead><tr><th style="text-align:left; padding-left:10px;">Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
+            <tbody>
+              <tr><td>Right Eye (RE)</td>
+                <td><input id="re-sph" placeholder="0.00"></td><td><input id="re-cyl" placeholder="0.00"></td>
+                <td><input id="re-axis" placeholder="0"></td><td><input id="re-add" placeholder="0.00"></td></tr>
+              <tr><td>Left Eye (LE)</td>
+                <td><input id="le-sph" placeholder="0.00"></td><td><input id="le-cyl" placeholder="0.00"></td>
+                <td><input id="le-axis" placeholder="0"></td><td><input id="le-add" placeholder="0.00"></td></tr>
+            </tbody>
+          </table>
+        </div>
 
-        <div class="grid grid-3">
+        <div id="normal-items-wrap" class="grid grid-3">
           <div class="field"><label>Frame</label><input type="text" id="order-frame"></div>
           <div class="field"><label>Lens</label><input type="text" id="order-lens"></div>
           <div class="field"><label>Description</label><input type="text" id="order-desc"></div>
+        </div>
+
+        <div id="quick-item-wrap" class="field" style="display:none; max-width:420px;">
+          <label>Item</label><input type="text" id="order-quick-item" placeholder="e.g. Rayban Sunglasses, Contact Lens Solution">
         </div>
 
         <div class="grid grid-4">
@@ -423,8 +522,8 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
         <input type="text" id="search-box" oninput="searchOrders()" placeholder="Search name, mobile or invoice…" style="width:260px; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); font-family:inherit;">
       </div>
       <div class="filter-bar">
-        <div><label>Start Date</label><input type="date" id="order-start-date"></div>
-        <div><label>End Date</label><input type="date" id="order-end-date"></div>
+        <div><label>Start Date</label><div class="date-wrap"><input type="text" class="date-field" id="order-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('order-start-date')"><i class="fas fa-calendar"></i></button></div></div>
+        <div><label>End Date</label><div class="date-wrap"><input type="text" class="date-field" id="order-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('order-end-date')"><i class="fas fa-calendar"></i></button></div></div>
         <button class="btn btn-primary btn-sm" onclick="loadOrderList(true)"><i class="fas fa-filter"></i> Filter</button>
         <button class="btn btn-ghost btn-sm" onclick="resetOrderFilter()">Reset</button>
       </div>
@@ -473,8 +572,8 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
         <div class="badge" id="expense-total-badge" style="background:var(--rose); color:#fff; font-size:.9rem; padding:8px 16px;">Total: 0.000 OMR</div>
       </div>
       <div class="filter-bar">
-        <div><label>Start Date</label><input type="date" id="exp-start-date"></div>
-        <div><label>End Date</label><input type="date" id="exp-end-date"></div>
+        <div><label>Start Date</label><div class="date-wrap"><input type="text" class="date-field" id="exp-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('exp-start-date')"><i class="fas fa-calendar"></i></button></div></div>
+        <div><label>End Date</label><div class="date-wrap"><input type="text" class="date-field" id="exp-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('exp-end-date')"><i class="fas fa-calendar"></i></button></div></div>
         <button class="btn btn-primary btn-sm" onclick="loadExpenseList(true)"><i class="fas fa-filter"></i> Filter</button>
         <button class="btn btn-ghost btn-sm" onclick="resetExpFilter()">Reset</button>
       </div>
@@ -500,8 +599,8 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
         <div class="badge" id="trans-total-badge" style="background:var(--navy); color:#fff; font-size:.9rem; padding:8px 16px;">Total: 0.000 OMR</div>
       </div>
       <div class="filter-bar">
-        <div><label>Start Date</label><input type="date" id="trans-start-date"></div>
-        <div><label>End Date</label><input type="date" id="trans-end-date"></div>
+        <div><label>Start Date</label><div class="date-wrap"><input type="text" class="date-field" id="trans-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('trans-start-date')"><i class="fas fa-calendar"></i></button></div></div>
+        <div><label>End Date</label><div class="date-wrap"><input type="text" class="date-field" id="trans-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('trans-end-date')"><i class="fas fa-calendar"></i></button></div></div>
         <button class="btn btn-primary btn-sm" onclick="loadTransactionHistory(true)"><i class="fas fa-filter"></i> Filter</button>
         <button class="btn btn-ghost btn-sm" onclick="loadTransactionHistory(false)">Reset</button>
       </div>
@@ -528,11 +627,12 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
       <div class="card">
         <div class="grid grid-4">
           <div class="field"><label>No.</label><input type="text" id="rop-no" readonly></div>
-          <div class="field"><label>Date</label><input type="date" id="rop-date"></div>
+          <div class="field"><label>Date</label><div class="date-wrap"><input type="text" class="date-field" id="rop-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('rop-date')"><i class="fas fa-calendar"></i></button></div></div>
+          <div class="field"><label>Name</label><input type="text" id="rop-name"></div>
           <div class="field"><label>Mobile No</label><input type="text" id="rop-mobile"></div>
-          <div class="field"><label>ID No</label><input type="text" id="rop-idno"></div>
         </div>
         <div class="grid grid-4">
+          <div class="field"><label>ID No</label><input type="text" id="rop-idno"></div>
           <div class="field"><label>RE</label>
             <select id="rop-re"><option>6/6</option><option>6/9</option><option>6/12</option><option>6/18</option><option>6/24</option><option>6/36</option><option>6/60</option></select>
           </div>
@@ -540,9 +640,9 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
             <select id="rop-le"><option>6/6</option><option>6/9</option><option>6/12</option><option>6/18</option><option>6/24</option><option>6/36</option><option>6/60</option></select>
           </div>
           <div class="field"><label>Glass</label><select id="rop-glass"><option>No</option><option>Yes</option></select></div>
-          <div class="field"><label>Gender</label><select id="rop-gender"><option>M</option><option>F</option></select></div>
         </div>
-        <div class="grid grid-3">
+        <div class="grid grid-4">
+          <div class="field"><label>Gender</label><select id="rop-gender"><option>M</option><option>F</option></select></div>
           <div class="field"><label>Nationality</label>
             <select id="rop-nat">
               <option>OM</option><option>Pak</option><option>India</option><option>Bangladesh</option>
@@ -552,8 +652,9 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
           <div class="field"><label>Payment Method</label>
             <select id="rop-payment"><option>Cash</option><option>Card</option></select>
           </div>
-          <div class="field"><label>Date of Birth</label><input type="date" id="rop-dob"></div>
+          <div class="field"><label>Amount (OMR)</label><input type="number" step="0.001" id="rop-amount" placeholder="0.000"></div>
         </div>
+        <div class="field" style="max-width:280px;"><label>Date of Birth</label><div class="date-wrap"><input type="text" class="date-field" id="rop-dob" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('rop-dob')"><i class="fas fa-calendar"></i></button></div></div>
         <button class="btn btn-primary" id="rop-save-btn" onclick="saveROPToCloud()"><i class="fas fa-eye"></i> Save Exam Record</button>
       </div>
     </div>
@@ -562,8 +663,8 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
     <div id="rop-list-section" class="content-section">
       <div class="topbar"><div><h1>ROP Exam History</h1><p>Vision screening records</p></div></div>
       <div class="filter-bar">
-        <div><label>Start Date</label><input type="date" id="rop-start-date"></div>
-        <div><label>End Date</label><input type="date" id="rop-end-date"></div>
+        <div><label>Start Date</label><div class="date-wrap"><input type="text" class="date-field" id="rop-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('rop-start-date')"><i class="fas fa-calendar"></i></button></div></div>
+        <div><label>End Date</label><div class="date-wrap"><input type="text" class="date-field" id="rop-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('rop-end-date')"><i class="fas fa-calendar"></i></button></div></div>
         <button class="btn btn-primary btn-sm" onclick="loadROPList(true)"><i class="fas fa-filter"></i> Filter</button>
         <button class="btn btn-ghost btn-sm" onclick="resetROPFilter()">Reset</button>
       </div>
@@ -573,11 +674,12 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
             <thead><tr>
               <th class="sortable" onclick="sortTableBy('rop-list-table',0,'number')">No. <span class="sort-hint">⇅</span></th>
               <th class="sortable" onclick="sortTableBy('rop-list-table',1,'date')">Date <span class="sort-hint">⇅</span></th>
-              <th class="sortable" onclick="sortTableBy('rop-list-table',2,'text')">Mobile <span class="sort-hint">⇅</span></th>
-              <th class="sortable" onclick="sortTableBy('rop-list-table',3,'text')">ID No <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',2,'text')">Name <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',3,'text')">Mobile <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',4,'text')">ID No <span class="sort-hint">⇅</span></th>
               <th>RE</th><th>LE</th><th>Glass</th><th>G/N</th>
-              <th class="sortable" onclick="sortTableBy('rop-list-table',8,'text')">Payment <span class="sort-hint">⇅</span></th>
-              <th class="sortable" onclick="sortTableBy('rop-list-table',9,'date')">DOB <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',9,'text')">Payment <span class="sort-hint">⇅</span></th>
+              <th class="sortable" onclick="sortTableBy('rop-list-table',10,'date')">DOB <span class="sort-hint">⇅</span></th>
             </tr></thead>
             <tbody id="rop-list-table"></tbody>
           </table>
@@ -626,11 +728,14 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
 <!-- Toast notifications -->
 <div class="toast-container" id="toast-container"></div>
 
+<!-- Shared hidden native date picker, used by the calendar-icon buttons -->
+<input type="date" id="__hidden-date-picker" style="position:fixed; top:-9999px; left:-9999px; opacity:0; pointer-events:none;">
+
 <script>
 /* ============================================================
    CONFIG — same Apps Script backend as the previous version
    ============================================================ */
-const scriptURL = 'https://script.google.com/macros/s/AKfycbwL0-HSY1Lbn39A_arUowJW30gpSPOlA273QpbzvZMr_MttWAw4kLbfamLCQ8RDcoPndQ/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxA2jC05BcQjkbtzzgUcYFFl-vPbQPpXc01iM7_ib1bCUHYYhMn7sRl7ZY8oTcConGy0A/exec';
 
 const SHOP = {
   nameEn: 'AL-FAREEDA OPTICALS',
@@ -647,7 +752,6 @@ const SHOP = {
    ============================================================ */
 let staffList = [];
 let currentOrders = [];
-let logoutTimer;
 let loginBranch = 'Sumail';
 
 /* ============================================================
@@ -668,13 +772,65 @@ function showToast(message, type = 'info', duration = 3200){
   }, duration);
 }
 
-// Open the native date picker on tap anywhere in a date field, not just the tiny icon
-document.addEventListener('click', (e) => {
-  const t = e.target;
-  if (t && t.tagName === 'INPUT' && t.type === 'date' && typeof t.showPicker === 'function'){
-    try{ t.showPicker(); }catch(err){ /* ignore unsupported */ }
+// ---- Manual dd-mm-yyyy date fields ----
+// Every date field in the app is a plain text input (class="date-field") the
+// staff can type into directly, auto-formatted as they type. A small calendar
+// icon next to each one is an optional shortcut that opens a native picker
+// and writes the result back in dd-mm-yyyy — typing is never required to go
+// through it.
+function attachDateMask(el){
+  el.addEventListener('input', () => {
+    let v = el.value.replace(/[^0-9]/g, '').slice(0, 8);
+    let out = '';
+    if (v.length > 0) out += v.slice(0,2);
+    if (v.length >= 3) out += '-' + v.slice(2,4);
+    if (v.length >= 5) out += '-' + v.slice(4,8);
+    el.value = out;
+  });
+}
+function ddmmyyyyToISO(str){
+  if (!str) return '';
+  const m = String(str).match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!m) return '';
+  const [, d, mo, y] = m;
+  const day = parseInt(d,10), month = parseInt(mo,10);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return '';
+  return `${y}-${mo}-${d}`;
+}
+function isoToDDMMYYYY(iso){
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  return `${dd}-${mm}-${d.getFullYear()}`;
+}
+function todayDDMMYYYY(){
+  const n = new Date();
+  return `${String(n.getDate()).padStart(2,'0')}-${String(n.getMonth()+1).padStart(2,'0')}-${n.getFullYear()}`;
+}
+let __activeDatePickerTarget = null;
+function openDatePicker(targetId){
+  __activeDatePickerTarget = targetId;
+  const hidden = document.getElementById('__hidden-date-picker');
+  const current = ddmmyyyyToISO(document.getElementById(targetId).value);
+  hidden.value = current || '';
+  if (typeof hidden.showPicker === 'function'){
+    try{ hidden.showPicker(); return; }catch(err){ /* fall through */ }
   }
-});
+  hidden.click();
+}
+function initDateFields(){
+  document.querySelectorAll('input.date-field').forEach(attachDateMask);
+  const hidden = document.getElementById('__hidden-date-picker');
+  if (hidden){
+    hidden.addEventListener('change', function(){
+      if (__activeDatePickerTarget){
+        document.getElementById(__activeDatePickerTarget).value = isoToDDMMYYYY(this.value);
+      }
+    });
+  }
+}
 
 // Generic column sort for any of the app's data tables.
 // type: 'text' | 'number' | 'date'. Uses a td's data-sort attribute when present
@@ -727,6 +883,45 @@ function refreshDashboard(){
   if (u) loadBranchStats(u.role, u.activeBranch);
 }
 
+// ---- Lightweight response cache (speeds up repeated navigation) ----
+// Every sheet fetch goes through here instead of calling fetch() directly.
+// Within CACHE_MS of a fetch, re-requesting the same sheet reuses the
+// in-memory copy instead of hitting the network again. Any successful save
+// calls invalidateCache() so the next read anywhere is guaranteed fresh.
+const CACHE_MS = 45000;
+const __cache = {};
+async function fetchCloud(type, forceRefresh = false){
+  const now = Date.now();
+  if (!forceRefresh && __cache[type] && (now - __cache[type].ts) < CACHE_MS){
+    return __cache[type].data;
+  }
+  const res = await fetch(scriptURL + '?type=' + encodeURIComponent(type));
+  const data = await res.json();
+  __cache[type] = { data, ts: now };
+  return data;
+}
+function invalidateCache(){
+  Object.keys(__cache).forEach(k => delete __cache[k]);
+}
+
+// ---- Dark / light theme ----
+function applyStoredTheme(){
+  const stored = localStorage.getItem('alfareeda_theme') || 'light';
+  setTheme(stored);
+}
+function setTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('alfareeda_theme', mode);
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  if (icon) icon.className = mode === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  if (label) label.innerText = mode === 'dark' ? 'Light Mode' : 'Dark Mode';
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(current === 'dark' ? 'light' : 'dark');
+}
+
 // When clearing a balance to zero in the Update Order modal, auto-suggest Delivered
 function autoSetDeliveredIfPaid(){
   const bal = parseFloat(document.getElementById('up-balance').value);
@@ -744,22 +939,9 @@ function selectBranch(el){
   loginBranch = el.dataset.branch;
 }
 
-function resetLogoutTimer(){
-  clearTimeout(logoutTimer);
-  if (sessionStorage.getItem('alfareeda_user')){
-    logoutTimer = setTimeout(() => {
-      showToast('Session expired after 30 minutes of inactivity', 'error');
-      sessionStorage.removeItem('alfareeda_user');
-      setTimeout(() => location.reload(), 1200);
-    }, 30 * 60 * 1000);
-  }
-}
-['mousedown','mousemove','keypress'].forEach(e => document.addEventListener(e, resetLogoutTimer));
-
 async function loadStaff(){
   try{
-    const res = await fetch(scriptURL + '?type=staff');
-    const data = await res.json();
+    const data = await fetchCloud('staff');
     staffList = data.map(r => ({ name:r[0], id:r[1], pass:r[2], branch:r[3], role:r[4] }));
     staffList.push({ id:'admin', pass:'alf123', role:'Manager', branch:'All', name:'Master Admin' });
   }catch(e){
@@ -800,7 +982,6 @@ function applyUI(auth){
   document.getElementById('nav-transactions').style.display = isManager ? 'flex' : 'none';
 
   loadBranchStats(auth.role, auth.activeBranch);
-  resetLogoutTimer();
 }
 
 function logout(){
@@ -811,9 +992,12 @@ window.onload = async () => {
   const saved = sessionStorage.getItem('alfareeda_user');
   if (saved) applyUI(JSON.parse(saved));
   await loadStaff();
-  const now = new Date();
+  initDateFields();
+  applyStoredTheme();
   const dateField = document.getElementById('order-date');
-  if (dateField) dateField.value = now.toISOString().slice(0, 10);
+  if (dateField) dateField.value = todayDDMMYYYY();
+  const ropDateField = document.getElementById('rop-date');
+  if (ropDateField) ropDateField.value = todayDDMMYYYY();
 };
 
 /* ============================================================
@@ -824,6 +1008,16 @@ function showSection(id, evt){
   document.getElementById(id + '-section').classList.add('visible');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+  closeSidebar();
+}
+
+function toggleSidebar(){
+  document.getElementById('app-sidebar').classList.toggle('open');
+  document.getElementById('sidebar-backdrop').classList.toggle('visible');
+}
+function closeSidebar(){
+  document.getElementById('app-sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('visible');
 }
 
 /* ============================================================
@@ -841,14 +1035,11 @@ function isThisMonth(d){
 async function loadBranchStats(role, branch){
   const box = document.getElementById('dash-body');
   try{
-    const [salesRes, expRes, ropRes] = await Promise.all([
-      fetch(scriptURL + '?type=Records'),
-      fetch(scriptURL + '?type=Expenses'),
-      fetch(scriptURL + '?type=ROP Eye Exam')
+    const [allSales, allExpenses, allRop] = await Promise.all([
+      fetchCloud('Records'),
+      fetchCloud('Expenses'),
+      fetchCloud('ROP Eye Exam').catch(() => [])
     ]);
-    const allSales = await salesRes.json();
-    const allExpenses = await expRes.json();
-    const allRop = await ropRes.json().catch(() => []);
     const birthdayHtml = buildBirthdayWidget(allSales, allRop, role === 'Manager' ? null : branch);
     role === 'Manager' ? renderManagerDash(allSales, allExpenses, birthdayHtml, allRop) : renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop);
   }catch(e){
@@ -887,7 +1078,7 @@ function buildBirthdayWidget(allSales, allRop, branchFilter){
     const d = new Date(dob);
     if (isNaN(d)) return;
     if ((d.getMonth()+1) + '-' + d.getDate() === todayKey){
-      matches.set('r-' + r[2], { name: 'ROP client', contact: r[2] || '' });
+      matches.set('r-' + r[2], { name: r[13] || 'ROP client', contact: r[2] || '' });
     }
   });
 
@@ -992,7 +1183,42 @@ function calcBalance(){
   document.getElementById('order-balance').value = (t - a).toFixed(3);
 }
 
+async function nextQuickSaleNumber(){
+  try{
+    const all = await fetchCloud('Records', true); // always fresh — must reflect the true current count
+    const count = all.filter(r => String(r[1]).startsWith('QS-')).length;
+    return 'QS-' + (count + 1);
+  }catch(e){
+    return 'QS-' + Date.now(); // fallback: still guaranteed unique even if the count fetch fails
+  }
+}
+
+function toggleQuickSaleMode(){
+  const on = document.getElementById('quick-sale-toggle').checked;
+  document.getElementById('rx-section-wrap').style.display = on ? 'none' : '';
+  document.getElementById('exam-dob-wrap').style.display = on ? 'none' : '';
+  document.getElementById('normal-items-wrap').style.display = on ? 'none' : '';
+  document.getElementById('quick-item-wrap').style.display = on ? 'block' : 'none';
+
+  const invoiceField = document.getElementById('order-invoice');
+  const nameField = document.getElementById('order-name');
+
+  if (on){
+    invoiceField.readOnly = true;
+    invoiceField.value = 'Loading…';
+    nextQuickSaleNumber().then(id => invoiceField.value = id);
+    if (!nameField.value.trim()) nameField.value = '';
+  } else {
+    invoiceField.readOnly = false;
+    invoiceField.value = '';
+    if (nameField.value === 'Walk-in Customer') nameField.value = '';
+  }
+}
+
 function resetOrderForm(){
+  document.getElementById('quick-sale-toggle').checked = false;
+  document.getElementById('order-quick-item').value = '';
+  toggleQuickSaleMode();
   document.getElementById('order-invoice').value = '';
   document.getElementById('order-name').value = '';
   document.getElementById('order-contact').value = '';
@@ -1007,8 +1233,7 @@ function resetOrderForm(){
   document.getElementById('order-balance').value = '';
   document.getElementById('order-payment').selectedIndex = 0;
   document.getElementById('order-status').selectedIndex = 0;
-  const now = new Date();
-  document.getElementById('order-date').value = now.toISOString().slice(0, 10);
+  document.getElementById('order-date').value = todayDDMMYYYY();
 }
 
 async function saveOrderToCloud(){
@@ -1016,12 +1241,20 @@ async function saveOrderToCloud(){
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!sessionUser) return showToast('Please log in again.', 'error');
 
-  const rePower = `S:${document.getElementById('re-sph').value||'0'} C:${document.getElementById('re-cyl').value||'0'} A:${document.getElementById('re-axis').value||'0'} Add:${document.getElementById('re-add').value||'0'}`;
-  const lePower = `S:${document.getElementById('le-sph').value||'0'} C:${document.getElementById('le-cyl').value||'0'} A:${document.getElementById('le-axis').value||'0'} Add:${document.getElementById('le-add').value||'0'}`;
+  const isQuickSale = document.getElementById('quick-sale-toggle').checked;
 
-  const dateVal = document.getElementById('order-date').value;
+  const rePower = isQuickSale ? 'N/A' : `S:${document.getElementById('re-sph').value||'0'} C:${document.getElementById('re-cyl').value||'0'} A:${document.getElementById('re-axis').value||'0'} Add:${document.getElementById('re-add').value||'0'}`;
+  const lePower = isQuickSale ? 'N/A' : `S:${document.getElementById('le-sph').value||'0'} C:${document.getElementById('le-cyl').value||'0'} A:${document.getElementById('le-axis').value||'0'} Add:${document.getElementById('le-add').value||'0'}`;
+
+  const dateISO = ddmmyyyyToISO(document.getElementById('order-date').value);
+  if (document.getElementById('order-date').value && !dateISO) return showToast('Enter date as dd-mm-yyyy', 'error');
   const nowTime = new Date().toTimeString().slice(0, 8); // real clock time at the moment of saving
-  const combinedDateTime = dateVal ? `${dateVal}T${nowTime}` : '';
+  const combinedDateTime = dateISO ? `${dateISO}T${nowTime}` : '';
+  const dobISO = isQuickSale ? '' : ddmmyyyyToISO(document.getElementById('order-dob').value);
+
+  const frameVal = isQuickSale ? '' : document.getElementById('order-frame').value;
+  const lensVal = isQuickSale ? '' : document.getElementById('order-lens').value;
+  const descVal = isQuickSale ? document.getElementById('order-quick-item').value : document.getElementById('order-desc').value;
 
   const data = {
     type: 'order',
@@ -1029,14 +1262,14 @@ async function saveOrderToCloud(){
     invoice: document.getElementById('order-invoice').value,
     name: document.getElementById('order-name').value,
     contact: document.getElementById('order-contact').value,
-    examSource: document.getElementById('order-exam').value,
-    dob: document.getElementById('order-dob').value,
+    examSource: isQuickSale ? '' : document.getElementById('order-exam').value,
+    dob: dobISO,
     rightEye: rePower,
     leftEye: lePower,
-    frame: document.getElementById('order-frame').value,
-    lens: document.getElementById('order-lens').value,
-    description: document.getElementById('order-desc').value,
-    items: [document.getElementById('order-frame').value, document.getElementById('order-lens').value, document.getElementById('order-desc').value].filter(Boolean).join(' + '),
+    frame: frameVal,
+    lens: lensVal,
+    description: descVal,
+    items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
     total: document.getElementById('order-total').value || 0,
     advance: document.getElementById('order-advance').value || 0,
     balance: document.getElementById('order-balance').value || 0,
@@ -1050,6 +1283,7 @@ async function saveOrderToCloud(){
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
     showToast('Order saved to ' + sessionUser.activeBranch, 'success');
+    invalidateCache();
     resetOrderForm();
     refreshDashboard();
     btn.disabled = false; btn.innerText = 'Save Order';
@@ -1067,16 +1301,15 @@ async function loadOrderList(isFiltered = false){
 
   let startDate=null, endDate=null;
   if (isFiltered){
-    const s = document.getElementById('order-start-date').value, e = document.getElementById('order-end-date').value;
-    if (!s || !e) return showToast('Please select both Start and End dates', 'error');
+    const s = ddmmyyyyToISO(document.getElementById('order-start-date').value), e = ddmmyyyyToISO(document.getElementById('order-end-date').value);
+    if (!s || !e) return showToast('Enter both dates as dd-mm-yyyy', 'error');
     startDate = new Date(s); startDate.setHours(0,0,0,0);
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
   tableBody.innerHTML = skeletonRows(9);
   try{
-    const res = await fetch(scriptURL + '?type=Records');
-    const all = await res.json();
+    const all = await fetchCloud('Records', isFiltered);
     currentOrders = all;
 
     const rows = all.filter(r => {
@@ -1171,6 +1404,7 @@ async function submitUpdate(evt){
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
     showToast('Order ' + inv + ' updated and cash logged!', 'success');
+    invalidateCache();
     closeModals();
     btn.innerText = original; btn.disabled = false;
     loadOrderList();
@@ -1259,6 +1493,7 @@ async function saveExpense(){
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
     showToast('Expense sent to cloud!', 'success');
+    invalidateCache();
     resetExpenseForm();
     refreshDashboard();
   }catch(e){ showToast('Network error. Try again.', 'error'); }
@@ -1274,16 +1509,15 @@ async function loadExpenseList(isFiltered = false){
 
   let startDate=null, endDate=null;
   if (isFiltered){
-    const s = document.getElementById('exp-start-date').value, e = document.getElementById('exp-end-date').value;
-    if (!s || !e) return showToast('Please select both Start and End dates', 'error');
+    const s = ddmmyyyyToISO(document.getElementById('exp-start-date').value), e = ddmmyyyyToISO(document.getElementById('exp-end-date').value);
+    if (!s || !e) return showToast('Enter both dates as dd-mm-yyyy', 'error');
     startDate = new Date(s); startDate.setHours(0,0,0,0);
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
   tableBody.innerHTML = skeletonRows(5);
   try{
-    const res = await fetch(scriptURL + '?type=Expenses');
-    const all = await res.json();
+    const all = await fetchCloud('Expenses', isFiltered);
     const rows = all.filter(e => {
       const rowDate = new Date(e[0]);
       const branchMatch = isAdmin ? true : e[4] === user.activeBranch;
@@ -1331,6 +1565,7 @@ async function createNewStaff(){
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
     showToast('Staff account created', 'success');
+    invalidateCache();
     document.getElementById('new-name').value = '';
     document.getElementById('new-id').value = '';
     document.getElementById('new-pass').value = '';
@@ -1351,10 +1586,9 @@ async function loadTransactionHistory(isFiltered = false){
 
   tableBody.innerHTML = skeletonRows(6);
   try{
-    const res = await fetch(scriptURL + '?type=Collections');
-    let all = await res.json();
-    let startDate = isFiltered ? new Date(document.getElementById('trans-start-date').value) : null;
-    let endDate = isFiltered ? new Date(document.getElementById('trans-end-date').value) : null;
+    let all = await fetchCloud('Collections', isFiltered);
+    let startDate = isFiltered ? new Date(ddmmyyyyToISO(document.getElementById('trans-start-date').value)) : null;
+    let endDate = isFiltered ? new Date(ddmmyyyyToISO(document.getElementById('trans-end-date').value)) : null;
     if (startDate) startDate.setHours(0,0,0,0);
     if (endDate) endDate.setHours(23,59,59,999);
 
@@ -1388,8 +1622,7 @@ async function loadTransactionHistory(isFiltered = false){
    ============================================================ */
 async function nextROPNumber(){
   try{
-    const res = await fetch(scriptURL + '?type=ROP Eye Exam');
-    const all = await res.json();
+    const all = await fetchCloud('ROP Eye Exam', true); // always fresh — must reflect the true current count
     return all.length + 1;
   }catch(e){
     return 1;
@@ -1398,13 +1631,14 @@ async function nextROPNumber(){
 
 async function prepROPForm(){
   const dateField = document.getElementById('rop-date');
-  if (dateField && !dateField.value) dateField.value = new Date().toISOString().slice(0, 10);
+  if (dateField && !dateField.value) dateField.value = todayDDMMYYYY();
   const noField = document.getElementById('rop-no');
   noField.value = 'Loading…';
   noField.value = await nextROPNumber();
 }
 
 function resetROPForm(){
+  document.getElementById('rop-name').value = '';
   document.getElementById('rop-mobile').value = '';
   document.getElementById('rop-idno').value = '';
   document.getElementById('rop-re').selectedIndex = 0;
@@ -1413,8 +1647,9 @@ function resetROPForm(){
   document.getElementById('rop-gender').selectedIndex = 0;
   document.getElementById('rop-nat').selectedIndex = 0;
   document.getElementById('rop-payment').selectedIndex = 0;
+  document.getElementById('rop-amount').value = '';
   document.getElementById('rop-dob').value = '';
-  document.getElementById('rop-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('rop-date').value = todayDDMMYYYY();
   prepROPForm();
 }
 
@@ -1423,13 +1658,17 @@ async function saveROPToCloud(){
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!sessionUser) return showToast('Please log in again.', 'error');
   const method = document.getElementById('rop-payment').value;
-  const FEE = 2;
-  const ropDateVal = document.getElementById('rop-date').value;
+  const amount = parseFloat(document.getElementById('rop-amount').value);
+  const feeAmount = isNaN(amount) ? 0 : amount;
+  const ropDateISO = ddmmyyyyToISO(document.getElementById('rop-date').value);
+  if (document.getElementById('rop-date').value && !ropDateISO) return showToast('Enter date as dd-mm-yyyy', 'error');
   const ropNowTime = new Date().toTimeString().slice(0, 8); // real clock time at the moment of saving
+  const ropDobISO = ddmmyyyyToISO(document.getElementById('rop-dob').value);
   const data = {
     type: 'ropExam',
     no: document.getElementById('rop-no').value,
-    date: ropDateVal ? `${ropDateVal}T${ropNowTime}` : '',
+    date: ropDateISO ? `${ropDateISO}T${ropNowTime}` : '',
+    name: document.getElementById('rop-name').value,
     mobile: document.getElementById('rop-mobile').value,
     idNo: document.getElementById('rop-idno').value,
     re: document.getElementById('rop-re').value,
@@ -1437,9 +1676,9 @@ async function saveROPToCloud(){
     glass: document.getElementById('rop-glass').value,
     gender: document.getElementById('rop-gender').value,
     nationality: document.getElementById('rop-nat').value,
-    cash: method === 'Cash' ? FEE : 0,
-    card: method === 'Card' ? FEE : 0,
-    dob: document.getElementById('rop-dob').value,
+    cash: method === 'Cash' ? feeAmount : 0,
+    card: method === 'Card' ? feeAmount : 0,
+    dob: ropDobISO,
     branch: sessionUser.activeBranch
   };
   if (!data.mobile) return showToast('Enter Mobile No', 'error');
@@ -1448,6 +1687,7 @@ async function saveROPToCloud(){
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
     showToast('Eye exam record saved', 'success');
+    invalidateCache();
     resetROPForm();
     refreshDashboard();
     btn.disabled = false; btn.innerText = 'Save Exam Record';
@@ -1460,23 +1700,22 @@ async function loadROPList(isFiltered = false){
   const tableBody = document.getElementById('rop-list-table');
   let startDate=null, endDate=null;
   if (isFiltered){
-    const s = document.getElementById('rop-start-date').value, e = document.getElementById('rop-end-date').value;
-    if (!s || !e) return showToast('Please select both Start and End dates', 'error');
+    const s = ddmmyyyyToISO(document.getElementById('rop-start-date').value), e = ddmmyyyyToISO(document.getElementById('rop-end-date').value);
+    if (!s || !e) return showToast('Enter both dates as dd-mm-yyyy', 'error');
     startDate = new Date(s); startDate.setHours(0,0,0,0);
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
-  tableBody.innerHTML = skeletonRows(10);
+  tableBody.innerHTML = skeletonRows(11);
   try{
-    const res = await fetch(scriptURL + '?type=ROP Eye Exam');
-    const all = await res.json();
+    const all = await fetchCloud('ROP Eye Exam', isFiltered);
     const rows = all.filter(r => {
       const rowDate = new Date(r[1]);
       return isFiltered ? (rowDate >= startDate && rowDate <= endDate) : true;
     }).sort((a, b) => new Date(b[1]) - new Date(a[1]));
 
     if (rows.length === 0){
-      tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px;">No records found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:24px;">No records found.</td></tr>`;
       return;
     }
 
@@ -1484,24 +1723,27 @@ async function loadROPList(isFiltered = false){
       const dateStr = new Date(row[1]).toLocaleDateString('en-GB');
       const cash = parseFloat(row[9]) || 0;
       const card = parseFloat(row[10]) || 0;
+      const amount = cash > 0 ? cash : card;
       const method = card > 0 ? 'Card' : 'Cash';
       const dobStr = row[11] ? new Date(row[11]).toLocaleDateString('en-GB') : '-';
+      const nameVal = row[13] || '-';
       return `<tr>
         <td style="font-weight:700;">${row[0]}</td>
         <td data-sort="${row[1]}">${dateStr}</td>
+        <td>${nameVal}</td>
         <td>${row[2]}</td>
         <td>${row[3]}</td>
         <td class="tabular">${row[4]}</td>
         <td class="tabular">${row[5]}</td>
         <td>${row[6]}</td>
         <td><span class="badge" style="background:#EFEAdd; color:var(--brass);">${row[7]}/${row[8]}</span></td>
-        <td><span class="badge" style="background:${method==='Cash'?'#E1F0EA':'#E4EEF7'}; color:${method==='Cash'?'#1D6E4D':'#245985'};">${method}</span></td>
+        <td><span class="badge" style="background:${method==='Cash'?'#E1F0EA':'#E4EEF7'}; color:${method==='Cash'?'#1D6E4D':'#245985'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-sort="${row[11] || ''}">${dobStr}</td>
       </tr>`;
     }).join('');
   }catch(e){
     console.error(e);
-    tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--rose);">Connection error</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--rose);">Connection error</td></tr>';
   }
 }
 
