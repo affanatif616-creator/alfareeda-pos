@@ -666,7 +666,9 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
 
     <!-- ROP EXAM HISTORY -->
     <div id="rop-list-section" class="content-section">
-      <div class="topbar"><div><h1>ROP Exam History</h1><p>Vision screening records</p></div></div>
+      <div class="topbar"><div><h1>ROP Exam History</h1><p>Vision screening records</p></div>
+        <input type="text" id="rop-search-box" oninput="searchROP()" placeholder="Search name, mobile or ID No…" style="width:260px; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); font-family:inherit;">
+      </div>
       <div class="filter-bar">
         <div><label>Start Date</label><div class="date-wrap"><input type="text" class="date-field" id="rop-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('rop-start-date')"><i class="fas fa-calendar"></i></button></div></div>
         <div><label>End Date</label><div class="date-wrap"><input type="text" class="date-field" id="rop-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('rop-end-date')"><i class="fas fa-calendar"></i></button></div></div>
@@ -716,6 +718,7 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
   <div class="card">
     <h2><i class="fas fa-edit"></i> Update Order</h2>
     <div class="field"><label>Invoice Number</label><input type="text" id="up-invoice" readonly></div>
+    <input type="hidden" id="up-date-original">
     <div class="field"><label>Order Status</label>
       <select id="up-status"><option value="Processing">Processing</option><option value="Ready">Ready</option><option value="Delivered">Delivered</option></select>
     </div>
@@ -794,7 +797,7 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
 /* ============================================================
    CONFIG — same Apps Script backend as the previous version
    ============================================================ */
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxmtMraX-zV2o0W3DUKsgClZhvI08ua2VODpoYghdEeNkm2r52FfN_qkkRpANp8mGGjbg/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzfwU-jOJZLsYlOhBLMKK2b3NTFcOn05Tq_DYP60c3C7KIeDq2axIvB9ttxwhltTmJvMA/exec';
 
 const SHOP = {
   nameEn: 'AL-FAREEDA OPTICALS',
@@ -1418,8 +1421,8 @@ async function loadOrderList(isFiltered = false){
           <td style="text-align:right; white-space:nowrap;">
             <button class="btn btn-ghost btn-icon" title="View Rx" onclick="showRx('${rxData}')"><i class="fas fa-eye"></i></button>
             <button class="btn btn-brass btn-icon" title="Print Invoice" onclick="printOrder('${row[1]}')"><i class="fas fa-print"></i></button>
-            <button class="btn btn-primary btn-icon" title="${isAdmin ? 'Full Edit (Manager)' : 'Edit Status'}" onclick="openOrderEditor('${row[1]}','${balance}','${status}', ${isAdmin})"><i class="fas fa-edit"></i></button>
-            ${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Order" onclick="deleteRecord('Records', 2, '${row[1]}', () => { loadOrderList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}
+            <button class="btn btn-primary btn-icon" title="${isAdmin ? 'Full Edit (Manager)' : 'Edit Status'}" onclick="openOrderEditor('${row[1]}','${balance}','${status}','${row[0]}', ${isAdmin})"><i class="fas fa-edit"></i></button>
+            ${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Order" onclick="deleteRecord('Records', [{col:2,value:'${row[1]}'},{col:1,value:'${row[0]}',isDate:true}], () => { loadOrderList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}
           </td>
         </tr>`;
     }).join('');
@@ -1443,17 +1446,26 @@ function searchOrders(){
   }
 }
 
-function openEditModal(inv, bal, stat){
+function searchROP(){
+  const filter = document.getElementById('rop-search-box').value.toLowerCase();
+  const rows = document.getElementById('rop-list-table').getElementsByTagName('tr');
+  for (let i=0;i<rows.length;i++){
+    rows[i].style.display = (rows[i].textContent.toLowerCase().indexOf(filter) > -1) ? '' : 'none';
+  }
+}
+
+function openEditModal(inv, bal, stat, dateRaw){
   document.getElementById('up-invoice').value = inv;
   document.getElementById('up-balance').value = bal;
   document.getElementById('up-status').value = stat;
+  document.getElementById('up-date-original').value = dateRaw || '';
   document.getElementById('edit-modal').style.display = 'flex';
 }
 
 // Routes to the simple modal for Cashiers, or the full-field editor for Managers
-function openOrderEditor(inv, bal, stat, isManager){
+function openOrderEditor(inv, bal, stat, dateRaw, isManager){
   if (isManager) openFullEditModal(inv);
-  else openEditModal(inv, bal, stat);
+  else openEditModal(inv, bal, stat, dateRaw);
 }
 
 // ---- Manager: full order editor (every field, including prescription & amounts) ----
@@ -1523,6 +1535,7 @@ async function submitFullUpdate(evt){
   const data = {
     action: 'fullUpdate',
     originalInvoice: document.getElementById('fe-invoice-original').value,
+    originalDate: originalRaw,
     invoice: document.getElementById('fe-invoice').value,
     date: combinedDateTime,
     name: document.getElementById('fe-name').value,
@@ -1556,11 +1569,14 @@ async function submitFullUpdate(evt){
 
 // ---- Manager: delete any record (Order, ROP entry, Expense) ----
 // matchCol is 1-based (sheet column number) — Records: Invoice=2, ROP: No.=1, Expenses: Date=1
-async function deleteRecord(sheetName, matchCol, matchValue, onDone){
+// matches: array of {col, value, isDate?} — ALL must match the same row for it to be deleted.
+// Compound matching (e.g. Invoice + exact timestamp) avoids deleting the wrong row when
+// invoice numbers repeat (the old "1"/"2"/"3" walk-in entries).
+async function deleteRecord(sheetName, matches, onDone){
   if (!confirm('Delete this record permanently? This cannot be undone.')) return;
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
-      action: 'delete', sheet: sheetName, matchCol: matchCol, matchValue: matchValue
+      action: 'delete', sheet: sheetName, matches: matches
     })});
     showToast('Deleted', 'success');
     invalidateCache();
@@ -1574,6 +1590,7 @@ async function submitUpdate(evt){
   const inv = document.getElementById('up-invoice').value;
   const bal = document.getElementById('up-balance').value;
   const stat = document.getElementById('up-status').value;
+  const originalDate = document.getElementById('up-date-original').value;
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!inv) return showToast('Error: invoice number missing.', 'error');
 
@@ -1581,13 +1598,15 @@ async function submitUpdate(evt){
   const original = btn.innerText;
   btn.innerText = 'Updating…'; btn.disabled = true;
 
-  const oldOrder = currentOrders.find(r => String(r[1]) === String(inv));
+  // Match on invoice + exact original timestamp, not invoice alone — several
+  // historical entries share the same short invoice number ("1", "2", "3").
+  const oldOrder = currentOrders.find(r => String(r[1]) === String(inv) && String(r[0]) === String(originalDate));
   const oldBalance = oldOrder ? parseFloat(oldOrder[9]) : 0;
   const customerName = oldOrder ? oldOrder[2] : 'Unknown';
   const amountPaidNow = oldBalance - parseFloat(bal);
 
   const data = {
-    action: 'update', invoice: inv, balance: bal, status: stat,
+    action: 'update', invoice: inv, originalDate: originalDate, balance: bal, status: stat,
     amountCollected: amountPaidNow > 0 ? amountPaidNow : 0,
     branch: sessionUser ? sessionUser.activeBranch : 'Unknown',
     customerName
@@ -1727,7 +1746,7 @@ async function loadExpenseList(isFiltered = false){
         <td style="color:var(--ink-soft);">${row[3]}</td>
         <td class="tabular" style="font-weight:700; color:var(--rose);">${amount.toFixed(3)}</td>
         ${isAdmin ? `<td>${row[4]}</td>` : ''}
-        <td style="text-align:right;">${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Expense" onclick="deleteRecord('Expenses', 1, '${row[0]}', () => { loadExpenseList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}</td>
+        <td style="text-align:right;">${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Expense" onclick="deleteRecord('Expenses', [{col:1,value:'${row[0]}',isDate:true},{col:3,value:'${row[2]}'}], () => { loadExpenseList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}</td>
       </tr>`;
     }).join('') || '<tr><td colspan="6" style="text-align:center; padding:20px;">No expenses found.</td></tr>';
 
@@ -1936,7 +1955,7 @@ async function loadROPList(isFiltered = false){
         <td><span class="badge" style="background:#EFEAdd; color:var(--brass);">${row[7]}/${row[8]}</span></td>
         <td><span class="badge" style="background:${method==='Cash'?'#E1F0EA':'#E4EEF7'}; color:${method==='Cash'?'#1D6E4D':'#245985'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-sort="${row[11] || ''}">${dobStr}</td>
-        <td style="text-align:right;">${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Record" onclick="deleteRecord('ROP Eye Exam', 1, '${row[0]}', () => { loadROPList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}</td>
+        <td style="text-align:right;">${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Record" onclick="deleteRecord('ROP Eye Exam', [{col:1,value:'${row[0]}'},{col:2,value:'${row[1]}',isDate:true}], () => { loadROPList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}</td>
       </tr>`;
     }).join('');
   }catch(e){
