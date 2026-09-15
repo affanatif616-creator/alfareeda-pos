@@ -162,7 +162,11 @@ body{
   width:250px; position:fixed; top:0; left:0; height:100vh;
   background:linear-gradient(180deg, var(--navy), var(--navy-deep));
   padding:1.6rem 1.1rem; display:flex; flex-direction:column; color:#fff; z-index:100;
+  overflow-y:auto; overscroll-behavior:contain;
 }
+.sidebar::-webkit-scrollbar{ width:6px; }
+.sidebar::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:10px; }
+.sidebar::-webkit-scrollbar-track{ background:transparent; }
 .brand-row{ display:flex; align-items:center; gap:10px; padding:.4rem .4rem 1.6rem; }
 .brand-row .lens-mark{ width:30px; }
 .brand-name{ font-family:var(--font-display); font-weight:700; font-size:1.15rem; letter-spacing:.01em; }
@@ -585,7 +589,8 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
               <th class="sortable" onclick="sortTableBy('expense-list-table',1,'text')">Category <span class="sort-hint">⇅</span></th>
               <th>Description</th>
               <th class="sortable" onclick="sortTableBy('expense-list-table',3,'number')">Amount <span class="sort-hint">⇅</span></th>
-              <th id="exp-branch-header" style="display:none;">Branch</th></tr></thead>
+              <th id="exp-branch-header" style="display:none;">Branch</th>
+              <th style="text-align:right;">Actions</th></tr></thead>
             <tbody id="expense-list-table"></tbody>
           </table>
         </div>
@@ -680,6 +685,7 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
               <th>RE</th><th>LE</th><th>Glass</th><th>G/N</th>
               <th class="sortable" onclick="sortTableBy('rop-list-table',9,'text')">Payment <span class="sort-hint">⇅</span></th>
               <th class="sortable" onclick="sortTableBy('rop-list-table',10,'date')">DOB <span class="sort-hint">⇅</span></th>
+              <th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody id="rop-list-table"></tbody>
           </table>
@@ -695,6 +701,7 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
         <div class="field"><label>Username</label><input type="text" id="new-id"></div>
         <div class="field"><label>Password</label><input type="password" id="new-pass"></div>
         <div class="field"><label>Branch</label><select id="new-branch"><option>Sumail</option><option>Izki</option><option>Sinaw</option></select></div>
+        <div class="field"><label>Role</label><select id="new-role"><option>Cashier</option><option>Manager</option></select></div>
         <button class="btn btn-primary" onclick="createNewStaff()"><i class="fas fa-user-plus"></i> Create Cloud Account</button>
       </div>
     </div>
@@ -718,6 +725,58 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
   </div>
 </div>
 
+<!-- Manager-only: full order edit, including prescription and amounts -->
+<div id="full-edit-modal" class="modal">
+  <div class="card" style="width:640px; max-width:100%; max-height:88vh; overflow-y:auto;">
+    <h2><i class="fas fa-user-shield"></i> Full Edit Order <span class="badge" style="background:#EFEAdd; color:var(--brass); font-size:.68rem;">Manager</span></h2>
+    <input type="hidden" id="fe-invoice-original">
+    <input type="hidden" id="fe-branch-original">
+    <input type="hidden" id="fe-date-original-raw">
+    <div class="grid grid-2">
+      <div class="field"><label>Invoice Number</label><input type="text" id="fe-invoice"></div>
+      <div class="field"><label>Date</label><div class="date-wrap"><input type="text" class="date-field" id="fe-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('fe-date')"><i class="fas fa-calendar"></i></button></div></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="field"><label>Customer Name</label><input type="text" id="fe-name"></div>
+      <div class="field"><label>Contact</label><input type="text" id="fe-contact"></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="field"><label>Eye Examination</label>
+        <select id="fe-exam"><option>Hospital</option><option>Clinic</option><option>Old</option><option>None</option></select>
+      </div>
+      <div class="field"><label>Date of Birth</label><div class="date-wrap"><input type="text" class="date-field" id="fe-dob" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" onclick="openDatePicker('fe-dob')"><i class="fas fa-calendar"></i></button></div></div>
+    </div>
+
+    <h3>Prescription</h3>
+    <table class="rx-table">
+      <thead><tr><th style="text-align:left; padding-left:10px;">Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
+      <tbody>
+        <tr><td>Right Eye (RE)</td>
+          <td><input id="fe-re-sph"></td><td><input id="fe-re-cyl"></td><td><input id="fe-re-axis"></td><td><input id="fe-re-add"></td></tr>
+        <tr><td>Left Eye (LE)</td>
+          <td><input id="fe-le-sph"></td><td><input id="fe-le-cyl"></td><td><input id="fe-le-axis"></td><td><input id="fe-le-add"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid grid-3">
+      <div class="field"><label>Frame</label><input type="text" id="fe-frame"></div>
+      <div class="field"><label>Lens</label><input type="text" id="fe-lens"></div>
+      <div class="field"><label>Description</label><input type="text" id="fe-desc"></div>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="field"><label>Total</label><input type="number" step="0.001" id="fe-total" oninput="feCalcBalance()"></div>
+      <div class="field"><label>Advance</label><input type="number" step="0.001" id="fe-advance" oninput="feCalcBalance()"></div>
+      <div class="field"><label>Balance</label><input type="number" step="0.001" id="fe-balance"></div>
+      <div class="field"><label>Payment</label><select id="fe-payment"><option>Cash</option><option>Bank Transfer</option><option>Card</option></select></div>
+    </div>
+    <div class="field"><label>Status</label><select id="fe-status"><option>Processing</option><option>Ready</option><option>Delivered</option></select></div>
+
+    <button class="btn btn-primary" onclick="submitFullUpdate(event)"><i class="fas fa-save"></i> Save All Changes</button>
+    <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModals()">Cancel</button>
+  </div>
+</div>
+
 <div id="rx-modal" class="modal">
   <div class="card" id="rx-body"></div>
 </div>
@@ -735,7 +794,7 @@ table.data th.sortable:hover .sort-hint{ opacity:.8; }
 /* ============================================================
    CONFIG — same Apps Script backend as the previous version
    ============================================================ */
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxA2jC05BcQjkbtzzgUcYFFl-vPbQPpXc01iM7_ib1bCUHYYhMn7sRl7ZY8oTcConGy0A/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxmtMraX-zV2o0W3DUKsgClZhvI08ua2VODpoYghdEeNkm2r52FfN_qkkRpANp8mGGjbg/exec';
 
 const SHOP = {
   nameEn: 'AL-FAREEDA OPTICALS',
@@ -888,7 +947,7 @@ function refreshDashboard(){
 // Within CACHE_MS of a fetch, re-requesting the same sheet reuses the
 // in-memory copy instead of hitting the network again. Any successful save
 // calls invalidateCache() so the next read anywhere is guaranteed fresh.
-const CACHE_MS = 45000;
+const CACHE_MS = 180000; // 3 minutes — a real work session lasts far longer than 45s
 const __cache = {};
 async function fetchCloud(type, forceRefresh = false){
   const now = Date.now();
@@ -988,9 +1047,21 @@ function logout(){
   if (confirm('Logout?')){ sessionStorage.removeItem('alfareeda_user'); location.reload(); }
 }
 
+// Kicks off the heavy sheet fetches as soon as the page loads — while the
+// person is still typing their Staff ID and password — so by the time login
+// succeeds, this data is already sitting in cache instead of triggering a
+// fresh round trip (and a fresh Apps Script cold-start) after auth.
+function prefetchDashboardData(){
+  fetchCloud('Records').catch(() => {});
+  fetchCloud('Expenses').catch(() => {});
+  fetchCloud('ROP Eye Exam').catch(() => {});
+  fetchCloud('Collections').catch(() => {});
+}
+
 window.onload = async () => {
   const saved = sessionStorage.getItem('alfareeda_user');
   if (saved) applyUI(JSON.parse(saved));
+  prefetchDashboardData();
   await loadStaff();
   initDateFields();
   applyStoredTheme();
@@ -1207,7 +1278,7 @@ function toggleQuickSaleMode(){
     invoiceField.readOnly = true;
     invoiceField.value = 'Loading…';
     nextQuickSaleNumber().then(id => invoiceField.value = id);
-    if (!nameField.value.trim()) nameField.value = '';
+    if (!nameField.value.trim()) nameField.value = 'Walk-in Customer';
   } else {
     invoiceField.readOnly = false;
     invoiceField.value = '';
@@ -1347,7 +1418,8 @@ async function loadOrderList(isFiltered = false){
           <td style="text-align:right; white-space:nowrap;">
             <button class="btn btn-ghost btn-icon" title="View Rx" onclick="showRx('${rxData}')"><i class="fas fa-eye"></i></button>
             <button class="btn btn-brass btn-icon" title="Print Invoice" onclick="printOrder('${row[1]}')"><i class="fas fa-print"></i></button>
-            <button class="btn btn-primary btn-icon" title="Edit Status" onclick="openEditModal('${row[1]}','${balance}','${status}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-primary btn-icon" title="${isAdmin ? 'Full Edit (Manager)' : 'Edit Status'}" onclick="openOrderEditor('${row[1]}','${balance}','${status}', ${isAdmin})"><i class="fas fa-edit"></i></button>
+            ${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Order" onclick="deleteRecord('Records', 2, '${row[1]}', () => { loadOrderList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}
           </td>
         </tr>`;
     }).join('');
@@ -1376,6 +1448,126 @@ function openEditModal(inv, bal, stat){
   document.getElementById('up-balance').value = bal;
   document.getElementById('up-status').value = stat;
   document.getElementById('edit-modal').style.display = 'flex';
+}
+
+// Routes to the simple modal for Cashiers, or the full-field editor for Managers
+function openOrderEditor(inv, bal, stat, isManager){
+  if (isManager) openFullEditModal(inv);
+  else openEditModal(inv, bal, stat);
+}
+
+// ---- Manager: full order editor (every field, including prescription & amounts) ----
+function openFullEditModal(invoice){
+  const order = currentOrders.find(r => String(r[1]) === String(invoice));
+  if (!order) return showToast('Order not found', 'error');
+  const re = parseRx(order[4]), le = parseRx(order[5]);
+  const clean = v => (v === '-' ? '' : v);
+
+  document.getElementById('fe-invoice-original').value = order[1];
+  document.getElementById('fe-branch-original').value = order[12] || '';
+  document.getElementById('fe-date-original-raw').value = order[0] || '';
+  document.getElementById('fe-invoice').value = order[1];
+  document.getElementById('fe-date').value = isoToDDMMYYYY(order[0]);
+  document.getElementById('fe-name').value = order[2] || '';
+  document.getElementById('fe-contact').value = order[3] || '';
+  document.getElementById('fe-exam').value = order[13] || 'Hospital';
+  document.getElementById('fe-dob').value = order[17] ? isoToDDMMYYYY(order[17]) : '';
+  document.getElementById('fe-re-sph').value = clean(re.s);
+  document.getElementById('fe-re-cyl').value = clean(re.c);
+  document.getElementById('fe-re-axis').value = clean(re.a);
+  document.getElementById('fe-re-add').value = clean(re.ad);
+  document.getElementById('fe-le-sph').value = clean(le.s);
+  document.getElementById('fe-le-cyl').value = clean(le.c);
+  document.getElementById('fe-le-axis').value = clean(le.a);
+  document.getElementById('fe-le-add').value = clean(le.ad);
+  document.getElementById('fe-frame').value = order[14] || '';
+  document.getElementById('fe-lens').value = order[15] || '';
+  document.getElementById('fe-desc').value = order[16] || order[6] || '';
+  document.getElementById('fe-total').value = order[7] || '';
+  document.getElementById('fe-advance').value = order[8] || '';
+  document.getElementById('fe-balance').value = order[9] || '';
+  document.getElementById('fe-payment').value = order[10] || 'Cash';
+  document.getElementById('fe-status').value = order[11] || 'Processing';
+  document.getElementById('full-edit-modal').style.display = 'flex';
+}
+
+function feCalcBalance(){
+  const t = parseFloat(document.getElementById('fe-total').value) || 0;
+  const a = parseFloat(document.getElementById('fe-advance').value) || 0;
+  document.getElementById('fe-balance').value = (t - a).toFixed(3);
+}
+
+async function submitFullUpdate(evt){
+  const btn = evt.target;
+  const original = btn.innerText;
+  btn.disabled = true; btn.innerText = 'Saving…';
+
+  const dateISO = ddmmyyyyToISO(document.getElementById('fe-date').value);
+  if (document.getElementById('fe-date').value && !dateISO){
+    showToast('Enter date as dd-mm-yyyy', 'error'); btn.disabled = false; btn.innerText = original; return;
+  }
+  // Preserve the order's original time-of-day — only the date portion changes,
+  // so editing the balance/status/Rx doesn't silently reset the saved time.
+  const originalRaw = document.getElementById('fe-date-original-raw').value;
+  const originalTime = originalRaw && !isNaN(new Date(originalRaw))
+    ? new Date(originalRaw).toTimeString().slice(0, 8)
+    : new Date().toTimeString().slice(0, 8);
+  const combinedDateTime = dateISO ? `${dateISO}T${originalTime}` : '';
+  const dobISO = ddmmyyyyToISO(document.getElementById('fe-dob').value);
+  const rePower = `S:${document.getElementById('fe-re-sph').value||'0'} C:${document.getElementById('fe-re-cyl').value||'0'} A:${document.getElementById('fe-re-axis').value||'0'} Add:${document.getElementById('fe-re-add').value||'0'}`;
+  const lePower = `S:${document.getElementById('fe-le-sph').value||'0'} C:${document.getElementById('fe-le-cyl').value||'0'} A:${document.getElementById('fe-le-axis').value||'0'} Add:${document.getElementById('fe-le-add').value||'0'}`;
+  const frameVal = document.getElementById('fe-frame').value;
+  const lensVal = document.getElementById('fe-lens').value;
+  const descVal = document.getElementById('fe-desc').value;
+
+  const data = {
+    action: 'fullUpdate',
+    originalInvoice: document.getElementById('fe-invoice-original').value,
+    invoice: document.getElementById('fe-invoice').value,
+    date: combinedDateTime,
+    name: document.getElementById('fe-name').value,
+    contact: document.getElementById('fe-contact').value,
+    examSource: document.getElementById('fe-exam').value,
+    dob: dobISO,
+    rightEye: rePower,
+    leftEye: lePower,
+    frame: frameVal, lens: lensVal, description: descVal,
+    items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
+    total: document.getElementById('fe-total').value || 0,
+    advance: document.getElementById('fe-advance').value || 0,
+    balance: document.getElementById('fe-balance').value || 0,
+    payment: document.getElementById('fe-payment').value,
+    status: document.getElementById('fe-status').value,
+    branch: document.getElementById('fe-branch-original').value
+  };
+
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+    showToast('Order fully updated', 'success');
+    invalidateCache();
+    closeModals();
+    loadOrderList();
+    refreshDashboard();
+  }catch(e){
+    showToast('Error updating order.', 'error');
+  }
+  btn.disabled = false; btn.innerText = original;
+}
+
+// ---- Manager: delete any record (Order, ROP entry, Expense) ----
+// matchCol is 1-based (sheet column number) — Records: Invoice=2, ROP: No.=1, Expenses: Date=1
+async function deleteRecord(sheetName, matchCol, matchValue, onDone){
+  if (!confirm('Delete this record permanently? This cannot be undone.')) return;
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
+      action: 'delete', sheet: sheetName, matchCol: matchCol, matchValue: matchValue
+    })});
+    showToast('Deleted', 'success');
+    invalidateCache();
+    if (onDone) onDone();
+  }catch(e){
+    showToast('Error deleting record.', 'error');
+  }
 }
 
 async function submitUpdate(evt){
@@ -1465,6 +1657,7 @@ function showRx(jsonStr){
 function closeModals(){
   document.getElementById('rx-modal').style.display = 'none';
   document.getElementById('edit-modal').style.display = 'none';
+  document.getElementById('full-edit-modal').style.display = 'none';
 }
 
 /* ============================================================
@@ -1515,7 +1708,7 @@ async function loadExpenseList(isFiltered = false){
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
-  tableBody.innerHTML = skeletonRows(5);
+  tableBody.innerHTML = skeletonRows(6);
   try{
     const all = await fetchCloud('Expenses', isFiltered);
     const rows = all.filter(e => {
@@ -1534,12 +1727,13 @@ async function loadExpenseList(isFiltered = false){
         <td style="color:var(--ink-soft);">${row[3]}</td>
         <td class="tabular" style="font-weight:700; color:var(--rose);">${amount.toFixed(3)}</td>
         ${isAdmin ? `<td>${row[4]}</td>` : ''}
+        <td style="text-align:right;">${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Expense" onclick="deleteRecord('Expenses', 1, '${row[0]}', () => { loadExpenseList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}</td>
       </tr>`;
-    }).join('') || '<tr><td colspan="5" style="text-align:center; padding:20px;">No expenses found.</td></tr>';
+    }).join('') || '<tr><td colspan="6" style="text-align:center; padding:20px;">No expenses found.</td></tr>';
 
     totalBadge.innerText = `Total: ${total.toFixed(3)} OMR`;
   }catch(e){
-    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--rose);">Failed to load data.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--rose);">Failed to load data.</td></tr>';
   }
 }
 
@@ -1559,17 +1753,18 @@ async function createNewStaff(){
     id: document.getElementById('new-id').value,
     pass: document.getElementById('new-pass').value,
     branch: document.getElementById('new-branch').value,
-    role: 'Cashier'
+    role: document.getElementById('new-role').value
   };
   if (!data.name || !data.id || !data.pass) return showToast('Fill Name, Username and Password', 'error');
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast('Staff account created', 'success');
+    showToast(data.role + ' account created', 'success');
     invalidateCache();
     document.getElementById('new-name').value = '';
     document.getElementById('new-id').value = '';
     document.getElementById('new-pass').value = '';
     document.getElementById('new-branch').selectedIndex = 0;
+    document.getElementById('new-role').selectedIndex = 0;
   }catch(e){
     showToast('Error creating staff account.', 'error');
   }
@@ -1698,6 +1893,8 @@ async function saveROPToCloud(){
 
 async function loadROPList(isFiltered = false){
   const tableBody = document.getElementById('rop-list-table');
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  const isAdmin = user && user.role === 'Manager';
   let startDate=null, endDate=null;
   if (isFiltered){
     const s = ddmmyyyyToISO(document.getElementById('rop-start-date').value), e = ddmmyyyyToISO(document.getElementById('rop-end-date').value);
@@ -1706,7 +1903,7 @@ async function loadROPList(isFiltered = false){
     endDate = new Date(e); endDate.setHours(23,59,59,999);
   }
 
-  tableBody.innerHTML = skeletonRows(11);
+  tableBody.innerHTML = skeletonRows(12);
   try{
     const all = await fetchCloud('ROP Eye Exam', isFiltered);
     const rows = all.filter(r => {
@@ -1715,7 +1912,7 @@ async function loadROPList(isFiltered = false){
     }).sort((a, b) => new Date(b[1]) - new Date(a[1]));
 
     if (rows.length === 0){
-      tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:24px;">No records found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:24px;">No records found.</td></tr>`;
       return;
     }
 
@@ -1739,11 +1936,12 @@ async function loadROPList(isFiltered = false){
         <td><span class="badge" style="background:#EFEAdd; color:var(--brass);">${row[7]}/${row[8]}</span></td>
         <td><span class="badge" style="background:${method==='Cash'?'#E1F0EA':'#E4EEF7'}; color:${method==='Cash'?'#1D6E4D':'#245985'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-sort="${row[11] || ''}">${dobStr}</td>
+        <td style="text-align:right;">${isAdmin ? `<button class="btn btn-icon" style="background:#FBEDEC; color:var(--rose);" title="Delete Record" onclick="deleteRecord('ROP Eye Exam', 1, '${row[0]}', () => { loadROPList(); refreshDashboard(); })"><i class="fas fa-trash"></i></button>` : ''}</td>
       </tr>`;
     }).join('');
   }catch(e){
     console.error(e);
-    tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--rose);">Connection error</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:var(--rose);">Connection error</td></tr>';
   }
 }
 
