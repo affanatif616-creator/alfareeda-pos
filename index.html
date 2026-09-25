@@ -855,6 +855,7 @@ table.data td.empty.err{ color:var(--negative); }
               <th class="sortable" tabindex="0" onclick="sortTableBy('transaction-list-table',3,'text')">Branch <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('transaction-list-table',4,'text')">Type <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" style="text-align:right;" tabindex="0" onclick="sortTableBy('transaction-list-table',5,'number')">Amount <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('transaction-list-table',6,'text')">Payment Method <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
             </tr></thead>
             <tbody id="transaction-list-table"></tbody>
           </table>
@@ -978,6 +979,9 @@ table.data td.empty.err{ color:var(--negative); }
     <input type="hidden" id="up-date-original">
     <div class="field"><label for="up-status">Order Status</label>
       <select id="up-status"><option value="Processing">Processing</option><option value="Ready">Ready</option><option value="Delivered">Delivered</option></select>
+    </div>
+    <div class="field"><label for="up-payment">Balance Payment Method</label>
+      <select id="up-payment"><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Card">Card</option></select>
     </div>
     <div class="field"><label for="up-balance">Remaining Balance (OMR)</label><input type="number" step="0.001" id="up-balance" oninput="autoSetDeliveredIfPaid()" inputmode="decimal"></div>
     <div class="dialog-foot">
@@ -1741,6 +1745,8 @@ function openEditModal(inv, bal, stat, dateRaw){
   document.getElementById('up-balance').value = bal;
   document.getElementById('up-status').value = stat;
   document.getElementById('up-date-original').value = dateRaw || '';
+  const existingOrder = currentOrders.find(r => String(r[1]) === String(inv) && String(r[0]) === String(dateRaw));
+  document.getElementById('up-payment').value = existingOrder ? existingOrder[10] : 'Cash';
   document.getElementById('edit-modal').style.display = 'flex';
   focusModal('edit-modal');
 }
@@ -1864,6 +1870,7 @@ async function submitUpdate(evt){
   const data = {
     action: 'update', invoice: inv, originalDate: originalDate, balance: bal, status: stat,
     amountCollected: amountPaidNow > 0 ? amountPaidNow : 0,
+    paymentMethod: document.getElementById('up-payment').value,
     branch: sessionUser ? sessionUser.activeBranch : 'Unknown', customerName
   };
   try{
@@ -2018,7 +2025,7 @@ async function loadTransactionHistory(isFiltered = false){
   const totalBadge = document.getElementById('trans-total-badge');
   const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!user || user.role !== 'Manager') return;
-  tableBody.innerHTML = skeletonRows(6);
+  tableBody.innerHTML = skeletonRows(7);
   try{
     let all = await fetchCloud('Collections', isFiltered);
     let startDate = isFiltered ? new Date(ddmmyyyyToISO(document.getElementById('trans-start-date').value)) : null;
@@ -2041,12 +2048,13 @@ async function loadTransactionHistory(isFiltered = false){
         <td data-label="Branch" class="soft">${esc(row[3])}</td>
         <td data-label="Type"><span class="chip" style="--dot:${isAdvance ? 'var(--navy)' : 'var(--positive)'};">${esc(row[4])}</span></td>
         <td data-label="Amount" class="num strong">${amount.toFixed(3)}</td>
+        <td data-label="Payment Method">${esc(row[6] || '-')}</td>
       </tr>`;
     });
-    tableBody.innerHTML = html || '<tr><td colspan="6" class="empty">No transactions found.</td></tr>';
+    tableBody.innerHTML = html || '<tr><td colspan="7" class="empty">No transactions found.</td></tr>';
     totalBadge.innerText = 'Total: ' + total.toFixed(3) + ' OMR';
   }catch(e){
-    tableBody.innerHTML = '<tr><td colspan="6" class="empty err">Failed to load history.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" class="empty err">Failed to load history.</td></tr>';
   }
 }
 
