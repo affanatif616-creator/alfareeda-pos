@@ -1037,7 +1037,14 @@ table.data td.empty.err{ color:var(--negative); }
       <div class="field"><label for="fe-lens">Lens</label><input type="text" id="fe-lens"></div>
       <div class="field"><label for="fe-desc">Description</label><input type="text" id="fe-desc"></div>
     </div>
-    <div class="grid g-4">
+
+    <fieldset class="fset" id="fe-family-members-wrap">
+      <legend>Family Members <span>Optional — cover a spouse or children in this same order</span></legend>
+      <div id="fe-member-cards"></div>
+      <button type="button" class="btn btn-ghost" onclick="addFeFamilyMember()"><svg class="ic" aria-hidden="true"><use href="#i-user-plus"/></svg> Add Family Member</button>
+    </fieldset>
+
+    <div class="grid g-4" style="margin-top:8px;">
       <div class="field"><label for="fe-total">Total</label><input type="number" step="0.001" id="fe-total" oninput="feCalcBalance()" inputmode="decimal"></div>
       <div class="field"><label for="fe-advance">Advance</label><input type="number" step="0.001" id="fe-advance" oninput="feCalcBalance()" inputmode="decimal"></div>
       <div class="field"><label for="fe-balance">Balance</label><input type="number" id="fe-balance" inputmode="decimal"></div>
@@ -1718,6 +1725,131 @@ async function saveOrderMembers(invoice, branch){
   await Promise.all(tasks);
 }
 
+/* ---------- family members (Full Edit modal, Manager only) ---------- */
+let feMembers = [];
+let __feMemberIdSeq = 0;
+
+function addFeFamilyMember(prefill){
+  const id = ++__feMemberIdSeq;
+  feMembers.push({ id });
+  renderFeMemberCards();
+  if (prefill) applyFeMemberPrefill(id, prefill);
+  return id;
+}
+
+function removeFeFamilyMember(id){
+  feMembers = feMembers.filter(m => m.id !== id);
+  renderFeMemberCards();
+}
+
+function feMemberRelationChanged(id, sel){
+  const otherWrap = document.getElementById('fe-mem-relation-other-wrap-' + id);
+  if (otherWrap) otherWrap.style.display = sel.value === 'Other' ? 'block' : 'none';
+}
+
+function feMemberCardHTML(id){
+  return `
+  <div class="card" id="fe-member-card-${id}" style="margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span class="sec-h" style="margin:0;">Family Member</span>
+      <button type="button" class="btn btn-danger-quiet btn-icon" title="Remove member" aria-label="Remove member" onclick="removeFeFamilyMember(${id})">${ic('trash')}</button>
+    </div>
+    <div class="grid g-3">
+      <div class="field"><label for="fe-mem-name-${id}">Name</label><input type="text" id="fe-mem-name-${id}"></div>
+      <div class="field">
+        <label for="fe-mem-relation-${id}">Relation</label>
+        <select id="fe-mem-relation-${id}" onchange="feMemberRelationChanged(${id}, this)">
+          ${MEMBER_RELATIONS.map(r => `<option>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" id="fe-mem-relation-other-wrap-${id}" style="display:none;">
+        <label for="fe-mem-relation-other-${id}">Specify relation</label><input type="text" id="fe-mem-relation-other-${id}">
+      </div>
+    </div>
+    <div class="grid g-3">
+      <div class="field"><label for="fe-mem-dob-${id}">Date of Birth</label><div class="date-wrap"><input type="text" class="date-field" id="fe-mem-dob-${id}" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" aria-label="Pick date of birth" onclick="openDatePicker('fe-mem-dob-${id}')">${ic('calendar')}</button></div></div>
+    </div>
+    <div class="rx-scroll">
+      <table class="rx-table">
+        <thead><tr><th>Eye</th><th>SPH<small>D</small></th><th>CYL<small>D</small></th><th>AXIS<small>°</small></th><th>ADD<small>D</small></th></tr></thead>
+        <tbody>
+          <tr><td><span class="eye-tag">RE</span><span class="eye-name">Right Eye</span></td>
+            <td><input id="fe-mem-re-sph-${id}" placeholder="0.00" aria-label="Right eye SPH"></td><td><input id="fe-mem-re-cyl-${id}" placeholder="0.00" aria-label="Right eye CYL"></td>
+            <td><input id="fe-mem-re-axis-${id}" placeholder="0" aria-label="Right eye AXIS"></td><td><input id="fe-mem-re-add-${id}" placeholder="0.00" aria-label="Right eye ADD"></td></tr>
+          <tr><td><span class="eye-tag">LE</span><span class="eye-name">Left Eye</span></td>
+            <td><input id="fe-mem-le-sph-${id}" placeholder="0.00" aria-label="Left eye SPH"></td><td><input id="fe-mem-le-cyl-${id}" placeholder="0.00" aria-label="Left eye CYL"></td>
+            <td><input id="fe-mem-le-axis-${id}" placeholder="0" aria-label="Left eye AXIS"></td><td><input id="fe-mem-le-add-${id}" placeholder="0.00" aria-label="Left eye ADD"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g-3" style="margin-top:16px;">
+      <div class="field"><label for="fe-mem-frame-${id}">Frame</label><input type="text" id="fe-mem-frame-${id}"></div>
+      <div class="field"><label for="fe-mem-lens-${id}">Lens</label><input type="text" id="fe-mem-lens-${id}"></div>
+      <div class="field"><label for="fe-mem-desc-${id}">Description</label><input type="text" id="fe-mem-desc-${id}"></div>
+    </div>
+    <div class="field" style="max-width:260px;"><label for="fe-mem-price-${id}">Price (OMR)</label><input type="number" step="0.001" id="fe-mem-price-${id}" inputmode="decimal"></div>
+  </div>`;
+}
+
+function renderFeMemberCards(){
+  const wrap = document.getElementById('fe-member-cards');
+  if (!wrap) return;
+  wrap.innerHTML = feMembers.map(m => feMemberCardHTML(m.id)).join('');
+  feMembers.forEach(m => {
+    const card = document.getElementById('fe-member-card-' + m.id);
+    if (card) card.querySelectorAll('input.date-field').forEach(attachDateMask);
+  });
+}
+
+function applyFeMemberPrefill(id, m){
+  const re = parseRx(m[4]), le = parseRx(m[5]);
+  const clean = v => (v === '-' ? '' : v);
+  document.getElementById('fe-mem-name-' + id).value = m[1] || '';
+  const relationSel = document.getElementById('fe-mem-relation-' + id);
+  const relationVal = m[2] || '';
+  if (MEMBER_RELATIONS.includes(relationVal)){
+    relationSel.value = relationVal;
+  } else if (relationVal) {
+    relationSel.value = 'Other';
+    document.getElementById('fe-mem-relation-other-wrap-' + id).style.display = 'block';
+    document.getElementById('fe-mem-relation-other-' + id).value = relationVal;
+  }
+  document.getElementById('fe-mem-dob-' + id).value = m[3] ? isoToDDMMYYYY(m[3]) : '';
+  document.getElementById('fe-mem-re-sph-' + id).value = clean(re.s);
+  document.getElementById('fe-mem-re-cyl-' + id).value = clean(re.c);
+  document.getElementById('fe-mem-re-axis-' + id).value = clean(re.a);
+  document.getElementById('fe-mem-re-add-' + id).value = clean(re.ad);
+  document.getElementById('fe-mem-le-sph-' + id).value = clean(le.s);
+  document.getElementById('fe-mem-le-cyl-' + id).value = clean(le.c);
+  document.getElementById('fe-mem-le-axis-' + id).value = clean(le.a);
+  document.getElementById('fe-mem-le-add-' + id).value = clean(le.ad);
+  document.getElementById('fe-mem-frame-' + id).value = m[6] || '';
+  document.getElementById('fe-mem-lens-' + id).value = m[7] || '';
+  document.getElementById('fe-mem-desc-' + id).value = m[8] || '';
+  document.getElementById('fe-mem-price-' + id).value = m[9] || '';
+}
+
+function gatherFeMembersPayload(){
+  return feMembers.map(m => {
+    const id = m.id;
+    const relSel = document.getElementById('fe-mem-relation-' + id);
+    const relation = relSel && relSel.value === 'Other'
+      ? (document.getElementById('fe-mem-relation-other-' + id).value || 'Other')
+      : (relSel ? relSel.value : '');
+    const dobISO = ddmmyyyyToISO(document.getElementById('fe-mem-dob-' + id).value);
+    const rePower = `S:${document.getElementById('fe-mem-re-sph-' + id).value||'0'} C:${document.getElementById('fe-mem-re-cyl-' + id).value||'0'} A:${document.getElementById('fe-mem-re-axis-' + id).value||'0'} Add:${document.getElementById('fe-mem-re-add-' + id).value||'0'}`;
+    const lePower = `S:${document.getElementById('fe-mem-le-sph-' + id).value||'0'} C:${document.getElementById('fe-mem-le-cyl-' + id).value||'0'} A:${document.getElementById('fe-mem-le-axis-' + id).value||'0'} Add:${document.getElementById('fe-mem-le-add-' + id).value||'0'}`;
+    return {
+      name: document.getElementById('fe-mem-name-' + id).value,
+      relation, dob: dobISO, re: rePower, le: lePower,
+      frame: document.getElementById('fe-mem-frame-' + id).value,
+      lens: document.getElementById('fe-mem-lens-' + id).value,
+      description: document.getElementById('fe-mem-desc-' + id).value,
+      price: document.getElementById('fe-mem-price-' + id).value || 0
+    };
+  });
+}
+
 async function nextQuickSaleNumber(){
   try{
     const all = await fetchCloud('Records', true);
@@ -1956,7 +2088,7 @@ function openOrderEditor(inv, bal, stat, dateRaw, isManager){
   else openEditModal(inv, bal, stat, dateRaw);
 }
 
-function openFullEditModal(invoice){
+async function openFullEditModal(invoice){
   const order = currentOrders.find(r => String(r[1]) === String(invoice));
   if (!order) return showToast('Order not found', 'error');
   const re = parseRx(order[4]), le = parseRx(order[5]);
@@ -1986,6 +2118,15 @@ function openFullEditModal(invoice){
   document.getElementById('fe-balance').value = order[9] || '';
   document.getElementById('fe-payment').value = order[10] || 'Cash';
   document.getElementById('fe-status').value = order[11] || 'Processing';
+
+  feMembers = [];
+  renderFeMemberCards();
+  try{
+    const allMembers = await fetchCloud('Order Members', true);
+    const rowMembers = (allMembers || []).filter(m => String(m[0]) === String(invoice));
+    rowMembers.forEach(m => addFeFamilyMember(m));
+  }catch(e){ /* member fetch failing shouldn't block opening the editor */ }
+
   document.getElementById('full-edit-modal').style.display = 'flex';
   focusModal('full-edit-modal');
 }
@@ -2028,7 +2169,17 @@ async function submitFullUpdate(evt){
   };
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast('Order fully updated', 'success');
+    let membersOk = true;
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
+        action: 'replaceOrderMembers',
+        invoice: data.invoice,
+        oldInvoice: document.getElementById('fe-invoice-original').value,
+        members: gatherFeMembersPayload(),
+        branch: data.branch
+      })});
+    }catch(memberErr){ membersOk = false; }
+    showToast(membersOk ? 'Order fully updated' : 'Order saved, but member changes may not have saved. Please check.', membersOk ? 'success' : 'error');
     invalidateCache();
     closeModals();
     loadOrderList();
@@ -2158,6 +2309,8 @@ function closeModals(){
   document.getElementById('print-choice-modal').style.display = 'none';
   document.getElementById('dup-invoice-modal').style.display = 'none';
   document.body.style.overflow = '';
+  feMembers = [];
+  renderFeMemberCards();
   if (__lastFocus && document.contains(__lastFocus) && typeof __lastFocus.focus === 'function') __lastFocus.focus();
   __lastFocus = null;
 }
@@ -2647,14 +2800,14 @@ function confirmPrintChoice(mode){
 async function printOrder(invoiceId, mode) {
   const order = currentOrders.find(r => String(r[1]) === String(invoiceId));
   if (!order) return showToast('Order data not found.', 'error');
-  let members = [];
-  try{
-    const allMembers = await fetchCloud('Order Members');
-    members = (allMembers || []).filter(m => String(m[0]) === String(invoiceId));
-  }catch(e){ members = []; }
   if (mode === 'customer'){
-    document.getElementById('print-root').innerHTML = buildCustomerCopy(order, members);
+    document.getElementById('print-root').innerHTML = buildCustomerCopy(order);
   } else {
+    let members = [];
+    try{
+      const allMembers = await fetchCloud('Order Members');
+      members = (allMembers || []).filter(m => String(m[0]) === String(invoiceId));
+    }catch(e){ members = []; }
     const topCopy = buildShopCopy(order, members);
     const separator = '<div class="inv-cut" style="text-align:center; margin:10px 0; border-top:1px dashed #999;"></div>';
     const bottomCopy = buildCustomerCopy(order, members);
