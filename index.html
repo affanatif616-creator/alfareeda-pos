@@ -1153,6 +1153,23 @@ function showToast(message, type = 'info', duration = 3200){
   }, duration);
 }
 
+// Disables a button and shows a loading label for the duration of an async
+// action, re-enabling it afterward no matter how the action ends. If the
+// button is already disabled (mid-action), calling this again is a no-op —
+// this is what stops a fast double-click from firing the action twice.
+async function withLoadingState(btn, loadingLabel, task){
+  if (!btn || btn.disabled) return;
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerText = loadingLabel;
+  try{
+    await task();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
 function attachDateMask(el){
   el.addEventListener('input', () => {
     let v = el.value.replace(/[^0-9]/g, '').slice(0, 8);
@@ -1907,47 +1924,50 @@ function resetOrderForm(){
 
 async function saveOrderToCloud(){
   const btn = document.getElementById('save-btn');
-  const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-  if (!sessionUser) return showToast('Please log in again.', 'error');
-  const isQuickSale = document.getElementById('quick-sale-toggle').checked;
-  const rePower = isQuickSale ? 'N/A' : `S:${document.getElementById('re-sph').value||'0'} C:${document.getElementById('re-cyl').value||'0'} A:${document.getElementById('re-axis').value||'0'} Add:${document.getElementById('re-add').value||'0'}`;
-  const lePower = isQuickSale ? 'N/A' : `S:${document.getElementById('le-sph').value||'0'} C:${document.getElementById('le-cyl').value||'0'} A:${document.getElementById('le-axis').value||'0'} Add:${document.getElementById('le-add').value||'0'}`;
-  const dateISO = ddmmyyyyToISO(document.getElementById('order-date').value);
-  if (document.getElementById('order-date').value && !dateISO) return showToast('Enter date as dd-mm-yyyy', 'error');
-  const nowTime = new Date().toTimeString().slice(0, 8);
-  const combinedDateTime = dateISO ? `${dateISO}T${nowTime}` : '';
-  const dobISO = isQuickSale ? '' : ddmmyyyyToISO(document.getElementById('order-dob').value);
-  const frameVal = isQuickSale ? '' : document.getElementById('order-frame').value;
-  const lensVal = isQuickSale ? '' : document.getElementById('order-lens').value;
-  const descVal = isQuickSale ? document.getElementById('order-quick-item').value : document.getElementById('order-desc').value;
-  const data = {
-    type: 'order', date: combinedDateTime, invoice: document.getElementById('order-invoice').value,
-    name: document.getElementById('order-name').value, contact: document.getElementById('order-contact').value,
-    examSource: isQuickSale ? '' : document.getElementById('order-exam').value, dob: dobISO,
-    rightEye: rePower, leftEye: lePower, frame: frameVal, lens: lensVal, description: descVal,
-    items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
-    total: document.getElementById('order-total').value || 0, advance: document.getElementById('order-advance').value || 0,
-    balance: document.getElementById('order-balance').value || 0, payment: document.getElementById('order-payment').value,
-    status: document.getElementById('order-status').value, branch: sessionUser.activeBranch
-  };
-  if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
+  await withLoadingState(btn, 'Checking…', async () => {
+    const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+    if (!sessionUser) return showToast('Please log in again.', 'error');
+    const isQuickSale = document.getElementById('quick-sale-toggle').checked;
+    const rePower = isQuickSale ? 'N/A' : `S:${document.getElementById('re-sph').value||'0'} C:${document.getElementById('re-cyl').value||'0'} A:${document.getElementById('re-axis').value||'0'} Add:${document.getElementById('re-add').value||'0'}`;
+    const lePower = isQuickSale ? 'N/A' : `S:${document.getElementById('le-sph').value||'0'} C:${document.getElementById('le-cyl').value||'0'} A:${document.getElementById('le-axis').value||'0'} Add:${document.getElementById('le-add').value||'0'}`;
+    const dateISO = ddmmyyyyToISO(document.getElementById('order-date').value);
+    if (document.getElementById('order-date').value && !dateISO) return showToast('Enter date as dd-mm-yyyy', 'error');
+    const nowTime = new Date().toTimeString().slice(0, 8);
+    const combinedDateTime = dateISO ? `${dateISO}T${nowTime}` : '';
+    const dobISO = isQuickSale ? '' : ddmmyyyyToISO(document.getElementById('order-dob').value);
+    const frameVal = isQuickSale ? '' : document.getElementById('order-frame').value;
+    const lensVal = isQuickSale ? '' : document.getElementById('order-lens').value;
+    const descVal = isQuickSale ? document.getElementById('order-quick-item').value : document.getElementById('order-desc').value;
+    const data = {
+      type: 'order', date: combinedDateTime, invoice: document.getElementById('order-invoice').value,
+      name: document.getElementById('order-name').value, contact: document.getElementById('order-contact').value,
+      examSource: isQuickSale ? '' : document.getElementById('order-exam').value, dob: dobISO,
+      rightEye: rePower, leftEye: lePower, frame: frameVal, lens: lensVal, description: descVal,
+      items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
+      total: document.getElementById('order-total').value || 0, advance: document.getElementById('order-advance').value || 0,
+      balance: document.getElementById('order-balance').value || 0, payment: document.getElementById('order-payment').value,
+      status: document.getElementById('order-status').value, branch: sessionUser.activeBranch
+    };
+    if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
 
-  if (!isQuickSale){
-    try{
-      const all = await fetchCloud('Records', true);
-      const existing = all.find(r => String(r[1]) === String(data.invoice));
-      if (existing){
-        __pendingOrderSave = data;
-        document.getElementById('dup-invoice-details').innerHTML =
-          `${esc(existing[2] || '')} · ${new Date(existing[0]).toLocaleDateString('en-GB')} · ${(parseFloat(existing[7])||0).toFixed(3)} OMR`;
-        document.getElementById('dup-invoice-modal').style.display = 'flex';
-        focusModal('dup-invoice-modal');
-        return;
-      }
-    }catch(e){ /* if the duplicate check fails, fall through and let the save attempt proceed */ }
-  }
+    if (!isQuickSale){
+      try{
+        const all = await fetchCloud('Records', true);
+        const existing = all.find(r => String(r[1]) === String(data.invoice));
+        if (existing){
+          __pendingOrderSave = data;
+          document.getElementById('dup-invoice-details').innerHTML =
+            `${esc(existing[2] || '')} · ${new Date(existing[0]).toLocaleDateString('en-GB')} · ${(parseFloat(existing[7])||0).toFixed(3)} OMR`;
+          document.getElementById('dup-invoice-modal').style.display = 'flex';
+          focusModal('dup-invoice-modal');
+          return;
+        }
+      }catch(e){ /* if the duplicate check fails, fall through and let the save attempt proceed */ }
+    }
 
-  await commitOrderSave(data, btn);
+    btn.innerText = 'Syncing with Cloud…';
+    await commitOrderSave(data);
+  });
 }
 
 let __pendingOrderSave = null;
@@ -1957,12 +1977,11 @@ async function confirmSaveAnyway(){
   __pendingOrderSave = null;
   closeModals();
   if (!data) return;
-  await commitOrderSave(data, document.getElementById('save-btn'));
+  await withLoadingState(document.getElementById('save-btn'), 'Syncing with Cloud…', () => commitOrderSave(data));
 }
 
-async function commitOrderSave(data, btn){
+async function commitOrderSave(data){
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
-  btn.disabled = true; btn.innerText = 'Syncing with Cloud…';
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
     await saveOrderMembers(data.invoice, sessionUser ? sessionUser.activeBranch : data.branch);
@@ -1970,9 +1989,8 @@ async function commitOrderSave(data, btn){
     invalidateCache();
     resetOrderForm();
     refreshDashboard();
-    btn.disabled = false; btn.innerText = 'Save Order';
   }catch(e){
-    showToast('Error saving order. Try again.', 'error'); btn.disabled = false; btn.innerText = 'Save Order';
+    showToast('Error saving order. Try again.', 'error');
   }
 }
 
@@ -2139,55 +2157,54 @@ function feCalcBalance(){
 
 async function submitFullUpdate(evt){
   const btn = evt.currentTarget || evt.target;
-  const original = btn.innerText;
-  btn.disabled = true; btn.innerText = 'Saving…';
-  const dateISO = ddmmyyyyToISO(document.getElementById('fe-date').value);
-  if (document.getElementById('fe-date').value && !dateISO){
-    showToast('Enter date as dd-mm-yyyy', 'error'); btn.disabled = false; btn.innerText = original; return;
-  }
-  const originalRaw = document.getElementById('fe-date-original-raw').value;
-  const originalTime = originalRaw && !isNaN(new Date(originalRaw))
-    ? new Date(originalRaw).toTimeString().slice(0, 8)
-    : new Date().toTimeString().slice(0, 8);
-  const combinedDateTime = dateISO ? `${dateISO}T${originalTime}` : '';
-  const dobISO = ddmmyyyyToISO(document.getElementById('fe-dob').value);
-  const rePower = `S:${document.getElementById('fe-re-sph').value||'0'} C:${document.getElementById('fe-re-cyl').value||'0'} A:${document.getElementById('fe-re-axis').value||'0'} Add:${document.getElementById('fe-re-add').value||'0'}`;
-  const lePower = `S:${document.getElementById('fe-le-sph').value||'0'} C:${document.getElementById('fe-le-cyl').value||'0'} A:${document.getElementById('fe-le-axis').value||'0'} Add:${document.getElementById('fe-le-add').value||'0'}`;
-  const frameVal = document.getElementById('fe-frame').value;
-  const lensVal = document.getElementById('fe-lens').value;
-  const descVal = document.getElementById('fe-desc').value;
-  const data = {
-    action: 'fullUpdate', originalInvoice: document.getElementById('fe-invoice-original').value,
-    originalDate: originalRaw, invoice: document.getElementById('fe-invoice').value, date: combinedDateTime,
-    name: document.getElementById('fe-name').value, contact: document.getElementById('fe-contact').value,
-    examSource: document.getElementById('fe-exam').value, dob: dobISO, rightEye: rePower, leftEye: lePower,
-    frame: frameVal, lens: lensVal, description: descVal,
-    items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
-    total: document.getElementById('fe-total').value || 0, advance: document.getElementById('fe-advance').value || 0,
-    balance: document.getElementById('fe-balance').value || 0, payment: document.getElementById('fe-payment').value,
-    status: document.getElementById('fe-status').value, branch: document.getElementById('fe-branch-original').value
-  };
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    let membersOk = true;
+  await withLoadingState(btn, 'Saving…', async () => {
+    const dateISO = ddmmyyyyToISO(document.getElementById('fe-date').value);
+    if (document.getElementById('fe-date').value && !dateISO){
+      showToast('Enter date as dd-mm-yyyy', 'error'); return;
+    }
+    const originalRaw = document.getElementById('fe-date-original-raw').value;
+    const originalTime = originalRaw && !isNaN(new Date(originalRaw))
+      ? new Date(originalRaw).toTimeString().slice(0, 8)
+      : new Date().toTimeString().slice(0, 8);
+    const combinedDateTime = dateISO ? `${dateISO}T${originalTime}` : '';
+    const dobISO = ddmmyyyyToISO(document.getElementById('fe-dob').value);
+    const rePower = `S:${document.getElementById('fe-re-sph').value||'0'} C:${document.getElementById('fe-re-cyl').value||'0'} A:${document.getElementById('fe-re-axis').value||'0'} Add:${document.getElementById('fe-re-add').value||'0'}`;
+    const lePower = `S:${document.getElementById('fe-le-sph').value||'0'} C:${document.getElementById('fe-le-cyl').value||'0'} A:${document.getElementById('fe-le-axis').value||'0'} Add:${document.getElementById('fe-le-add').value||'0'}`;
+    const frameVal = document.getElementById('fe-frame').value;
+    const lensVal = document.getElementById('fe-lens').value;
+    const descVal = document.getElementById('fe-desc').value;
+    const data = {
+      action: 'fullUpdate', originalInvoice: document.getElementById('fe-invoice-original').value,
+      originalDate: originalRaw, invoice: document.getElementById('fe-invoice').value, date: combinedDateTime,
+      name: document.getElementById('fe-name').value, contact: document.getElementById('fe-contact').value,
+      examSource: document.getElementById('fe-exam').value, dob: dobISO, rightEye: rePower, leftEye: lePower,
+      frame: frameVal, lens: lensVal, description: descVal,
+      items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
+      total: document.getElementById('fe-total').value || 0, advance: document.getElementById('fe-advance').value || 0,
+      balance: document.getElementById('fe-balance').value || 0, payment: document.getElementById('fe-payment').value,
+      status: document.getElementById('fe-status').value, branch: document.getElementById('fe-branch-original').value
+    };
     try{
-      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
-        action: 'replaceOrderMembers',
-        invoice: data.invoice,
-        oldInvoice: document.getElementById('fe-invoice-original').value,
-        members: gatherFeMembersPayload(),
-        branch: data.branch
-      })});
-    }catch(memberErr){ membersOk = false; }
-    showToast(membersOk ? 'Order fully updated' : 'Order saved, but member changes may not have saved. Please check.', membersOk ? 'success' : 'error');
-    invalidateCache();
-    closeModals();
-    loadOrderList();
-    refreshDashboard();
-  }catch(e){
-    showToast('Error updating order.', 'error');
-  }
-  btn.disabled = false; btn.innerText = original;
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+      let membersOk = true;
+      try{
+        await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
+          action: 'replaceOrderMembers',
+          invoice: data.invoice,
+          oldInvoice: document.getElementById('fe-invoice-original').value,
+          members: gatherFeMembersPayload(),
+          branch: data.branch
+        })});
+      }catch(memberErr){ membersOk = false; }
+      showToast(membersOk ? 'Order fully updated' : 'Order saved, but member changes may not have saved. Please check.', membersOk ? 'success' : 'error');
+      invalidateCache();
+      closeModals();
+      loadOrderList();
+      refreshDashboard();
+    }catch(e){
+      showToast('Error updating order.', 'error');
+    }
+  });
 }
 
 async function deleteRecord(sheetName, matches, onDone){
@@ -2226,29 +2243,28 @@ async function submitUpdate(evt){
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!inv) return showToast('Error: invoice number missing.', 'error');
   const btn = evt.currentTarget || evt.target;
-  const original = btn.innerText;
-  btn.innerText = 'Updating…'; btn.disabled = true;
-  const oldOrder = currentOrders.find(r => String(r[1]) === String(inv) && String(r[0]) === String(originalDate));
-  const oldBalance = oldOrder ? parseFloat(oldOrder[9]) : 0;
-  const customerName = oldOrder ? oldOrder[2] : 'Unknown';
-  const amountPaidNow = oldBalance - parseFloat(bal);
-  const data = {
-    action: 'update', invoice: inv, originalDate: originalDate, balance: bal, status: stat,
-    amountCollected: amountPaidNow > 0 ? amountPaidNow : 0,
-    paymentMethod: document.getElementById('up-payment').value,
-    branch: sessionUser ? sessionUser.activeBranch : 'Unknown', customerName
-  };
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast('Order ' + inv + ' updated and cash logged!', 'success');
-    invalidateCache();
-    closeModals();
-    btn.innerText = original; btn.disabled = false;
-    loadOrderList();
-    refreshDashboard();
-  }catch(e){
-    showToast('Connection error. Try again.', 'error'); btn.innerText = original; btn.disabled = false;
-  }
+  await withLoadingState(btn, 'Updating…', async () => {
+    const oldOrder = currentOrders.find(r => String(r[1]) === String(inv) && String(r[0]) === String(originalDate));
+    const oldBalance = oldOrder ? parseFloat(oldOrder[9]) : 0;
+    const customerName = oldOrder ? oldOrder[2] : 'Unknown';
+    const amountPaidNow = oldBalance - parseFloat(bal);
+    const data = {
+      action: 'update', invoice: inv, originalDate: originalDate, balance: bal, status: stat,
+      amountCollected: amountPaidNow > 0 ? amountPaidNow : 0,
+      paymentMethod: document.getElementById('up-payment').value,
+      branch: sessionUser ? sessionUser.activeBranch : 'Unknown', customerName
+    };
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+      showToast('Order ' + inv + ' updated and cash logged!', 'success');
+      invalidateCache();
+      closeModals();
+      loadOrderList();
+      refreshDashboard();
+    }catch(e){
+      showToast('Connection error. Try again.', 'error');
+    }
+  });
 }
 
 function parseRx(str){
