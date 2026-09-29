@@ -742,9 +742,18 @@ table.data td.empty.err{ color:var(--negative); }
               <div class="field"><label for="order-lens">Lens</label><input type="text" id="order-lens"></div>
               <div class="field"><label for="order-desc">Description</label><input type="text" id="order-desc"></div>
             </div>
+            <div id="order-price-wrap" class="field" style="display:none; max-width:260px;">
+              <label for="order-price">Price (OMR)</label><input type="number" step="0.001" id="order-price" oninput="recalcOrderTotal()" inputmode="decimal">
+            </div>
             <div id="quick-item-wrap" class="field" style="display:none; max-width:460px;">
               <label for="order-quick-item">Item</label><input type="text" id="order-quick-item" placeholder="e.g. Rayban Sunglasses, Contact Lens Solution">
             </div>
+          </fieldset>
+
+          <fieldset class="fset" id="family-members-wrap">
+            <legend>Family Members <span>Optional — cover a spouse or children in this same order</span></legend>
+            <div id="member-cards"></div>
+            <button type="button" class="btn btn-ghost" onclick="addFamilyMember()"><svg class="ic" aria-hidden="true"><use href="#i-user-plus"/></svg> Add Family Member</button>
           </fieldset>
         </div>
 
@@ -1044,6 +1053,30 @@ table.data td.empty.err{ color:var(--negative); }
 
 <div id="rx-modal" class="modal">
   <div class="dialog" id="rx-body" role="dialog" aria-modal="true" aria-label="Prescription card"></div>
+</div>
+
+<div id="print-choice-modal" class="modal">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="print-choice-title">
+    <h2 id="print-choice-title"><svg class="ic" aria-hidden="true"><use href="#i-printer"/></svg> Print Invoice</h2>
+    <p class="muted small" style="margin:-8px 0 16px;">Choose what to print.</p>
+    <div class="dialog-foot" style="flex-direction:column;">
+      <button type="button" class="btn btn-primary btn-block" onclick="confirmPrintChoice('customer')">Customer Copy Only</button>
+      <button type="button" class="btn btn-ghost btn-block" onclick="confirmPrintChoice('both')">Both Copies</button>
+      <button type="button" class="btn btn-quiet btn-block" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="dup-invoice-modal" class="modal">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dup-invoice-title">
+    <h2 id="dup-invoice-title"><svg class="ic" aria-hidden="true"><use href="#i-alert-circle"/></svg> Invoice Already Exists</h2>
+    <p class="muted small" style="margin:-8px 0 12px;">This invoice number is already used by an existing order:</p>
+    <div class="note"><b>Existing Order</b><span id="dup-invoice-details"></span></div>
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-ghost" onclick="closeModals()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="confirmSaveAnyway()">Save Anyway</button>
+    </div>
+  </div>
 </div>
 
 <div id="print-root"></div>
@@ -1566,6 +1599,125 @@ function calcBalance(){
   document.getElementById('order-balance').value = (t - a).toFixed(3);
 }
 
+/* ---------- family members (New Order form) ---------- */
+let orderMembers = [];
+let __memberIdSeq = 0;
+const MEMBER_RELATIONS = ['Wife','Husband','Son','Daughter','Father','Mother','Other'];
+
+function updatePriceModeUI(){
+  const has = orderMembers.length > 0;
+  document.getElementById('order-price-wrap').style.display = has ? 'block' : 'none';
+  document.getElementById('order-total').readOnly = has;
+  if (has) recalcOrderTotal();
+  else document.getElementById('order-price').value = '';
+}
+
+function recalcOrderTotal(){
+  if (orderMembers.length === 0){ calcBalance(); return; }
+  const primaryPrice = parseFloat(document.getElementById('order-price').value) || 0;
+  const memberSum = orderMembers.reduce((s, m) => {
+    const el = document.getElementById('mem-price-' + m.id);
+    return s + (el ? (parseFloat(el.value) || 0) : 0);
+  }, 0);
+  document.getElementById('order-total').value = (primaryPrice + memberSum).toFixed(3);
+  calcBalance();
+}
+
+function addFamilyMember(){
+  orderMembers.push({ id: ++__memberIdSeq });
+  renderMemberCards();
+  updatePriceModeUI();
+}
+
+function removeFamilyMember(id){
+  orderMembers = orderMembers.filter(m => m.id !== id);
+  renderMemberCards();
+  updatePriceModeUI();
+}
+
+function memberRelationChanged(id, sel){
+  const otherWrap = document.getElementById('mem-relation-other-wrap-' + id);
+  if (otherWrap) otherWrap.style.display = sel.value === 'Other' ? 'block' : 'none';
+}
+
+function memberCardHTML(id){
+  return `
+  <div class="card" id="member-card-${id}" style="margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span class="sec-h" style="margin:0;">Family Member</span>
+      <button type="button" class="btn btn-danger-quiet btn-icon" title="Remove member" aria-label="Remove member" onclick="removeFamilyMember(${id})">${ic('trash')}</button>
+    </div>
+    <div class="grid g-3">
+      <div class="field"><label for="mem-name-${id}">Name</label><input type="text" id="mem-name-${id}"></div>
+      <div class="field">
+        <label for="mem-relation-${id}">Relation</label>
+        <select id="mem-relation-${id}" onchange="memberRelationChanged(${id}, this)">
+          ${MEMBER_RELATIONS.map(r => `<option>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" id="mem-relation-other-wrap-${id}" style="display:none;">
+        <label for="mem-relation-other-${id}">Specify relation</label><input type="text" id="mem-relation-other-${id}">
+      </div>
+    </div>
+    <div class="grid g-3">
+      <div class="field"><label for="mem-dob-${id}">Date of Birth</label><div class="date-wrap"><input type="text" class="date-field" id="mem-dob-${id}" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" aria-label="Pick date of birth" onclick="openDatePicker('mem-dob-${id}')">${ic('calendar')}</button></div></div>
+    </div>
+    <div class="rx-scroll">
+      <table class="rx-table">
+        <thead><tr><th>Eye</th><th>SPH<small>D</small></th><th>CYL<small>D</small></th><th>AXIS<small>°</small></th><th>ADD<small>D</small></th></tr></thead>
+        <tbody>
+          <tr><td><span class="eye-tag">RE</span><span class="eye-name">Right Eye</span></td>
+            <td><input id="mem-re-sph-${id}" placeholder="0.00" aria-label="Right eye SPH"></td><td><input id="mem-re-cyl-${id}" placeholder="0.00" aria-label="Right eye CYL"></td>
+            <td><input id="mem-re-axis-${id}" placeholder="0" aria-label="Right eye AXIS"></td><td><input id="mem-re-add-${id}" placeholder="0.00" aria-label="Right eye ADD"></td></tr>
+          <tr><td><span class="eye-tag">LE</span><span class="eye-name">Left Eye</span></td>
+            <td><input id="mem-le-sph-${id}" placeholder="0.00" aria-label="Left eye SPH"></td><td><input id="mem-le-cyl-${id}" placeholder="0.00" aria-label="Left eye CYL"></td>
+            <td><input id="mem-le-axis-${id}" placeholder="0" aria-label="Left eye AXIS"></td><td><input id="mem-le-add-${id}" placeholder="0.00" aria-label="Left eye ADD"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g-3" style="margin-top:16px;">
+      <div class="field"><label for="mem-frame-${id}">Frame</label><input type="text" id="mem-frame-${id}"></div>
+      <div class="field"><label for="mem-lens-${id}">Lens</label><input type="text" id="mem-lens-${id}"></div>
+      <div class="field"><label for="mem-desc-${id}">Description</label><input type="text" id="mem-desc-${id}"></div>
+    </div>
+    <div class="field" style="max-width:260px;"><label for="mem-price-${id}">Price (OMR)</label><input type="number" step="0.001" id="mem-price-${id}" oninput="recalcOrderTotal()" inputmode="decimal"></div>
+  </div>`;
+}
+
+function renderMemberCards(){
+  const wrap = document.getElementById('member-cards');
+  wrap.innerHTML = orderMembers.map(m => memberCardHTML(m.id)).join('');
+  orderMembers.forEach(m => {
+    const card = document.getElementById('member-card-' + m.id);
+    if (card) card.querySelectorAll('input.date-field').forEach(attachDateMask);
+  });
+}
+
+async function saveOrderMembers(invoice, branch){
+  if (orderMembers.length === 0) return;
+  const tasks = orderMembers.map(m => {
+    const id = m.id;
+    const relSel = document.getElementById('mem-relation-' + id);
+    const relation = relSel && relSel.value === 'Other'
+      ? (document.getElementById('mem-relation-other-' + id).value || 'Other')
+      : (relSel ? relSel.value : '');
+    const dobISO = ddmmyyyyToISO(document.getElementById('mem-dob-' + id).value);
+    const rePower = `S:${document.getElementById('mem-re-sph-' + id).value||'0'} C:${document.getElementById('mem-re-cyl-' + id).value||'0'} A:${document.getElementById('mem-re-axis-' + id).value||'0'} Add:${document.getElementById('mem-re-add-' + id).value||'0'}`;
+    const lePower = `S:${document.getElementById('mem-le-sph-' + id).value||'0'} C:${document.getElementById('mem-le-cyl-' + id).value||'0'} A:${document.getElementById('mem-le-axis-' + id).value||'0'} Add:${document.getElementById('mem-le-add-' + id).value||'0'}`;
+    const payload = {
+      type: 'orderMember', invoice, name: document.getElementById('mem-name-' + id).value,
+      relation, dob: dobISO, re: rePower, le: lePower,
+      frame: document.getElementById('mem-frame-' + id).value,
+      lens: document.getElementById('mem-lens-' + id).value,
+      description: document.getElementById('mem-desc-' + id).value,
+      price: document.getElementById('mem-price-' + id).value || 0,
+      branch
+    };
+    return fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
+  });
+  await Promise.all(tasks);
+}
+
 async function nextQuickSaleNumber(){
   try{
     const all = await fetchCloud('Records', true);
@@ -1609,12 +1761,16 @@ function resetOrderForm(){
   document.getElementById('order-frame').value = '';
   document.getElementById('order-lens').value = '';
   document.getElementById('order-desc').value = '';
+  document.getElementById('order-price').value = '';
   document.getElementById('order-total').value = '';
   document.getElementById('order-advance').value = '';
   document.getElementById('order-balance').value = '';
   document.getElementById('order-payment').selectedIndex = 0;
   document.getElementById('order-status').selectedIndex = 0;
   document.getElementById('order-date').value = todayDDMMYYYY();
+  orderMembers = [];
+  renderMemberCards();
+  updatePriceModeUI();
 }
 
 async function saveOrderToCloud(){
@@ -1643,10 +1799,42 @@ async function saveOrderToCloud(){
     status: document.getElementById('order-status').value, branch: sessionUser.activeBranch
   };
   if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
+
+  if (!isQuickSale){
+    try{
+      const all = await fetchCloud('Records', true);
+      const existing = all.find(r => String(r[1]) === String(data.invoice));
+      if (existing){
+        __pendingOrderSave = data;
+        document.getElementById('dup-invoice-details').innerHTML =
+          `${esc(existing[2] || '')} · ${new Date(existing[0]).toLocaleDateString('en-GB')} · ${(parseFloat(existing[7])||0).toFixed(3)} OMR`;
+        document.getElementById('dup-invoice-modal').style.display = 'flex';
+        focusModal('dup-invoice-modal');
+        return;
+      }
+    }catch(e){ /* if the duplicate check fails, fall through and let the save attempt proceed */ }
+  }
+
+  await commitOrderSave(data, btn);
+}
+
+let __pendingOrderSave = null;
+
+async function confirmSaveAnyway(){
+  const data = __pendingOrderSave;
+  __pendingOrderSave = null;
+  closeModals();
+  if (!data) return;
+  await commitOrderSave(data, document.getElementById('save-btn'));
+}
+
+async function commitOrderSave(data, btn){
+  const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   btn.disabled = true; btn.innerText = 'Syncing with Cloud…';
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast('Order saved to ' + sessionUser.activeBranch, 'success');
+    await saveOrderMembers(data.invoice, sessionUser ? sessionUser.activeBranch : data.branch);
+    showToast('Order saved to ' + (sessionUser ? sessionUser.activeBranch : data.branch), 'success');
     invalidateCache();
     resetOrderForm();
     refreshDashboard();
@@ -1671,8 +1859,16 @@ async function loadOrderList(isFiltered = false){
   }
   tableBody.innerHTML = skeletonRows(9);
   try{
-    const all = await fetchCloud('Records', isFiltered);
+    const [all, allMembers] = await Promise.all([
+      fetchCloud('Records', isFiltered),
+      fetchCloud('Order Members').catch(() => [])
+    ]);
     currentOrders = all;
+    const membersByInvoice = {};
+    (allMembers || []).forEach(m => {
+      const inv = String(m[0]);
+      (membersByInvoice[inv] = membersByInvoice[inv] || []).push(m);
+    });
     const rows = all.filter(r => {
       const rowDate = new Date(r[0]);
       const branchMatch = isAdmin ? true : r[12] === user.activeBranch;
@@ -1689,10 +1885,14 @@ async function loadOrderList(isFiltered = false){
       const status = row[11];
       const branchName = row[12] || 'N/A';
       const examVal = row[13] || '-';
-      const rxData = JSON.stringify({ name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6], exam:row[13], frame:row[14], lens:row[15], description:row[16] });
+      const rowMembers = membersByInvoice[String(row[1])] || [];
+      const rxData = JSON.stringify({
+        name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6], exam:row[13], frame:row[14], lens:row[15], description:row[16],
+        members: rowMembers.map(m => ({ name:m[1], relation:m[2], dob:m[3], re:m[4], le:m[5], frame:m[6], lens:m[7], description:m[8], price:m[9] }))
+      });
       const dot = status==='Delivered' ? 'var(--positive)' : (status==='Ready' ? 'var(--navy)' : 'var(--processing)');
       const branchTd = isAdmin ? `<td data-label="Branch">${esc(branchName)}</td>` : '';
-      const delMatches = [{col:2,value:String(row[1])},{col:1,value:String(row[0]),isDate:true}];
+      const familyChip = rowMembers.length ? ` <span class="chip brass" title="Family members on this order">${ic('users','ic-sm')} +${rowMembers.length}</span>` : '';
       return `
         <tr>
           <td data-label="Date" data-sort="${esc(row[0])}">${dateStr}</td>
@@ -1701,14 +1901,14 @@ async function loadOrderList(isFiltered = false){
           <td data-label="Number" class="soft">${esc(row[3])}</td>
           <td data-label="Total" class="num strong">${totalAmt.toFixed(3)}</td>
           <td data-label="Balance" class="num strong ${balance>0?'neg':'soft'}">${balance.toFixed(3)}</td>
-          <td data-label="Status"><span class="chip" style="--dot:${dot};">${esc(status)}</span></td>
+          <td data-label="Status"><span class="chip" style="--dot:${dot};">${esc(status)}</span>${familyChip}</td>
           <td data-label="Eye Exam"><span class="chip plain">${esc(examVal)}</span></td>
           ${branchTd}
           <td class="actions"><div class="act">
             <button type="button" class="btn btn-quiet btn-icon" title="View Rx" aria-label="View prescription" onclick="showRx(${q(rxData)})">${ic('eye')}</button>
-            <button type="button" class="btn btn-quiet btn-icon" title="Print Invoice" aria-label="Print invoice" onclick="printOrder(${q(row[1])})">${ic('printer')}</button>
+            <button type="button" class="btn btn-quiet btn-icon" title="Print Invoice" aria-label="Print invoice" onclick="openPrintChoice(${q(row[1])})">${ic('printer')}</button>
             <button type="button" class="btn btn-quiet btn-icon" title="${isAdmin ? 'Full Edit (Manager)' : 'Edit Status'}" aria-label="${isAdmin ? 'Full edit order' : 'Edit order status'}" onclick="openOrderEditor(${q(row[1])},${q(balance)},${q(status)},${q(row[0])}, ${isAdmin})">${ic('pencil')}</button>
-            ${isAdmin ? `<span class="sep" aria-hidden="true"></span><button type="button" class="btn btn-danger-quiet btn-icon" title="Delete Order" aria-label="Delete order" onclick="deleteRecord('Records', ${qj(delMatches)}, () => { loadOrderList(); refreshDashboard(); })">${ic('trash')}</button>` : ''}
+            ${isAdmin ? `<span class="sep" aria-hidden="true"></span><button type="button" class="btn btn-danger-quiet btn-icon" title="Delete Order" aria-label="Delete order" onclick="deleteOrderCascade(${q(row[1])}, ${q(row[0])}, () => { loadOrderList(); refreshDashboard(); })">${ic('trash')}</button>` : ''}
           </div></td>
         </tr>`;
     }).join('');
@@ -1853,6 +2053,20 @@ async function deleteRecord(sheetName, matches, onDone){
   }
 }
 
+async function deleteOrderCascade(invoice, dateRaw, onDone){
+  if (!confirm('Delete this order permanently? This also removes its transaction history entries. This cannot be undone.')) return;
+  try{
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
+      action: 'deleteOrderCascade', invoice: invoice, originalDate: dateRaw
+    })});
+    showToast('Order and transaction history deleted', 'success');
+    invalidateCache();
+    if (onDone) onDone();
+  }catch(e){
+    showToast('Error deleting order.', 'error');
+  }
+}
+
 async function submitUpdate(evt){
   const inv = document.getElementById('up-invoice').value;
   const bal = document.getElementById('up-balance').value;
@@ -1901,6 +2115,24 @@ function showRx(jsonStr){
   const re = parseRx(data.re), le = parseRx(data.le);
   const hasSplit = data.frame || data.lens || data.description;
   const note = (label, val) => `<div class="note"><b>${label}</b><span>${esc(val || 'None')}</span></div>`;
+  const members = data.members || [];
+  const memberCardsHTML = members.map(m => {
+    const mre = parseRx(m.re), mle = parseRx(m.le);
+    const mHasSplit = m.frame || m.lens || m.description;
+    const dobStr = m.dob ? new Date(m.dob).toLocaleDateString('en-GB') : '';
+    return `
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+      <p class="muted small" style="margin-bottom:8px;"><strong style="color:var(--ink);">${esc(m.name || '')}</strong> · ${esc(m.relation || '')}${dobStr ? ' · ' + dobStr : ''}</p>
+      <div class="rx-scroll"><table class="rx-table">
+        <thead><tr><th>Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
+        <tbody>
+          <tr><td><span class="eye-tag">RE</span>Right</td><td class="tabular">${esc(mre.s)}</td><td class="tabular">${esc(mre.c)}</td><td class="tabular">${esc(mre.a)}</td><td class="tabular">${esc(mre.ad)}</td></tr>
+          <tr><td><span class="eye-tag">LE</span>Left</td><td class="tabular">${esc(mle.s)}</td><td class="tabular">${esc(mle.c)}</td><td class="tabular">${esc(mle.a)}</td><td class="tabular">${esc(mle.ad)}</td></tr>
+        </tbody>
+      </table></div>
+      ${mHasSplit ? note('Frame', m.frame) + note('Lens', m.lens) + note('Description', m.description) : ''}
+    </div>`;
+  }).join('');
   document.getElementById('rx-body').innerHTML = `
     <h2>${ic('glasses')} Prescription Card</h2>
     <p class="muted small" style="margin:-8px 0 12px;">Invoice ${esc(data.invoice)} · ${esc(data.name)}</p>
@@ -1913,6 +2145,7 @@ function showRx(jsonStr){
       </tbody>
     </table></div>
     ${hasSplit ? note('Frame', data.frame) + note('Lens', data.lens) + note('Description', data.description) : note('Lens/Description', data.items)}
+    ${memberCardsHTML}
     <div class="dialog-foot"><button type="button" class="btn btn-primary" onclick="closeModals()">Close</button></div>`;
   document.getElementById('rx-modal').style.display = 'flex';
   focusModal('rx-modal');
@@ -1922,6 +2155,8 @@ function closeModals(){
   document.getElementById('rx-modal').style.display = 'none';
   document.getElementById('edit-modal').style.display = 'none';
   document.getElementById('full-edit-modal').style.display = 'none';
+  document.getElementById('print-choice-modal').style.display = 'none';
+  document.getElementById('dup-invoice-modal').style.display = 'none';
   document.body.style.overflow = '';
   if (__lastFocus && document.contains(__lastFocus) && typeof __lastFocus.focus === 'function') __lastFocus.focus();
   __lastFocus = null;
@@ -2233,7 +2468,42 @@ function resetROPFilter(){
   loadROPList(false);
 }
 
-function buildShopCopy(order) {
+function buildMemberShopBlock(m){
+  const re = parseRx(m[4]);
+  const le = parseRx(m[5]);
+  return `
+    <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #999;">
+      <div style="font-size:12.5px; font-weight:700;">${esc(m[1] || '')} <span style="font-weight:400; color:#555;">(${esc(m[2] || '')})</span></div>
+      <table class="inv-rx" style="margin-top:6px; width:100%; border-collapse:collapse; text-align:center; font-size:12.5px;">
+        <thead>
+          <tr style="background:#f0f0f0;">
+            <th rowspan="2" style="border:1px solid #000; width:22%;">Prescription:</th>
+            <th colspan="3" style="border:1px solid #000;">RE</th>
+            <th colspan="3" style="border:1px solid #000;">LE</th>
+          </tr>
+          <tr style="background:#f0f0f0;">
+            <th style="border:1px solid #000;">SPH</th><th style="border:1px solid #000;">CYL</th><th style="border:1px solid #000;">AXIS</th>
+            <th style="border:1px solid #000;">SPH</th><th style="border:1px solid #000;">CYL</th><th style="border:1px solid #000;">AXIS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border:1px solid #000; font-weight:bold;">Power</td>
+            <td style="border:1px solid #000;">${esc(re.s)}</td><td style="border:1px solid #000;">${esc(re.c)}</td><td style="border:1px solid #000;">${esc(re.a)}</td>
+            <td style="border:1px solid #000;">${esc(le.s)}</td><td style="border:1px solid #000;">${esc(le.c)}</td><td style="border:1px solid #000;">${esc(le.a)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="font-size:12.5px; margin-top:6px; line-height:1.7;">
+        <div><strong>FRAME:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:82%;">${esc(m[6] || '')}</span></div>
+        <div><strong>LENS:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:84%;">${esc(m[7] || '')}</span></div>
+        <div><strong>DESCRIPTION:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:74%;">${esc(m[8] || '')}</span></div>
+      </div>
+    </div>`;
+}
+
+function buildShopCopy(order, members) {
+  members = members || [];
   const re = parseRx(order[4]);
   const le = parseRx(order[5]);
   const dateStr = new Date(order[0]).toLocaleDateString('en-GB');
@@ -2290,6 +2560,7 @@ function buildShopCopy(order) {
         <div><strong>LENS:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:84%;">${esc(order[15] || '')}</span></div>
         <div><strong>DESCRIPTION:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:74%;">${esc(order[16] || order[6] || '')}</span></div>
       </div>
+      ${members.length ? members.map(buildMemberShopBlock).join('') : ''}
       <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
         <table style="border-collapse:collapse; font-size:12.5px; width:220px; border:1px solid #000;">
           <tr style="border-bottom:1px solid #000;"><td style="padding:2px 4px; border-right:1px solid #000;">TOTAL AMOUNT :</td><td style="padding:2px 4px; text-align:right;">${total}</td></tr>
@@ -2302,7 +2573,17 @@ function buildShopCopy(order) {
   `;
 }
 
-function buildCustomerCopy(order) {
+function buildMemberCustomerLine(m){
+  const price = (parseFloat(m[9]) || 0).toFixed(3);
+  const itemDesc = m[8] || [m[6], m[7]].filter(Boolean).join(' / ') || '-';
+  return `<div style="display:flex; justify-content:space-between; gap:12px; border-bottom:1px dotted #ccc; padding:2px 0;">
+    <span>${esc(m[1] || '')} <span style="color:#555;">(${esc(m[2] || '')})</span> — ${esc(itemDesc)}</span>
+    <span style="font-family:'IBM Plex Mono',monospace; white-space:nowrap;">${price}</span>
+  </div>`;
+}
+
+function buildCustomerCopy(order, members) {
+  members = members || [];
   const dateStr = new Date(order[0]).toLocaleDateString('en-GB');
   const total = (parseFloat(order[7]) || 0).toFixed(3);
   const advance = (parseFloat(order[8]) || 0).toFixed(3);
@@ -2331,6 +2612,11 @@ function buildCustomerCopy(order) {
         <div style="flex:1;"><strong>Date of Delivery:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:60%;"></span></div>
         <div><strong>Time of Delivery:</strong> <span style="border-bottom:1px dotted #000; min-width:60px; display:inline-block;"></span> <span style="font-size:12.5px; direction:rtl;">وقت التسليم </span></div>
       </div>
+      ${members.length ? `
+      <div style="margin-top:10px; font-size:12px;">
+        <div style="font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#555; margin-bottom:4px;">Family Members</div>
+        ${members.map(buildMemberCustomerLine).join('')}
+      </div>` : ''}
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:18px;">
         <table style="border-collapse:collapse; font-size:12.5px; width:220px; border:1px solid #000;">
           <tr style="border-bottom:1px solid #000;"><td style="padding:2px 4px; border-right:1px solid #000;">TOTAL AMOUNT :</td><td style="padding:2px 4px; text-align:right;">${total}</td></tr>
@@ -2345,13 +2631,35 @@ function buildCustomerCopy(order) {
   `;
 }
 
-function printOrder(invoiceId) {
+let __printChoiceInvoice = null;
+function openPrintChoice(invoiceId){
+  __printChoiceInvoice = invoiceId;
+  document.getElementById('print-choice-modal').style.display = 'flex';
+  focusModal('print-choice-modal');
+}
+function confirmPrintChoice(mode){
+  const invoiceId = __printChoiceInvoice;
+  __printChoiceInvoice = null;
+  closeModals();
+  if (invoiceId != null) printOrder(invoiceId, mode);
+}
+
+async function printOrder(invoiceId, mode) {
   const order = currentOrders.find(r => String(r[1]) === String(invoiceId));
   if (!order) return showToast('Order data not found.', 'error');
-  const topCopy = buildShopCopy(order);
-  const separator = '<div class="inv-cut" style="text-align:center; margin:10px 0; border-top:1px dashed #999;"></div>';
-  const bottomCopy = buildCustomerCopy(order);
-  document.getElementById('print-root').innerHTML = topCopy + separator + bottomCopy;
+  let members = [];
+  try{
+    const allMembers = await fetchCloud('Order Members');
+    members = (allMembers || []).filter(m => String(m[0]) === String(invoiceId));
+  }catch(e){ members = []; }
+  if (mode === 'customer'){
+    document.getElementById('print-root').innerHTML = buildCustomerCopy(order, members);
+  } else {
+    const topCopy = buildShopCopy(order, members);
+    const separator = '<div class="inv-cut" style="text-align:center; margin:10px 0; border-top:1px dashed #999;"></div>';
+    const bottomCopy = buildCustomerCopy(order, members);
+    document.getElementById('print-root').innerHTML = topCopy + separator + bottomCopy;
+  }
   window.print();
 }
 
