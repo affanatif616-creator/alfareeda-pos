@@ -283,6 +283,7 @@ fieldset.fset > legend span{ font-weight:400; color:var(--ink-soft); font-size:1
 
 .pay-panel{ position:sticky; top:24px; box-shadow:var(--sh-2); }
 .pay-panel h2{ font-size:15px; font-weight:600; margin-bottom:16px; }
+.pay-panel #save-print-btn{ margin-top:8px; position:static; box-shadow:none; }
 .balance-field input{ height:64px; text-align:right; font:600 28px var(--font-mono); color:var(--ink); background:var(--sunken); border-color:var(--border); }
 .balance-field > label{ font-size:13px; }
 
@@ -538,6 +539,9 @@ table.data td.empty.err{ color:var(--negative); }
 @media print{
   @page{ margin:8mm; }
   html, body{ background:#fff !important; color:#000 !important; }
+  /* body carries min-height:100vh for the screen layout; in print that forces a full-page-tall body,
+     and the customer copy's top margin collapses out of it, pushing the box past one page. */
+  html, body{ height:auto !important; min-height:0 !important; }
   #login-overlay, #app, .modal, .toast-container{ display:none !important; }
   #print-root{ display:block !important; }
   #print-root, #print-root *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -647,7 +651,7 @@ table.data td.empty.err{ color:var(--negative); }
     <nav class="nav" aria-label="Main">
       <div class="nav-label">Sales</div>
       <button type="button" class="nav-item active" aria-current="page" onclick="showSection('dash', event); refreshDashboard();"><svg class="ic" aria-hidden="true"><use href="#i-pie"/></svg> Dashboard</button>
-      <button type="button" class="nav-item" onclick="showSection('order', event)"><svg class="ic" aria-hidden="true"><use href="#i-file-plus"/></svg> New Order</button>
+      <button type="button" class="nav-item" onclick="showSection('order', event); suggestInvoiceNumber(true);"><svg class="ic" aria-hidden="true"><use href="#i-file-plus"/></svg> New Order</button>
       <button type="button" class="nav-item" onclick="showSection('order-list', event); loadOrderList();"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg> Order List</button>
       <div class="nav-label">Expenses</div>
       <button type="button" class="nav-item" onclick="showSection('expense', event)"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg> Record Expense</button>
@@ -764,7 +768,8 @@ table.data td.empty.err{ color:var(--negative); }
           <div class="field balance-field"><label for="order-balance">Balance (OMR)</label><input type="number" id="order-balance" readonly></div>
           <div class="field"><label for="order-payment">Payment</label><select id="order-payment"><option>Cash</option><option>Bank Transfer</option><option>Card</option></select></div>
           <div class="field"><label for="order-status">Status</label><select id="order-status"><option>Processing</option><option>Ready</option><option>Delivered</option></select></div>
-          <button type="button" class="btn btn-primary btn-lg btn-block" id="save-btn" onclick="saveOrderToCloud()">Save Order</button>
+          <button type="button" class="btn btn-primary btn-lg btn-block" id="save-btn" onclick="saveOrderToCloud(false)">Save Order</button>
+          <button type="button" class="btn btn-ghost btn-lg btn-block" id="save-print-btn" onclick="saveOrderToCloud(true)">Save &amp; Print</button>
         </aside>
       </div>
     </div>
@@ -956,7 +961,7 @@ table.data td.empty.err{ color:var(--negative); }
           <div class="field"><label for="new-branch">Branch</label><select id="new-branch"><option>Sumail</option><option>Izki</option><option>Sinaw</option></select></div>
           <div class="field"><label for="new-role">Role</label><select id="new-role"><option>Cashier</option><option>Manager</option></select></div>
         </div>
-        <button type="button" class="btn btn-primary btn-lg btn-block" onclick="createNewStaff()"><svg class="ic" aria-hidden="true"><use href="#i-user-plus"/></svg> Create Cloud Account</button>
+        <button type="button" class="btn btn-primary btn-lg btn-block" id="staff-create-btn" onclick="createNewStaff()"><svg class="ic" aria-hidden="true"><use href="#i-user-plus"/></svg> Create Cloud Account</button>
       </div>
     </div>
 
@@ -1867,14 +1872,31 @@ function gatherFeMembersPayload(){
   });
 }
 
-async function nextQuickSaleNumber(){
+async function nextInvoiceNumber(){
   try{
     const all = await fetchCloud('Records', true);
-    const count = all.filter(r => String(r[1]).startsWith('QS-')).length;
-    return 'QS-' + (count + 1);
+    let max = 99;
+    all.forEach(r => {
+      const m = /^ALF-(\d+)$/.exec(String(r[1]).trim());
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    });
+    return 'ALF-' + (max + 1);
   }catch(e){
-    return 'QS-' + Date.now();
+    return '';
   }
+}
+
+// Fills #order-invoice with a fresh suggestion. Ignores the result if a newer request started meanwhile.
+let __invoiceSuggestSeq = 0;
+let __lastSuggestedInvoice = '';
+async function suggestInvoiceNumber(onlyIfUntouched){
+  const field = document.getElementById('order-invoice');
+  const seq = ++__invoiceSuggestSeq;
+  const id = await nextInvoiceNumber();
+  if (seq !== __invoiceSuggestSeq) return;
+  if (onlyIfUntouched && field.value && field.value !== __lastSuggestedInvoice) return;
+  field.value = id;
+  __lastSuggestedInvoice = id;
 }
 
 function toggleQuickSaleMode(){
@@ -1885,14 +1907,11 @@ function toggleQuickSaleMode(){
   document.getElementById('quick-item-wrap').style.display = on ? 'block' : 'none';
   const invoiceField = document.getElementById('order-invoice');
   const nameField = document.getElementById('order-name');
+  invoiceField.value = '';
+  suggestInvoiceNumber(false);
   if (on){
-    invoiceField.readOnly = true;
-    invoiceField.value = 'Loading…';
-    nextQuickSaleNumber().then(id => invoiceField.value = id);
     if (!nameField.value.trim()) nameField.value = 'Walk-in Customer';
   } else {
-    invoiceField.readOnly = false;
-    invoiceField.value = '';
     if (nameField.value === 'Walk-in Customer') nameField.value = '';
   }
 }
@@ -1901,7 +1920,6 @@ function resetOrderForm(){
   document.getElementById('quick-sale-toggle').checked = false;
   document.getElementById('order-quick-item').value = '';
   toggleQuickSaleMode();
-  document.getElementById('order-invoice').value = '';
   document.getElementById('order-name').value = '';
   document.getElementById('order-contact').value = '';
   document.getElementById('order-exam').selectedIndex = 0;
@@ -1922,8 +1940,8 @@ function resetOrderForm(){
   updatePriceModeUI();
 }
 
-async function saveOrderToCloud(){
-  const btn = document.getElementById('save-btn');
+async function saveOrderToCloud(andPrint){
+  const btn = document.getElementById(andPrint ? 'save-print-btn' : 'save-btn');
   await withLoadingState(btn, 'Checking…', async () => {
     const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
     if (!sessionUser) return showToast('Please log in again.', 'error');
@@ -1950,12 +1968,13 @@ async function saveOrderToCloud(){
     };
     if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
 
-    if (!isQuickSale){
+    {
       try{
         const all = await fetchCloud('Records', true);
         const existing = all.find(r => String(r[1]) === String(data.invoice));
         if (existing){
           __pendingOrderSave = data;
+          __pendingOrderSaveAndPrint = !!andPrint;
           document.getElementById('dup-invoice-details').innerHTML =
             `${esc(existing[2] || '')} · ${new Date(existing[0]).toLocaleDateString('en-GB')} · ${(parseFloat(existing[7])||0).toFixed(3)} OMR`;
           document.getElementById('dup-invoice-modal').style.display = 'flex';
@@ -1966,21 +1985,25 @@ async function saveOrderToCloud(){
     }
 
     btn.innerText = 'Syncing with Cloud…';
-    await commitOrderSave(data);
+    await commitOrderSave(data, btn, andPrint);
   });
 }
 
 let __pendingOrderSave = null;
+let __pendingOrderSaveAndPrint = false;
 
 async function confirmSaveAnyway(){
   const data = __pendingOrderSave;
+  const andPrint = __pendingOrderSaveAndPrint;
   __pendingOrderSave = null;
+  __pendingOrderSaveAndPrint = false;
   closeModals();
   if (!data) return;
-  await withLoadingState(document.getElementById('save-btn'), 'Syncing with Cloud…', () => commitOrderSave(data));
+  const btn = document.getElementById(andPrint ? 'save-print-btn' : 'save-btn');
+  await withLoadingState(btn, 'Syncing with Cloud…', () => commitOrderSave(data, btn, andPrint));
 }
 
-async function commitOrderSave(data){
+async function commitOrderSave(data, btn, andPrint){
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
@@ -1989,6 +2012,7 @@ async function commitOrderSave(data){
     invalidateCache();
     resetOrderForm();
     refreshDashboard();
+    if (andPrint) openPrintChoice(data.invoice);
   }catch(e){
     showToast('Error saving order. Try again.', 'error');
   }
@@ -2346,13 +2370,15 @@ async function saveExpense(){
     type: 'expense', category: document.getElementById('exp-category').value, amount,
     description: document.getElementById('exp-desc').value, branch: sessionUser.activeBranch, staff: sessionUser.id
   };
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast('Expense sent to cloud!', 'success');
-    invalidateCache();
-    resetExpenseForm();
-    refreshDashboard();
-  }catch(e){ showToast('Network error. Try again.', 'error'); }
+  await withLoadingState(document.getElementById('exp-save-btn'), 'Saving...', async () => {
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+      showToast('Expense sent to cloud!', 'success');
+      invalidateCache();
+      resetExpenseForm();
+      refreshDashboard();
+    }catch(e){ showToast('Network error. Try again.', 'error'); }
+  });
 }
 
 async function loadExpenseList(isFiltered = false){
@@ -2410,18 +2436,20 @@ async function createNewStaff(){
     role: document.getElementById('new-role').value
   };
   if (!data.name || !data.id || !data.pass) return showToast('Fill Name, Username and Password', 'error');
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast(data.role + ' account created', 'success');
-    invalidateCache();
-    document.getElementById('new-name').value = '';
-    document.getElementById('new-id').value = '';
-    document.getElementById('new-pass').value = '';
-    document.getElementById('new-branch').selectedIndex = 0;
-    document.getElementById('new-role').selectedIndex = 0;
-  }catch(e){
-    showToast('Error creating staff account.', 'error');
-  }
+  await withLoadingState(document.getElementById('staff-create-btn'), 'Creating...', async () => {
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+      showToast(data.role + ' account created', 'success');
+      invalidateCache();
+      document.getElementById('new-name').value = '';
+      document.getElementById('new-id').value = '';
+      document.getElementById('new-pass').value = '';
+      document.getElementById('new-branch').selectedIndex = 0;
+      document.getElementById('new-role').selectedIndex = 0;
+    }catch(e){
+      showToast('Error creating staff account.', 'error');
+    }
+  });
 }
 
 async function loadTransactionHistory(isFiltered = false){
@@ -2479,8 +2507,8 @@ async function loadDevices(){
         <td data-label="Branch">${esc(row[2])}</td>
         <td data-label="Requested">${requested}</td>
         <td data-label="Actions" style="text-align:right;">
-          <button type="button" class="btn btn-primary btn-icon" title="Approve" aria-label="Approve device" onclick="approveDevice(${q(row[0])},${q(row[1])})">${ic('check-circle')}</button>
-          <button type="button" class="btn btn-quiet btn-icon" title="Deny" aria-label="Deny device" onclick="denyDevice(${q(row[0])},${q(row[1])})">${ic('trash')}</button>
+          <button type="button" class="btn btn-primary btn-icon" title="Approve" aria-label="Approve device" onclick="approveDevice(event,${q(row[0])},${q(row[1])})">${ic('check-circle')}</button>
+          <button type="button" class="btn btn-quiet btn-icon" title="Deny" aria-label="Deny device" onclick="denyDevice(event,${q(row[0])},${q(row[1])})">${ic('trash')}</button>
         </td>
       </tr>`;
     });
@@ -2490,26 +2518,30 @@ async function loadDevices(){
   }
 }
 
-async function approveDevice(staffId, deviceId){
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ action:'approveDevice', staffId, deviceId }) });
-    showToast('Device approved', 'success');
-    invalidateCache();
-    loadDevices();
-  }catch(e){
-    showToast('Error approving device.', 'error');
-  }
+async function approveDevice(evt, staffId, deviceId){
+  await withLoadingState(evt.currentTarget, 'Approving...', async () => {
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ action:'approveDevice', staffId, deviceId }) });
+      showToast('Device approved', 'success');
+      invalidateCache();
+      loadDevices();
+    }catch(e){
+      showToast('Error approving device.', 'error');
+    }
+  });
 }
 
-async function denyDevice(staffId, deviceId){
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ action:'denyDevice', staffId, deviceId }) });
-    showToast('Device denied', 'success');
-    invalidateCache();
-    loadDevices();
-  }catch(e){
-    showToast('Error denying device.', 'error');
-  }
+async function denyDevice(evt, staffId, deviceId){
+  await withLoadingState(evt.currentTarget, 'Denying...', async () => {
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ action:'denyDevice', staffId, deviceId }) });
+      showToast('Device denied', 'success');
+      invalidateCache();
+      loadDevices();
+    }catch(e){
+      showToast('Error denying device.', 'error');
+    }
+  });
 }
 
 async function nextROPNumber(){
@@ -2566,17 +2598,17 @@ async function saveROPToCloud(){
     card: method === 'Card' ? feeAmount : 0, dob: ropDobISO, branch: sessionUser.activeBranch
   };
   if (!data.mobile) return showToast('Enter Mobile No', 'error');
-  btn.disabled = true; btn.innerText = 'Saving…';
-  try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-    showToast('Eye exam record saved', 'success');
-    invalidateCache();
-    resetROPForm();
-    refreshDashboard();
-    btn.disabled = false; btn.innerText = 'Save Exam Record';
-  }catch(e){
-    showToast('Error saving record.', 'error'); btn.disabled = false; btn.innerText = 'Save Exam Record';
-  }
+  await withLoadingState(btn, 'Saving…', async () => {
+    try{
+      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+      showToast('Eye exam record saved', 'success');
+      invalidateCache();
+      resetROPForm();
+      refreshDashboard();
+    }catch(e){
+      showToast('Error saving record.', 'error');
+    }
+  });
 }
 
 async function loadROPList(isFiltered = false){
@@ -2642,7 +2674,7 @@ function buildMemberShopBlock(m){
   const le = parseRx(m[5]);
   return `
     <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #999;">
-      <div style="font-size:12.5px; font-weight:700;">${esc(m[1] || '')} <span style="font-weight:400; color:#555;">(${esc(m[2] || '')})</span></div>
+      <div style="font-size:12.5px; font-weight:700;">${esc((m[1] || '').toUpperCase())} <span style="font-weight:400; color:#555;">(${esc(m[2] || '')})</span></div>
       <table class="inv-rx" style="margin-top:6px; width:100%; border-collapse:collapse; text-align:center; font-size:12.5px;">
         <thead>
           <tr style="background:#f0f0f0;">
@@ -2696,7 +2728,7 @@ function buildShopCopy(order, members) {
         </div>
       </div>
       <div style="margin-top:10px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
-        <div style="flex:1;"><strong>Name:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${esc(order[2] || '')}</span></div>
+        <div style="flex:1;"><strong>Name:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${esc((order[2] || '').toUpperCase())}</span></div>
         <div><strong>Date:</strong> <span style="border-bottom:1px dotted #000; min-width:80px; display:inline-block;">${dateStr}</span></div>
       </div>
       <div style="margin-top:4px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
@@ -2746,7 +2778,7 @@ function buildMemberCustomerLine(m){
   const price = (parseFloat(m[9]) || 0).toFixed(3);
   const itemDesc = m[8] || [m[6], m[7]].filter(Boolean).join(' / ') || '-';
   return `<div style="display:flex; justify-content:space-between; gap:12px; border-bottom:1px dotted #ccc; padding:2px 0;">
-    <span>${esc(m[1] || '')} <span style="color:#555;">(${esc(m[2] || '')})</span> — ${esc(itemDesc)}</span>
+    <span>${esc((m[1] || '').toUpperCase())} <span style="color:#555;">(${esc(m[2] || '')})</span> — ${esc(itemDesc)}</span>
     <span style="font-family:'IBM Plex Mono',monospace; white-space:nowrap;">${price}</span>
   </div>`;
 }
@@ -2774,7 +2806,7 @@ function buildCustomerCopy(order, members) {
         </div>
       </div>
       <div style="margin-top:12px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
-        <div style="flex:1;"><strong>Name:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${esc(order[2] || '')}</span></div>
+        <div style="flex:1;"><strong>Name:</strong> <span style="border-bottom:1px dotted #000; display:inline-block; width:80%;">${esc((order[2] || '').toUpperCase())}</span></div>
         <div><strong>Date:</strong> <span style="border-bottom:1px dotted #000; min-width:80px; display:inline-block;">${dateStr}</span></div>
       </div>
       <div style="margin-top:8px; font-size:13px; display:flex; flex-wrap:wrap; gap:6px 20px;">
@@ -2814,7 +2846,14 @@ function confirmPrintChoice(mode){
 }
 
 async function printOrder(invoiceId, mode) {
-  const order = currentOrders.find(r => String(r[1]) === String(invoiceId));
+  let order = currentOrders.find(r => String(r[1]) === String(invoiceId));
+  if (!order){
+    // e.g. Save & Print right after saving, before the Order List was ever loaded
+    try{
+      currentOrders = await fetchCloud('Records', true);
+      order = currentOrders.find(r => String(r[1]) === String(invoiceId));
+    }catch(e){ /* handled below */ }
+  }
   if (!order) return showToast('Order data not found.', 'error');
   if (mode === 'customer'){
     document.getElementById('print-root').innerHTML = buildCustomerCopy(order);
@@ -2880,6 +2919,46 @@ function initUX(){
     if (mq.addEventListener) mq.addEventListener('change', onChange); else if (mq.addListener) mq.addListener(onChange);
   }
 }
+
+/* ---------- Midnight date correction + silent refresh ---------- */
+function correctStaleDateFields(){
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  const yesterday = String(y.getDate()).padStart(2, '0') + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + y.getFullYear();
+  ['order-date', 'rop-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim() === yesterday) el.value = todayDDMMYYYY();
+  });
+}
+
+function silentDataRefresh(){
+  invalidateCache();
+  if (Array.from(document.querySelectorAll('.modal')).some(m => m.style.display === 'flex')) return;
+  const visible = document.querySelector('.content-section.visible');
+  if (!visible) return;
+  const loaders = {
+    'dash-section': refreshDashboard,
+    'order-list-section': loadOrderList,
+    'expense-list-section': loadExpenseList,
+    'rop-list-section': loadROPList,
+    'transactions-section': loadTransactionHistory
+  };
+  const fn = loaders[visible.id];
+  if (fn) fn();
+}
+
+function scheduleMidnightTasks(){
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  setTimeout(() => {
+    correctStaleDateFields();
+    silentDataRefresh();
+    scheduleMidnightTasks();
+  }, next - now + 50);
+}
+scheduleMidnightTasks();
+setInterval(silentDataRefresh, 30 * 60 * 1000);
+
 initUX();
 </script>
 </body>
