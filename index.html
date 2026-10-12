@@ -2301,6 +2301,16 @@ function parseRx(str){
   };
 }
 
+// ADD for print: blank / '-' / zero (0, 0.0, 0.00) prints as '-', anything else as saved
+function printAdd(v){
+  if (v === undefined || v === null) return '-';
+  const s = String(v).trim();
+  if (s === '' || s === '-') return '-';
+  const n = parseFloat(s);
+  if (!isNaN(n) && n === 0) return '-';
+  return s;
+}
+
 function showRx(jsonStr){
   const data = JSON.parse(jsonStr);
   const re = parseRx(data.re), le = parseRx(data.le);
@@ -2693,6 +2703,11 @@ function buildMemberShopBlock(m){
             <td style="border:1px solid #000;">${esc(re.s)}</td><td style="border:1px solid #000;">${esc(re.c)}</td><td style="border:1px solid #000;">${esc(re.a)}</td>
             <td style="border:1px solid #000;">${esc(le.s)}</td><td style="border:1px solid #000;">${esc(le.c)}</td><td style="border:1px solid #000;">${esc(le.a)}</td>
           </tr>
+          <tr>
+            <td style="border:1px solid #000; font-weight:bold;">ADD</td>
+            <td colspan="3" style="border:1px solid #000;">${esc(printAdd(re.ad))}</td>
+            <td colspan="3" style="border:1px solid #000;">${esc(printAdd(le.ad))}</td>
+          </tr>
         </tbody>
       </table>
       <div style="font-size:12.5px; margin-top:6px; line-height:1.7;">
@@ -2753,6 +2768,11 @@ function buildShopCopy(order, members) {
             <td style="border:1px solid #000; font-weight:bold;">Power</td>
             <td style="border:1px solid #000;">${esc(re.s)}</td><td style="border:1px solid #000;">${esc(re.c)}</td><td style="border:1px solid #000;">${esc(re.a)}</td>
             <td style="border:1px solid #000;">${esc(le.s)}</td><td style="border:1px solid #000;">${esc(le.c)}</td><td style="border:1px solid #000;">${esc(le.a)}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #000; font-weight:bold;">ADD</td>
+            <td colspan="3" style="border:1px solid #000;">${esc(printAdd(re.ad))}</td>
+            <td colspan="3" style="border:1px solid #000;">${esc(printAdd(le.ad))}</td>
           </tr>
         </tbody>
       </table>
