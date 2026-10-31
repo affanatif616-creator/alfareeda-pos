@@ -829,6 +829,7 @@ table.data td.empty.err{ color:var(--negative); }
       </header>
       <div class="card card-flush">
         <div class="toolbar">
+          <div class="grow search"><label class="sr-only" for="exp-search-box">Search expenses</label><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="exp-search-box" oninput="searchExpenses()" placeholder="Search category, description or amount…"></div>
           <div class="tb-field"><label for="exp-start-date">Start date</label><div class="date-wrap"><input type="text" class="date-field" id="exp-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" aria-label="Pick start date" onclick="openDatePicker('exp-start-date')"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></button></div></div>
           <div class="tb-field"><label for="exp-end-date">End date</label><div class="date-wrap"><input type="text" class="date-field" id="exp-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" aria-label="Pick end date" onclick="openDatePicker('exp-end-date')"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></button></div></div>
           <div class="tb-actions"><button type="button" class="btn btn-primary" onclick="loadExpenseList(true)"><svg class="ic" aria-hidden="true"><use href="#i-filter"/></svg> Filter</button><button type="button" class="btn btn-ghost" onclick="resetExpFilter()">Reset</button></div>
@@ -856,9 +857,10 @@ table.data td.empty.err{ color:var(--negative); }
       </header>
       <div class="card card-flush">
         <div class="toolbar">
+          <div class="grow search"><label class="sr-only" for="trans-search-box">Search transactions</label><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="trans-search-box" oninput="searchTransactions()" placeholder="Search invoice, customer, type or payment method…"></div>
           <div class="tb-field"><label for="trans-start-date">Start date</label><div class="date-wrap"><input type="text" class="date-field" id="trans-start-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" aria-label="Pick start date" onclick="openDatePicker('trans-start-date')"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></button></div></div>
           <div class="tb-field"><label for="trans-end-date">End date</label><div class="date-wrap"><input type="text" class="date-field" id="trans-end-date" placeholder="dd-mm-yyyy" inputmode="numeric" maxlength="10"><button type="button" class="date-pick-btn" aria-label="Pick end date" onclick="openDatePicker('trans-end-date')"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></button></div></div>
-          <div class="tb-actions"><button type="button" class="btn btn-primary" onclick="loadTransactionHistory(true)"><svg class="ic" aria-hidden="true"><use href="#i-filter"/></svg> Filter</button><button type="button" class="btn btn-ghost" onclick="loadTransactionHistory(false)">Reset</button></div>
+          <div class="tb-actions"><button type="button" class="btn btn-primary" onclick="loadTransactionHistory(true)"><svg class="ic" aria-hidden="true"><use href="#i-filter"/></svg> Filter</button><button type="button" class="btn btn-ghost" onclick="resetTransFilter()">Reset</button></div>
         </div>
         <div class="table-wrap">
           <table class="data">
@@ -2067,8 +2069,9 @@ async function loadOrderList(isFiltered = false){
       const dot = status==='Delivered' ? 'var(--positive)' : (status==='Ready' ? 'var(--navy)' : 'var(--processing)');
       const branchTd = isAdmin ? `<td data-label="Branch">${esc(branchName)}</td>` : '';
       const familyChip = rowMembers.length ? ` <span class="chip brass" title="Family members on this order">${ic('users','ic-sm')} +${rowMembers.length}</span>` : '';
+      const memberSearch = rowMembers.map(m => `${m[1] || ''} ${m[2] || ''}`.trim()).join(' ');
       return `
-        <tr>
+        <tr data-search="${esc(memberSearch)}">
           <td data-label="Date" data-sort="${esc(row[0])}">${dateStr}</td>
           <td data-label="Invoice" class="strong">${esc(row[1])}</td>
           <td data-label="Name">${esc(row[2])}</td>
@@ -2086,6 +2089,7 @@ async function loadOrderList(isFiltered = false){
           </div></td>
         </tr>`;
     }).join('');
+    searchOrders();
   }catch(e){
     console.error(e);
     tableBody.innerHTML = '<tr><td colspan="10" class="empty err">Connection error</td></tr>';
@@ -2098,21 +2102,21 @@ function resetOrderFilter(){
   loadOrderList(false);
 }
 
-function searchOrders(){
-  const filter = document.getElementById('search-box').value.toLowerCase();
-  const rows = document.getElementById('order-list-table').getElementsByTagName('tr');
+function applyTableSearch(inputId, tbodyId){
+  const filter = document.getElementById(inputId).value.toLowerCase().trim();
+  const rows = document.getElementById(tbodyId).getElementsByTagName('tr');
   for (let i=0;i<rows.length;i++){
-    rows[i].style.display = (rows[i].textContent.toLowerCase().indexOf(filter) > -1) ? '' : 'none';
+    const row = rows[i];
+    if (row.classList.contains('skeleton-row') || row.querySelector('td.empty')) continue;
+    const hay = (row.textContent + ' ' + (row.dataset.search || '')).toLowerCase();
+    row.style.display = (!filter || hay.indexOf(filter) > -1) ? '' : 'none';
   }
 }
 
-function searchROP(){
-  const filter = document.getElementById('rop-search-box').value.toLowerCase();
-  const rows = document.getElementById('rop-list-table').getElementsByTagName('tr');
-  for (let i=0;i<rows.length;i++){
-    rows[i].style.display = (rows[i].textContent.toLowerCase().indexOf(filter) > -1) ? '' : 'none';
-  }
-}
+function searchOrders(){ applyTableSearch('search-box', 'order-list-table'); }
+function searchROP(){ applyTableSearch('rop-search-box', 'rop-list-table'); }
+function searchTransactions(){ applyTableSearch('trans-search-box', 'transaction-list-table'); }
+function searchExpenses(){ applyTableSearch('exp-search-box', 'expense-list-table'); }
 
 function openEditModal(inv, bal, stat, dateRaw){
   document.getElementById('up-invoice').value = inv;
@@ -2428,12 +2432,14 @@ async function loadExpenseList(isFiltered = false){
       </tr>`;
     }).join('') || '<tr><td colspan="6" class="empty">No expenses found.</td></tr>';
     totalBadge.innerText = `Total: ${total.toFixed(3)} OMR`;
+    if (rows.length) searchExpenses();
   }catch(e){
     tableBody.innerHTML = '<tr><td colspan="6" class="empty err">Failed to load data.</td></tr>';
   }
 }
 
 function resetExpFilter(){
+  document.getElementById('exp-search-box').value = '';
   document.getElementById('exp-start-date').value = '';
   document.getElementById('exp-end-date').value = '';
   loadExpenseList(false);
@@ -2495,9 +2501,15 @@ async function loadTransactionHistory(isFiltered = false){
     });
     tableBody.innerHTML = html || '<tr><td colspan="7" class="empty">No transactions found.</td></tr>';
     totalBadge.innerText = 'Total: ' + total.toFixed(3) + ' OMR';
+    if (html) searchTransactions();
   }catch(e){
     tableBody.innerHTML = '<tr><td colspan="7" class="empty err">Failed to load history.</td></tr>';
   }
+}
+
+function resetTransFilter(){
+  document.getElementById('trans-search-box').value = '';
+  loadTransactionHistory(false);
 }
 
 async function loadDevices(){
@@ -2667,6 +2679,7 @@ async function loadROPList(isFiltered = false){
         <td class="actions">${isAdmin ? `<button type="button" class="btn btn-danger-quiet btn-icon" title="Delete Record" aria-label="Delete record" onclick="deleteRecord('ROP Eye Exam', ${qj(delMatches)}, () => { loadROPList(); refreshDashboard(); })">${ic('trash')}</button>` : ''}</td>
       </tr>`;
     }).join('');
+    searchROP();
   }catch(e){
     console.error(e);
     tableBody.innerHTML = '<tr><td colspan="12" class="empty err">Connection error</td></tr>';
