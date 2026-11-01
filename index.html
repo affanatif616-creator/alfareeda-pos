@@ -147,6 +147,41 @@ h1,h2,h3{ font-weight:600; }
 .branch-chip:hover{ background:var(--sunken); }
 .branch-chip.active{ background:var(--primary); border-color:var(--primary); color:var(--on-primary); }
 
+/* ---------- item type chips (multi-select toggles) ---------- */
+.type-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.type-chip{
+  min-height:44px; padding:0 16px; border-radius:var(--r-sm); border:1px solid var(--field-border); background:var(--surface);
+  color:var(--ink); font-weight:600; font-size:14px; cursor:pointer;
+  transition:background .12s var(--ease), border-color .12s var(--ease), color .12s var(--ease);
+}
+.type-chip:hover{ background:var(--sunken); }
+.type-chip[aria-pressed="true"]{ background:var(--primary); border-color:var(--primary); color:var(--on-primary); }
+
+/* ---------- accounting (manager, read-only) ---------- */
+#acc-body{ display:flex; flex-direction:column; gap:24px; }
+#acc-body > *{ min-width:0; }
+.acct-month-row{ display:flex; gap:8px; align-items:center; margin:0; }
+.acct-month-row select{ min-width:0; }
+.acct-bar .field{ margin:0; }
+.acct-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+.acct-sub{ margin-top:8px; font-size:12px; color:var(--ink-soft); line-height:1.6; overflow-wrap:anywhere; }
+.acct-delta{ font-size:12px; font-weight:600; color:var(--ink-soft); white-space:nowrap; }
+.acct-delta.pos{ color:var(--positive); } .acct-delta.neg{ color:var(--negative); }
+.acct-banner{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:14px 18px; border-radius:var(--r-md); background:var(--negative-tint); color:var(--negative); }
+.acct-banner span{ font-weight:600; }
+.acct-h{ font-size:15px; font-weight:600; padding:16px 20px 4px; }
+.acct-note{ font-size:12px; color:var(--ink-soft); padding:0 20px 8px; }
+.acct-scroll{ overflow-x:auto; }
+table.acct{ width:100%; border-collapse:separate; border-spacing:0; font-size:14px; min-width:560px; }
+table.acct th{ padding:10px 12px; background:var(--sunken); color:var(--ink-soft); font-size:12px; font-weight:600; text-align:left; white-space:nowrap; border-bottom:1px solid var(--border); }
+table.acct td{ padding:10px 12px; border-bottom:1px solid var(--border); }
+table.acct .num{ text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+table.acct .soft{ color:var(--ink-soft); opacity:.6; }
+table.acct .neg{ color:var(--negative); }
+table.acct tfoot td{ font-weight:600; background:var(--brass-tint); color:var(--ink); border-bottom:0; }
+.acct-total{ padding:12px 20px; text-align:right; font:600 14px var(--font-mono); font-variant-numeric:tabular-nums; }
+.acct-empty{ padding:16px 20px; font-size:13px; color:var(--ink-soft); }
+
 /* ---------- fields ---------- */
 .field{ margin-bottom:16px; }
 .field > label, .lbl{ display:block; margin-bottom:6px; font-size:13px; font-weight:500; color:var(--ink); }
@@ -672,6 +707,7 @@ table.data td.empty.err{ color:var(--negative); }
       <button type="button" class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr', event)"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg> Staff Management</button>
       <button type="button" class="nav-item" id="nav-devices" style="display:none;" onclick="showSection('devices', event); loadDevices();"><svg class="ic" aria-hidden="true"><use href="#i-device"/></svg> Devices</button>
       <button type="button" class="nav-item" id="nav-unrecorded" style="display:none;" onclick="showSection('unrecorded', event); loadUnrecordedPayments();"><svg class="ic" aria-hidden="true"><use href="#i-alert-circle"/></svg> Unrecorded Payments</button>
+      <button type="button" class="nav-item" id="nav-accounting" style="display:none;" onclick="openAccounting(event)"><svg class="ic" aria-hidden="true"><use href="#i-pie"/></svg> Accounting</button>
     </nav>
     <div class="nav-footer">
       <div class="staff-pill">
@@ -750,6 +786,7 @@ table.data td.empty.err{ color:var(--negative); }
 
           <fieldset class="fset">
             <legend>Items</legend>
+            <div class="field"><label id="order-itemtype-label">Item type <span class="muted small">(choose at least one)</span></label><div class="type-chips" id="order-itemtype" role="group" aria-labelledby="order-itemtype-label"></div></div>
             <div id="normal-items-wrap" class="grid g-3">
               <div class="field"><label for="order-frame">Frame</label><input type="text" id="order-frame"></div>
               <div class="field"><label for="order-lens">Lens</label><input type="text" id="order-lens"></div>
@@ -976,6 +1013,31 @@ table.data td.empty.err{ color:var(--negative); }
       </div>
     </div>
 
+    <!-- Accounting (Manager, read-only) -->
+    <div id="accounting-section" class="content-section">
+      <header class="page-head"><div><h1>Accounting</h1><p>Monthly sales, collections, expenses and balances (read-only)</p></div></header>
+      <div class="card card-flush" style="margin-bottom:24px;">
+        <div class="toolbar acct-bar">
+          <div class="tb-field" style="flex:1 1 300px;"><label for="acc-month">Month</label>
+            <div class="field acct-month-row">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Previous month" onclick="accShift(-1)">&lsaquo;</button>
+              <select id="acc-month" aria-label="Month" onchange="accPick()"></select>
+              <select id="acc-year" aria-label="Year" onchange="accPick()"></select>
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Next month" onclick="accShift(1)">&rsaquo;</button>
+            </div>
+          </div>
+          <div class="tb-field"><label for="acc-branch">Branch</label>
+            <div class="field"><select id="acc-branch" onchange="accSetBranch()"><option value="">All branches</option><option>Sumail</option><option>Izki</option><option>Sinaw</option></select></div>
+          </div>
+          <div class="tb-actions">
+            <button type="button" class="btn btn-ghost" id="acc-refresh" onclick="accRefresh(event)">Refresh</button>
+            <button type="button" class="btn btn-primary" id="acc-csv" onclick="accDownloadCsv()">Download CSV</button>
+          </div>
+        </div>
+      </div>
+      <div id="acc-body" aria-live="polite"></div>
+    </div>
+
     <!-- Unrecorded Payments (Manager) -->
     <div id="unrecorded-section" class="content-section">
       <header class="page-head"><div><h1>Unrecorded Payments</h1><p>Delivered orders with a blank balance and no payment recorded</p></div></header>
@@ -1067,6 +1129,7 @@ table.data td.empty.err{ color:var(--negative); }
         </tbody>
       </table>
     </div>
+    <div class="field" style="margin-top:16px;"><label id="fe-itemtype-label">Item type</label><div class="type-chips" id="fe-itemtype" role="group" aria-labelledby="fe-itemtype-label"></div></div>
     <div class="grid g-3" style="margin-top:16px;">
       <div class="field"><label for="fe-frame">Frame</label><input type="text" id="fe-frame"></div>
       <div class="field"><label for="fe-lens">Lens</label><input type="text" id="fe-lens"></div>
@@ -1283,6 +1346,26 @@ function initDateFields(){
   }
 }
 
+// ---- Item type chips (New Order + Full Edit) ----
+const ITEM_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Accessory', 'Other'];
+function initItemTypeChips(){
+  ['order-itemtype', 'fe-itemtype'].forEach(id => {
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+    wrap.innerHTML = ITEM_TYPES.map(t => `<button type="button" class="type-chip" aria-pressed="false" data-type="${esc(t)}" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">${esc(t)}</button>`).join('');
+  });
+}
+// Selected labels in the fixed option order, joined with ", " ('' if none).
+function getItemTypes(id){
+  return Array.from(document.querySelectorAll('#' + id + ' .type-chip[aria-pressed="true"]')).map(b => b.dataset.type).join(', ');
+}
+function setItemTypes(id, csv){
+  const chosen = String(csv || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  document.querySelectorAll('#' + id + ' .type-chip').forEach(b => {
+    b.setAttribute('aria-pressed', chosen.includes(b.dataset.type.toLowerCase()) ? 'true' : 'false');
+  });
+}
+
 window.__sortState = {};
 function sortTableBy(tbodyId, colIndex, type){
   const tbody = document.getElementById(tbodyId);
@@ -1482,6 +1565,7 @@ function applyUI(auth){
   document.getElementById('nav-transactions').style.display = isManager ? 'flex' : 'none';
   document.getElementById('nav-devices').style.display = isManager ? 'flex' : 'none';
   document.getElementById('nav-unrecorded').style.display = isManager ? 'flex' : 'none';
+  document.getElementById('nav-accounting').style.display = isManager ? 'flex' : 'none';
   document.getElementById('nav-admin-label').style.display = isManager ? 'block' : 'none';
   loadBranchStats(auth.role, auth.activeBranch);
 }
@@ -1502,6 +1586,7 @@ window.onload = async () => {
   if (saved) applyUI(JSON.parse(saved));
   prefetchDashboardData();
   initDateFields();
+  initItemTypeChips();
   applyStoredTheme();
   const dateField = document.getElementById('order-date');
   if (dateField) dateField.value = todayDDMMYYYY();
@@ -2004,6 +2089,7 @@ function resetOrderForm(){
   document.getElementById('order-frame').value = '';
   document.getElementById('order-lens').value = '';
   document.getElementById('order-desc').value = '';
+  setItemTypes('order-itemtype', '');
   document.getElementById('order-price').value = '';
   document.getElementById('order-total').value = '';
   document.getElementById('order-advance').value = '';
@@ -2038,11 +2124,17 @@ async function saveOrderToCloud(andPrint){
       examSource: isQuickSale ? '' : document.getElementById('order-exam').value, dob: dobISO,
       rightEye: rePower, leftEye: lePower, frame: frameVal, lens: lensVal, description: descVal,
       items: [frameVal, lensVal, descVal].filter(Boolean).join(' + '),
+      itemType: getItemTypes('order-itemtype'),
       total: document.getElementById('order-total').value || 0, advance: document.getElementById('order-advance').value || 0,
       balance: document.getElementById('order-balance').value || 0, payment: document.getElementById('order-payment').value,
       status: document.getElementById('order-status').value, branch: sessionUser.activeBranch
     };
     if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
+    if (!data.itemType){
+      const firstChip = document.querySelector('#order-itemtype .type-chip');
+      if (firstChip) firstChip.focus();
+      return showToast('Choose at least one Item type (Frame, Lens, Sunglasses…)', 'error');
+    }
 
     {
       try{
@@ -2137,7 +2229,7 @@ async function loadOrderList(isFiltered = false){
       const examVal = row[13] || '-';
       const rowMembers = membersByInvoice[String(row[1])] || [];
       const rxData = JSON.stringify({
-        total:row[7], balance:row[9], status:row[11],
+        total:row[7], balance:row[9], status:row[11], itemType:row[19],
         name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6], exam:row[13], frame:row[14], lens:row[15], description:row[16],
         members: rowMembers.map(m => ({ name:m[1], relation:m[2], dob:m[3], re:m[4], le:m[5], frame:m[6], lens:m[7], description:m[8], price:m[9] }))
       });
@@ -2239,6 +2331,7 @@ async function openFullEditModal(invoice){
   document.getElementById('fe-frame').value = order[14] || '';
   document.getElementById('fe-lens').value = order[15] || '';
   document.getElementById('fe-desc').value = order[16] || order[6] || '';
+  setItemTypes('fe-itemtype', order[19]);
   document.getElementById('fe-total').value = order[7] || '';
   document.getElementById('fe-advance').value = order[8] || '';
   document.getElementById('fe-balance').value = order[9] || '';
@@ -2292,6 +2385,9 @@ async function submitFullUpdate(evt){
       balance: document.getElementById('fe-balance').value || 0, payment: document.getElementById('fe-payment').value,
       status: document.getElementById('fe-status').value, branch: document.getElementById('fe-branch-original').value
     };
+    // Only send itemType when something is selected (old orders with a blank column T stay blank).
+    const feItemType = getItemTypes('fe-itemtype');
+    if (feItemType) data.itemType = feItemType;
     try{
       await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
       let membersOk = true;
@@ -2428,6 +2524,7 @@ function showRx(jsonStr){
     <h2>${ic('glasses')} Prescription Card</h2>
     <p class="muted small" style="margin:-8px 0 12px;">Invoice ${esc(data.invoice)} · ${esc(data.name)}</p>
     ${data.exam ? `<span class="chip brass" style="margin-bottom:12px;">Eye Exam: ${esc(data.exam)}</span>` : ''}
+    ${String(data.itemType || '').trim() ? `<p class="small" style="margin:0 0 12px;"><strong>Item type:</strong> ${esc(String(data.itemType).trim())}</p>` : ''}
     <div class="rx-scroll"><table class="rx-table">
       <thead><tr><th>Eye</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead>
       <tbody>
@@ -2694,6 +2791,404 @@ async function denyDevice(evt, staffId, deviceId){
       showToast('Error denying device.', 'error');
     }
   });
+}
+
+// ================= Accounting (Manager, READ-ONLY) =================
+// Pure calculation functions (no DOM, no network) followed by a thin render layer.
+// All sums are kept in integer baisa (1 OMR = 1000) so daily rows and cards reconcile exactly.
+// Month boundaries use the browser's local time, like every other date in the app.
+// Column indexes — Records: 0 date,6 items,7 total,8 advance,9 balance,11 status,12 branch,14 frame,15 lens,16 desc,19 item type
+// Collections: 0 date,1 invoice,2 name,3 branch,4 type,5 amount,6 method · Expenses: 0 date,1 category,2 amount,4 branch
+// ROP Eye Exam: 1 date,9 cash,10 card,12 branch
+const ACC_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Accessory', 'Other'];
+const ACC_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function accBaisa(v){ const n = parseFloat(v); return Number.isFinite(n) ? Math.round(n * 1000) : 0; }
+function accOMR(b){ return (b / 1000).toFixed(3); }
+function accDate(v){
+  if (v === '' || v === null || v === undefined) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function accStr(v){ return v === null || v === undefined ? '' : String(v).trim(); }
+function accMethod(v){
+  const m = accStr(v).toLowerCase();
+  return m === '' ? 'unspec' : (m === 'cash' ? 'cash' : (m === 'card' ? 'card' : 'other'));
+}
+function accIsBlank(v){ return v === '' || v === null || v === undefined || String(v).trim() === ''; }
+function accDaysIn(y, m){ return new Date(y, m + 1, 0).getDate(); }
+
+// Delivered + blank Balance + Total > Advance (same rule as the Unrecorded Payments screen), all months.
+function accUnrecordedCount(records){
+  return (records || []).filter(r => accDate(r[0]) && r[11] === 'Delivered' && accIsBlank(r[9]) && accBaisa(r[7]) > accBaisa(r[8])).length;
+}
+// Rows that have data but no usable date are skipped everywhere and counted here.
+function accCountSkipped(data){
+  const bad = (rows, i) => (rows || []).filter(r => Array.isArray(r) && r.some(c => !accIsBlank(c)) && !accDate(r[i])).length;
+  return bad(data.records, 0) + bad(data.collections, 0) + bad(data.expenses, 0) + bad(data.rop, 1);
+}
+
+function accAggregate(data, start, end, branch){
+  const s = start.getTime(), e = end.getTime();
+  const inR = d => !!d && d.getTime() >= s && d.getTime() < e;
+  const okB = v => !branch || accStr(v) === branch;
+  const days = Array.from({ length: accDaysIn(start.getFullYear(), start.getMonth()) }, () => ({ sales:0, cash:0, card:0, other:0, rop:0, exp:0 }));
+  const byBranch = {};
+  const bb = name => byBranch[accStr(name) || 'Unknown'] || (byBranch[accStr(name) || 'Unknown'] = { sales:0, collected:0, rop:0, exp:0 });
+  const r = { sales:0, salesCount:0, collected:0, advance:0, clearance:0, otherType:0, cash:0, card:0, other:0, unspec:0,
+              ropCount:0, ropCash:0, ropCard:0, rop:0, exp:0, expByCat:{}, orders:[], days, byBranch };
+  (data.records || []).forEach(row => {
+    const d = accDate(row[0]);
+    if (!inR(d) || !okB(row[12])) return;
+    const t = accBaisa(row[7]);
+    r.sales += t; r.salesCount++; r.orders.push(row);
+    days[d.getDate() - 1].sales += t; bb(row[12]).sales += t;
+  });
+  (data.collections || []).forEach(row => {
+    const d = accDate(row[0]);
+    if (!inR(d) || !okB(row[3])) return;
+    const a = accBaisa(row[5]), type = accStr(row[4]), mth = accMethod(row[6]);
+    r.collected += a; bb(row[3]).collected += a;
+    if (type === 'Advance') r.advance += a; else if (type === 'Balance Clearance') r.clearance += a; else r.otherType += a;
+    r[mth] += a;
+    days[d.getDate() - 1][mth === 'cash' ? 'cash' : (mth === 'card' ? 'card' : 'other')] += a;
+  });
+  (data.rop || []).forEach(row => {
+    const d = accDate(row[1]);
+    if (!inR(d) || !okB(row[12])) return;
+    const cash = accBaisa(row[9]), card = accBaisa(row[10]);
+    r.ropCount++; r.ropCash += cash; r.ropCard += card; r.rop += cash + card;
+    days[d.getDate() - 1].rop += cash + card; bb(row[12]).rop += cash + card;
+  });
+  (data.expenses || []).forEach(row => {
+    const d = accDate(row[0]);
+    if (!inR(d) || !okB(row[4])) return;
+    const a = accBaisa(row[2]), cat = accStr(row[1]) || 'Uncategorised';
+    r.exp += a; r.expByCat[cat] = (r.expByCat[cat] || 0) + a;
+    days[d.getDate() - 1].exp += a; bb(row[4]).exp += a;
+  });
+  r.net = r.collected + r.rop - r.exp;
+  return r;
+}
+
+// Which item types an order contains. Exact when Records column T is filled, otherwise estimated from typed text.
+function accClassify(row){
+  const types = new Set();
+  const t = accStr(row[19]);
+  if (t){
+    t.split(',').forEach(tok => {
+      const k = tok.trim().toLowerCase();
+      if (!k) return;
+      types.add(ACC_TYPES.find(x => x.toLowerCase() === k) || 'Other');
+    });
+    return { types, exact: true };
+  }
+  let txt = [row[6], row[14], row[15], row[16]].map(x => accStr(x)).join(' ').toLowerCase();
+  const hasSun = /sun/.test(txt), hasContact = /contact/.test(txt);
+  if (hasSun) types.add('Sunglasses');
+  if (hasContact){ types.add('Contact lens'); txt = txt.replace(/contact\s*lens(es)?|contact/g, ' '); }
+  if (/solution/.test(txt)) types.add('Solution');
+  if (/frame/.test(txt)) types.add('Frame');
+  if (/lens/.test(txt)) types.add('Lens');
+  // A typed Frame / Lens field is itself evidence (unless the text says it is sunglasses / a contact lens).
+  if (accStr(row[14]) && !hasSun) types.add('Frame');
+  if (accStr(row[15]) && !hasContact) types.add('Lens');
+  return { types, exact: false };
+}
+function accItems(orders){
+  const exact = {}, est = {};
+  ACC_TYPES.forEach(t => { exact[t] = 0; est[t] = 0; });
+  let unclassified = 0;
+  orders.forEach(row => {
+    const c = accClassify(row);
+    if (!c.types.size){ unclassified++; return; }
+    c.types.forEach(t => { (c.exact ? exact : est)[t]++; });
+  });
+  return { exact, est, unclassified };
+}
+function accBestFrames(orders){
+  const map = {};
+  orders.forEach(row => {
+    const label = accStr(row[14]);
+    if (!label) return;
+    const key = label.toLowerCase().replace(/\s+/g, ' ');
+    (map[key] || (map[key] = { label: label.replace(/\s+/g, ' '), n: 0 })).n++;
+  });
+  return Object.values(map).sort((a, b) => b.n - a.n || a.label.localeCompare(b.label)).slice(0, 10);
+}
+
+function accCompute(data, y, m, branch, today){
+  const start = new Date(y, m, 1), end = new Date(y, m + 1, 1), prevStart = new Date(y, m - 1, 1);
+  const cur = accAggregate(data, start, end, branch);
+  const prev = accAggregate(data, prevStart, start, branch);
+  const okB = v => !branch || accStr(v) === branch;
+  const s = start.getTime(), e = end.getTime();
+
+  // Match Collections to Records by invoice (as string); on duplicates prefer same branch, then latest order not after the payment.
+  const byInv = {};
+  (data.records || []).forEach(row => {
+    const d = accDate(row[0]);
+    if (d) (byInv[String(row[1])] || (byInv[String(row[1])] = [])).push({ row, d });
+  });
+  const findOrder = (inv, collBranch, payDate) => {
+    let c = byInv[String(inv)];
+    if (!c || !c.length) return null;
+    const sameB = c.filter(x => accStr(x.row[12]) === accStr(collBranch));
+    if (sameB.length) c = sameB;
+    if (c.length === 1) return c[0];
+    const before = c.filter(x => x.d.getTime() <= payDate.getTime()).sort((a, b) => b.d - a.d);
+    return before[0] || c[0];
+  };
+  const paidLater = { rows: [], total: 0 }, oldPaid = { rows: [], total: 0, unmatched: 0 };
+  (data.collections || []).forEach(row => {
+    if (accStr(row[4]) !== 'Balance Clearance') return;
+    const pd = accDate(row[0]);
+    if (!pd) return;
+    const inMonth = pd.getTime() >= s && pd.getTime() < e;
+    const after = pd.getTime() >= e;
+    if (!inMonth && !after) return;
+    const ord = findOrder(row[1], row[3], pd);
+    if (!ord){ if (inMonth && okB(row[3])) oldPaid.unmatched++; return; }
+    if (!okB(ord.row[12])) return;
+    const amt = accBaisa(row[5]);
+    const item = { invoice: row[1], name: ord.row[2], orderDate: ord.d, amount: amt, paidOn: pd };
+    const od = ord.d.getTime();
+    if (after && od >= s && od < e){ paidLater.rows.push(item); paidLater.total += amt; }
+    else if (inMonth && od < s){ oldPaid.rows.push(item); oldPaid.total += amt; }
+  });
+  paidLater.rows.sort((a, b) => a.paidOn - b.paidOn);
+  oldPaid.rows.sort((a, b) => a.paidOn - b.paidOn);
+
+  const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const unpaid = { rows: [], total: 0 };
+  cur.orders.forEach(row => {
+    const bal = accBaisa(row[9]);
+    if (bal > 0){
+      const od = accDate(row[0]);
+      const age = Math.max(0, Math.round((t0 - new Date(od.getFullYear(), od.getMonth(), od.getDate()).getTime()) / 864e5));
+      unpaid.rows.push({ invoice: row[1], name: row[2], orderDate: od, balance: bal, age });
+      unpaid.total += bal;
+    }
+  });
+  unpaid.rows.sort((a, b) => b.age - a.age);
+
+  return { y, m, branch, start, end, cur, prev, items: accItems(cur.orders), best: accBestFrames(cur.orders),
+           paidLater, oldPaid, unpaid, unrecorded: accUnrecordedCount(data.records), skipped: accCountSkipped(data) };
+}
+
+// ---- CSV ----
+function accCsvCell(v){
+  let s = v === null || v === undefined ? '' : String(v);
+  if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s)) s = "'" + s;
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function accBuildCsv(res){
+  const c = res.cur, rows = [];
+  const dmy = d => isoToDDMMYYYY(d);
+  rows.push(['Accounting', ACC_MONTHS[res.m] + ' ' + res.y, 'Branch', res.branch || 'All']);
+  rows.push([]);
+  rows.push(['SUMMARY (OMR)', 'Value']);
+  [['Sales', accOMR(c.sales)], ['Orders', c.salesCount], ['Collected', accOMR(c.collected)], ['  Advance', accOMR(c.advance)],
+   ['  Balance Clearance', accOMR(c.clearance)], ['  Other types', accOMR(c.otherType)], ['  Cash', accOMR(c.cash)], ['  Card', accOMR(c.card)],
+   ['  Bank transfer / other', accOMR(c.other)], ['  Unspecified method', accOMR(c.unspec)], ['ROP exams', c.ropCount],
+   ['ROP cash', accOMR(c.ropCash)], ['ROP card', accOMR(c.ropCard)], ['ROP total', accOMR(c.rop)], ['Expenses', accOMR(c.exp)]]
+    .forEach(r => rows.push(r));
+  Object.keys(c.expByCat).sort().forEach(k => rows.push(['  Expense: ' + k, accOMR(c.expByCat[k])]));
+  rows.push(['Net (Collected + ROP - Expenses)', accOMR(c.net)]);
+  if (res.skipped) rows.push(['Rows skipped (invalid date)', res.skipped]);
+  rows.push([]);
+  rows.push(['DAILY (OMR)']);
+  rows.push(['Date', 'Sales', 'Collected Cash', 'Collected Card', 'Collected Other', 'ROP', 'Expenses']);
+  const tot = { sales:0, cash:0, card:0, other:0, rop:0, exp:0 };
+  c.days.forEach((d, i) => {
+    Object.keys(tot).forEach(k => tot[k] += d[k]);
+    rows.push([dmy(new Date(res.y, res.m, i + 1)), accOMR(d.sales), accOMR(d.cash), accOMR(d.card), accOMR(d.other), accOMR(d.rop), accOMR(d.exp)]);
+  });
+  rows.push(['TOTAL', accOMR(tot.sales), accOMR(tot.cash), accOMR(tot.card), accOMR(tot.other), accOMR(tot.rop), accOMR(tot.exp)]);
+  rows.push([]);
+  rows.push(['ORDERS']);
+  rows.push(['Date', 'Invoice', 'Name', 'Branch', 'Total', 'Advance', 'Balance', 'Status', 'Item Type']);
+  c.orders.slice().sort((a, b) => new Date(a[0]) - new Date(b[0])).forEach(o => {
+    rows.push([dmy(o[0]), o[1], o[2], o[12], accOMR(accBaisa(o[7])), accOMR(accBaisa(o[8])), accOMR(accBaisa(o[9])), o[11], o[19] || '']);
+  });
+  return '﻿' + rows.map(r => r.map(accCsvCell).join(',')).join('\r\n');
+}
+
+// ---- state + render ----
+const acc = { init: false, y: 0, m: 0, branch: '', data: null, result: null, token: 0 };
+
+function accDelta(cur, prev, invert){
+  if (!prev) return '<span class="acct-delta">-</span>';
+  const pct = (cur - prev) / Math.abs(prev) * 100;
+  const up = pct > 0.05, down = pct < -0.05;
+  const good = invert ? down : up, bad = invert ? up : down;
+  return `<span class="acct-delta ${good ? 'pos' : (bad ? 'neg' : '')}" title="vs previous month">${up ? '▲' : (down ? '▼' : '►')} ${Math.abs(pct).toFixed(1)}%</span>`;
+}
+
+function openAccounting(evt){
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!user || user.role !== 'Manager') return;
+  showSection('accounting', evt);
+  if (!acc.init){
+    const n = new Date();
+    acc.y = n.getFullYear(); acc.m = n.getMonth(); acc.init = true;
+  }
+  loadAccounting(false);
+}
+
+async function loadAccounting(force){
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!user || user.role !== 'Manager') return;
+  const body = document.getElementById('acc-body');
+  const token = ++acc.token;
+  body.innerHTML = '<div class="card loading-box">Loading accounting data…</div>';
+  try{
+    const [records, collections, expenses, rop] = await Promise.all(
+      ['Records', 'Collections', 'Expenses', 'ROP Eye Exam'].map(t => fetchCloud(t, !!force)));
+    if (token !== acc.token) return;
+    acc.data = { records: records || [], collections: collections || [], expenses: expenses || [], rop: rop || [] };
+    accSyncControls();
+    accRecompute();
+  }catch(e){
+    if (token === acc.token) body.innerHTML = '<div class="card empty err">Failed to load accounting data. Try Refresh.</div>';
+  }
+}
+async function accRefresh(evt){
+  await withLoadingState(evt.currentTarget, 'Refreshing…', () => loadAccounting(true));
+}
+function accSyncControls(){
+  const ms = document.getElementById('acc-month'), ys = document.getElementById('acc-year');
+  if (!ms.options.length) ms.innerHTML = ACC_MONTHS.map((n, i) => `<option value="${i}">${n}</option>`).join('');
+  const cy = new Date().getFullYear();
+  let minY = cy;
+  [[acc.data.records, 0], [acc.data.collections, 0], [acc.data.expenses, 0], [acc.data.rop, 1]].forEach(([rows, i]) => {
+    rows.forEach(r => { const d = accDate(r[i]); if (d && d.getFullYear() < minY) minY = d.getFullYear(); });
+  });
+  minY = Math.max(Math.min(minY, acc.y), 2000);
+  const maxY = Math.max(cy + 1, acc.y);
+  let opts = '';
+  for (let y = maxY; y >= minY; y--) opts += `<option value="${y}">${y}</option>`;
+  ys.innerHTML = opts;
+  ms.value = String(acc.m); ys.value = String(acc.y);
+  document.getElementById('acc-branch').value = acc.branch;
+}
+function accRecompute(){
+  if (!acc.data) return;
+  acc.result = accCompute(acc.data, acc.y, acc.m, acc.branch, new Date());
+  accRender();
+}
+function accShift(delta){
+  const d = new Date(acc.y, acc.m + delta, 1);
+  acc.y = d.getFullYear(); acc.m = d.getMonth();
+  if (acc.data){ accSyncControls(); accRecompute(); }
+}
+function accPick(){
+  acc.m = parseInt(document.getElementById('acc-month').value, 10);
+  acc.y = parseInt(document.getElementById('acc-year').value, 10);
+  accRecompute();
+}
+function accSetBranch(){
+  acc.branch = document.getElementById('acc-branch').value;
+  accRecompute();
+}
+function accOpenUnrecorded(){
+  showSection('unrecorded', { currentTarget: document.getElementById('nav-unrecorded') });
+  loadUnrecordedPayments();
+}
+function accDownloadCsv(){
+  if (!acc.result) return showToast('Nothing to export yet.', 'error');
+  const mm = String(acc.m + 1).padStart(2, '0');
+  const name = `accounting-${acc.y}-${mm}${acc.branch ? '-' + acc.branch : ''}.csv`;
+  const blob = new Blob([accBuildCsv(acc.result)], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function accRender(){
+  const r = acc.result, c = r.cur, p = r.prev;
+  const body = document.getElementById('acc-body');
+  const dmy = d => isoToDDMMYYYY(d);
+  const money = b => accOMR(b);
+  const tile = (label, v, delta, sub, cls) => `
+    <div class="tile"><div class="tile-top"><span class="tile-l">${label}</span>${delta}</div>
+      <div class="tile-v ${cls || ''}">${money(v)}<small>OMR</small></div>${sub ? `<div class="acct-sub">${sub}</div>` : ''}</div>`;
+  const section = (title, note, inner) => `<section class="card card-flush"><h2 class="acct-h">${title}</h2>${note ? `<div class="acct-note">${note}</div>` : ''}${inner}</section>`;
+  const table = (head, rowsHtml, foot) => `<div class="acct-scroll"><table class="acct"><thead><tr>${head}</tr></thead><tbody>${rowsHtml}</tbody>${foot ? `<tfoot>${foot}</tfoot>` : ''}</table></div>`;
+  const zc = v => `<td class="num ${v ? '' : 'soft'}">${money(v)}</td>`;
+  let h = '';
+
+  // 5. warning banner (all months, all branches)
+  if (r.unrecorded > 0){
+    h += `<div class="acct-banner" role="alert"><span>${r.unrecorded} Delivered order${r.unrecorded === 1 ? '' : 's'} with a blank balance and no recorded payment (all months).</span>
+      <button type="button" class="btn btn-ghost" onclick="accOpenUnrecorded()">Open Unrecorded Payments</button></div>`;
+  }
+  if (r.skipped > 0) h += `<div class="acct-empty" style="padding:0;">${r.skipped} row${r.skipped === 1 ? '' : 's'} skipped (missing or invalid date).</div>`;
+
+  // 1. summary cards
+  const cats = Object.keys(c.expByCat).sort((a, b) => c.expByCat[b] - c.expByCat[a]);
+  h += `<div class="acct-cards">
+    ${tile('Sales', c.sales, accDelta(c.sales, p.sales), `${c.salesCount} order${c.salesCount === 1 ? '' : 's'}`)}
+    ${tile('Collected', c.collected, accDelta(c.collected, p.collected),
+      `Advance ${money(c.advance)} · Balance clearance ${money(c.clearance)}${c.otherType ? ` · Other ${money(c.otherType)}` : ''}<br>
+       Cash ${money(c.cash)} · Card ${money(c.card)} · Bank/other ${money(c.other)} · Unspecified ${money(c.unspec)}`, 'pos')}
+    ${tile('ROP eye exams', c.rop, accDelta(c.rop, p.rop), `${c.ropCount} exam${c.ropCount === 1 ? '' : 's'} · Cash ${money(c.ropCash)} · Card ${money(c.ropCard)}`, 'pos')}
+    ${tile('Expenses', c.exp, accDelta(c.exp, p.exp, true), cats.length ? cats.map(k => `${esc(k)} ${money(c.expByCat[k])}`).join('<br>') : 'No expenses', 'neg')}
+    ${tile('Net', c.net, accDelta(c.net, p.net), 'Collected + ROP − Expenses', c.net < 0 ? 'neg' : 'pos')}
+  </div>`;
+
+  // 2. items sold
+  const it = r.items;
+  const itemRows = ACC_TYPES.map(t => `<tr><td>${esc(t)}</td><td class="num">${it.exact[t]}${it.est[t] ? ` <span class="soft" style="opacity:1;">(+${it.est[t]} estimated)</span>` : ''}</td></tr>`).join('')
+    + (it.unclassified ? `<tr><td class="soft" style="opacity:1;">Unclassified (no type, no keyword)</td><td class="num">${it.unclassified}</td></tr>` : '');
+  h += section('Items sold', 'Exact = item type chosen on the order. "Estimated" = older orders without a type, guessed from the typed Items / Frame / Lens / Description text (keywords: sun, contact, solution, frame, lens; a filled Frame or Lens field also counts). An order can contain several types.',
+    table('<th>Type</th><th class="num">Orders</th>', itemRows));
+
+  // 3. balances cleared
+  const clearRows = list => list.rows.map(x => `<tr><td>${esc(x.invoice)}</td><td>${esc(x.name)}</td><td>${dmy(x.orderDate)}</td><td class="num">${money(x.amount)}</td><td>${formatDateTime12(x.paidOn)}</td></tr>`).join('');
+  const clearHead = '<th>Invoice</th><th>Name</th><th>Order date</th><th class="num">Amount</th><th>Paid on</th>';
+  h += section('Balances cleared — paid later', 'Orders from this month whose balance was paid after the month ended.',
+    (r.paidLater.rows.length ? table(clearHead, clearRows(r.paidLater)) : '<div class="acct-empty">None.</div>') +
+    `<div class="acct-total">Total ${money(r.paidLater.total)} OMR</div>`);
+  h += section('Balances cleared — old balances paid this month', 'Balance clearances received this month for orders from earlier months.',
+    (r.oldPaid.rows.length ? table(clearHead, clearRows(r.oldPaid)) : '<div class="acct-empty">None.</div>') +
+    `<div class="acct-total">Total ${money(r.oldPaid.total)} OMR</div>` +
+    (r.oldPaid.unmatched ? `<div class="acct-note">${r.oldPaid.unmatched} payment${r.oldPaid.unmatched === 1 ? '' : 's'} not listed (no matching order found).</div>` : ''));
+
+  // 4. still unpaid
+  h += section('Still unpaid', 'Orders from this month with a balance above 0 today.',
+    (r.unpaid.rows.length ? table('<th>Invoice</th><th>Name</th><th>Order date</th><th class="num">Balance</th><th class="num">Age (days)</th>',
+      r.unpaid.rows.map(x => `<tr><td>${esc(x.invoice)}</td><td>${esc(x.name)}</td><td>${dmy(x.orderDate)}</td><td class="num">${money(x.balance)}</td><td class="num">${x.age}</td></tr>`).join('')) : '<div class="acct-empty">Nothing unpaid.</div>') +
+    `<div class="acct-total">Total ${money(r.unpaid.total)} OMR</div>`);
+
+  // 6. daily table
+  const tot = { sales:0, cash:0, card:0, other:0, rop:0, exp:0 };
+  const dayRows = c.days.map((d, i) => {
+    Object.keys(tot).forEach(k => tot[k] += d[k]);
+    const dayCls = (d.sales || d.cash || d.card || d.other || d.rop || d.exp) ? '' : 'soft';
+    return `<tr><td class="${dayCls}">${dmy(new Date(r.y, r.m, i + 1))}</td>${zc(d.sales)}${zc(d.cash)}${zc(d.card)}${zc(d.other)}${zc(d.rop)}${zc(d.exp)}</tr>`;
+  }).join('');
+  h += section('Daily', 'Collected "Other" = bank transfer, other methods and unspecified.',
+    table('<th>Date</th><th class="num">Sales</th><th class="num">Collected cash</th><th class="num">Collected card</th><th class="num">Collected other</th><th class="num">ROP</th><th class="num">Expenses</th>',
+      dayRows,
+      `<tr><td>Total</td><td class="num">${money(tot.sales)}</td><td class="num">${money(tot.cash)}</td><td class="num">${money(tot.card)}</td><td class="num">${money(tot.other)}</td><td class="num">${money(tot.rop)}</td><td class="num">${money(tot.exp)}</td></tr>`));
+
+  // 7. branch comparison (All only)
+  if (!r.branch){
+    const names = Array.from(new Set(['Sumail', 'Izki', 'Sinaw'].concat(Object.keys(c.byBranch))));
+    const brRows = names.map(n => {
+      const b = c.byBranch[n] || { sales:0, collected:0, rop:0, exp:0 };
+      const net = b.collected + b.rop - b.exp;
+      return `<tr><td>${esc(n)}</td>${zc(b.sales)}${zc(b.collected)}${zc(b.exp)}<td class="num ${net < 0 ? 'neg' : ''}">${money(net)}</td></tr>`;
+    }).join('');
+    h += section('Branch comparison', 'Net = Collected + ROP − Expenses.', table('<th>Branch</th><th class="num">Sales</th><th class="num">Collected</th><th class="num">Expenses</th><th class="num">Net</th>', brRows));
+  }
+
+  // 8. best sellers
+  h += section('Best-selling frames', 'Top 10 by typed Frame text (case-insensitive).',
+    r.best.length ? table('<th>#</th><th>Frame</th><th class="num">Sold</th>', r.best.map((b, i) => `<tr><td>${i + 1}</td><td>${esc(b.label)}</td><td class="num">${b.n}</td></tr>`).join('')) : '<div class="acct-empty">No frames recorded this month.</div>');
+
+  body.innerHTML = h;
 }
 
 // ---- Unrecorded Payments (Manager) ----
