@@ -581,7 +581,7 @@ table.data td.empty.err{ color:var(--negative); }
 
 /* ---- Eye Test Certificate (English / Arabic): top half of an A4 portrait sheet (<= 140 mm incl. the 8 mm top margin). Literal colours: print is always white/black. ---- */
 @page cert{ size:A4 portrait; margin:8mm; } /* named page: only the certificate is forced to A4; invoices keep the default @page */
-.cert-page{ page:cert; box-sizing:border-box; height:130mm; overflow:hidden; display:flex; flex-direction:column; padding:0 4mm; font-family:'IBM Plex Sans','IBM Plex Sans Arabic',Arial,sans-serif; color:#000; background:#fff; font-size:13.4px; line-height:1.25; break-inside:avoid; break-after:avoid; page-break-after:avoid; }
+.cert-page{ page:cert; box-sizing:border-box; height:132mm; overflow:hidden; display:flex; flex-direction:column; padding:0 4mm; font-family:'IBM Plex Sans','IBM Plex Sans Arabic',Arial,sans-serif; color:#000; background:#fff; font-size:13.4px; line-height:1.25; break-inside:avoid; break-after:avoid; page-break-after:avoid; }
 .cert-page *{ box-sizing:border-box; }
 .cert-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; border-bottom:2px solid #122A4E; padding-bottom:5px; }
 .cert-head .en, .cert-head .ar{ font-size:13.4px; line-height:1.25; }
@@ -608,8 +608,16 @@ table.data td.empty.err{ color:var(--negative); }
 .cert-h .cl{ text-transform:uppercase; letter-spacing:.08em; }
 .cert-rx{ width:100%; border-collapse:collapse; table-layout:fixed; margin:0; }
 .cert-rx td{ border:1px solid #444; padding:4px 8px; text-align:center; font-size:15px; font-family:'IBM Plex Mono',monospace; font-weight:700; overflow-wrap:anywhere; word-break:break-word; }
+.rem-clip{ display:inline-block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
 .cert-rx td.side{ text-align:left; font-family:'IBM Plex Sans','IBM Plex Sans Arabic',sans-serif; font-size:13.4px; background:#FAF8F2; width:44%; }
 .cert-yn{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.cert-page.tight .cert-grid{ gap:3px 44px; margin-bottom:6px; }
+.cert-page.tight .cert-yn{ margin-bottom:6px; }
+.cert-page.tight .cert-title{ margin:4px 0 3px; }
+.cert-page.tight .cert-rem{ margin-top:4px; }
+.cert-rem{ margin-top:8px; border-bottom:1px dotted #777; padding:2px 0 4px; }
+.cert-rem .lbl{ color:#444; font-size:13.4px; display:flex; gap:16px; align-items:baseline; }
+.cert-rem .val{ font-weight:700; font-size:14.5px; line-height:1.25; margin-top:2px; overflow-wrap:anywhere; word-break:break-word; unicode-bidi:plaintext; text-align:start; }
 .cert-yn > div{ min-width:0; text-align:center; }
 .cert-yn .lbl{ justify-content:center; gap:8px; font-size:13.4px; font-weight:700; color:#122A4E; }
 .cert-yn .gv{ display:flex; justify-content:center; align-items:baseline; gap:8px; font-size:14.5px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; word-break:break-word; }
@@ -996,12 +1004,12 @@ table.data td.empty.err{ color:var(--negative); }
             </div>
             <div class="field"><label for="rop-glass">Glass</label><select id="rop-glass"><option>No</option><option>Yes</option></select></div>
             <div class="field"><label for="rop-cl">Contact Lenses</label><select id="rop-cl" required><option value="" selected disabled>Select…</option><option>Yes</option><option>No</option></select></div>
-            <div class="field"><label for="rop-blind">Blindness</label><select id="rop-blind" required><option value="" selected disabled>Select…</option><option>Yes</option><option>No</option></select></div>
             <div class="field"><label for="rop-payment">Payment Method</label>
               <select id="rop-payment"><option>Cash</option><option>Card</option></select>
             </div>
           </div>
           <div class="field" style="max-width:260px;"><label for="rop-amount">Amount (OMR)</label><input type="number" step="0.001" id="rop-amount" placeholder="0.000" inputmode="decimal"></div>
+          <div class="field"><label for="rop-remarks">Remarks <span style="font-weight:400;">(optional)</span></label><input type="text" id="rop-remarks" maxlength="120" autocomplete="off" oninput="updateRopRemCount()"><div class="hint" id="rop-rem-count" aria-live="polite">0/120</div></div>
         </fieldset>
         <div style="display:flex; flex-wrap:wrap; gap:10px;">
           <button type="button" class="btn btn-primary btn-lg" id="rop-save-btn" onclick="saveROPToCloud()">Save Exam Record</button>
@@ -1028,7 +1036,7 @@ table.data td.empty.err{ color:var(--negative); }
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',2,'text')">Name <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',3,'text')">Mobile <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',4,'text')">ID No <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>Blindness</th><th>G/N</th>
+              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>Remarks</th><th>G/N</th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',11,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',12,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th style="text-align:right;">Actions</th>
@@ -3350,6 +3358,11 @@ async function prepROPForm(){
   noField.value = await nextROPNumber();
 }
 
+function updateRopRemCount(){
+  const i = document.getElementById('rop-remarks'), c = document.getElementById('rop-rem-count');
+  if (c) c.textContent = ((i && i.value) ? i.value.length : 0) + '/120';
+}
+
 function resetROPForm(){
   document.getElementById('rop-name').value = '';
   document.getElementById('rop-mobile').value = '';
@@ -3358,7 +3371,8 @@ function resetROPForm(){
   document.getElementById('rop-le').selectedIndex = 0;
   document.getElementById('rop-glass').selectedIndex = 0;
   document.getElementById('rop-cl').selectedIndex = 0;
-  document.getElementById('rop-blind').selectedIndex = 0;
+  document.getElementById('rop-remarks').value = '';
+  updateRopRemCount();
   document.getElementById('rop-gender').selectedIndex = 0;
   document.getElementById('rop-nat').selectedIndex = 0;
   document.getElementById('rop-payment').selectedIndex = 0;
@@ -3392,12 +3406,11 @@ async function saveROPToCloud(andPrint = false){
   };
   if (!data.mobile) return showToast('Enter Mobile No', 'error');
   data.contactLenses = document.getElementById('rop-cl').value;
-  data.blindness = document.getElementById('rop-blind').value;
+  data.remarks = document.getElementById('rop-remarks').value.trim().slice(0, 120);
   if (!data.contactLenses){ showToast('Select Contact Lenses (Yes or No)', 'error'); document.getElementById('rop-cl').focus(); return; }
-  if (!data.blindness){ showToast('Select Blindness (Yes or No)', 'error'); document.getElementById('rop-blind').focus(); return; }
   // Row in the sheet's column order, captured before the form is reset (used only for Save & Print)
   const printRow = [data.no, data.date || new Date().toISOString(), data.mobile, data.idNo, data.re, data.le, data.glass,
-    data.gender, data.nationality, data.cash, data.card, data.dob, data.branch, data.name, new Date().toISOString(), data.contactLenses, data.blindness];
+    data.gender, data.nationality, data.cash, data.card, data.dob, data.branch, data.name, new Date().toISOString(), data.contactLenses, data.remarks];
   const otherBtn = document.getElementById(andPrint === true ? 'rop-save-btn' : 'rop-save-print-btn');
   __ropSaving = true;
   if (otherBtn) otherBtn.disabled = true;
@@ -3496,8 +3509,13 @@ function buildRopCertificate(row){
     const small = (t.en.length + t.ar.length) > 10;
     return `<div><div class="lbl bi">${bi(en, ar)}</div><div class="gv${small ? ' sm' : ''}">${valHtml(t)}</div></div>`;
   };
+  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(/^'/, '')); return Number.isFinite(n) ? n : 0; };
+  const feeTxt = (num(row[9]) + num(row[10])).toFixed(3) + ' OMR';
+  const fee = () => `<div><div class="lbl bi">${bi('Fees', 'الرسوم')}</div><div class="gv"><span class="cl">${esc(feeTxt)}</span></div></div>`;
+  const remarks = String(row[16] == null ? '' : row[16]).trim().slice(0, 120);
+  const tight = name.length > 30 || certText(row[3]).length > 20 || (nat.en.length + nat.ar.length) > 26; // very long data: tighten spacing so it still fits the half page
   return `
-  <div class="cert-page">
+  <div class="cert-page${tight ? ' tight' : ''}">
     <div class="cert-head">
       <div class="en"><strong>C.R: ${SHOP.cr}</strong> &nbsp;P.O. Box: ${SHOP.po} &nbsp;P.C: ${SHOP.pc}<br>Manzaliya, Izki<br>Near Bank Dhofar<br>Sultanate of Oman<br><strong>GSM: ${SHOP.gsm}</strong></div>
       <div class="brandbox">
@@ -3513,7 +3531,7 @@ function buildRopCertificate(row){
       ${cell('Name', 'الاسم', plainP(name), name.length > 30)}${cell('Tel No', 'رقم الهاتف', plainP(certText(row[2])))}
       ${cell('ID No', 'رقم الهوية', plainP(certText(row[3])))}${cell('Nationality', 'الجنسية', nat)}
     </div>
-    <div class="cert-yn">${yn('Glasses', 'النظارات', row[6])}${yn('Contact Lenses', 'العدسات اللاصقة', row[15])}${yn('Blindness', 'العمى', row[16])}</div>
+    <div class="cert-yn">${yn('Glasses', 'النظارات', row[6])}${yn('Contact Lenses', 'العدسات اللاصقة', row[15])}${fee()}</div>
     <div class="cert-h">${bi('Visual Acuity', 'حدة البصر')}</div>
     <table class="cert-rx">
       <tbody>
@@ -3521,6 +3539,7 @@ function buildRopCertificate(row){
         <tr><td class="side"><div class="bi">${bi('Left Eye', 'العين اليسرى')}</div></td><td class="cl">${esc(certText(row[5]))}</td></tr>
       </tbody>
     </table>
+    <div class="cert-rem"><div class="lbl bi" style="justify-content:space-between;">${bi('Remarks', 'ملاحظات')}</div><div class="val">${remarks ? esc(remarks) : '-'}</div></div>
   </div>`;
 }
 
@@ -3584,7 +3603,7 @@ async function loadROPList(isFiltered = false){
         <td data-label="LE" class="mono">${esc(row[5])}</td>
         <td data-label="Glass">${esc(row[6])}</td>
         <td data-label="Contact Lenses">${esc(row[15] || '-')}</td>
-        <td data-label="Blindness">${esc(row[16] || '-')}</td>
+        <td data-label="Remarks">${row[16] ? `<span class="rem-clip" title="${esc(row[16])}">${esc(row[16])}</span>` : '-'}</td>
         <td data-label="G/N"><span class="chip plain">${esc(row[7])}/${esc(row[8])}</span></td>
         <td data-label="Payment"><span class="chip" style="--dot:${method==='Cash' ? 'var(--positive)' : 'var(--navy)'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-label="DOB" data-sort="${esc(row[11] || '')}">${dobStr}</td>
