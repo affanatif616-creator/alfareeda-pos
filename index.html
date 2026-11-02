@@ -579,6 +579,42 @@ table.data td.empty.err{ color:var(--negative); }
 .inv-foot .sig{ border-top:1px solid #333; width:150px; text-align:center; padding-top:4px; }
 .inv-note-ar{ direction:rtl; text-align:right; font-size:11px; color:#7a2b26; margin-top:8px; line-height:1.7; }
 
+/* ---- Eye Test Certificate (English / Arabic): top half of an A4 portrait sheet (<= 140 mm incl. the 8 mm top margin). Literal colours: print is always white/black. ---- */
+@page cert{ size:A4 portrait; margin:8mm; } /* named page: only the certificate is forced to A4; invoices keep the default @page */
+.cert-page{ page:cert; box-sizing:border-box; height:130mm; overflow:hidden; display:flex; flex-direction:column; padding:0 4mm; font-family:'IBM Plex Sans','IBM Plex Sans Arabic',Arial,sans-serif; color:#000; background:#fff; font-size:13.4px; line-height:1.25; break-inside:avoid; break-after:avoid; page-break-after:avoid; }
+.cert-page *{ box-sizing:border-box; }
+.cert-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; border-bottom:2px solid #122A4E; padding-bottom:5px; }
+.cert-head .en, .cert-head .ar{ font-size:13.4px; line-height:1.25; }
+.cert-head .ar{ text-align:right; direction:rtl; }
+.cert-head .brandbox{ text-align:center; flex:1 1 auto; min-width:0; max-width:80mm; }
+.cert-brand-en{ display:flex; align-items:center; justify-content:center; gap:6px; font-size:16px; font-weight:800; color:#122A4E; letter-spacing:.5px; }
+.cert-brand-en img{ height:22px; }
+/* Arabic fragments: right-to-left, isolated from the Latin text around them (no scrambled order), same Arabic font as the invoices */
+.ca{ direction:rtl; unicode-bidi:isolate; font-family:'IBM Plex Sans Arabic','IBM Plex Sans',Arial,sans-serif; font-weight:600; font-size:1.18em; line-height:1.15; }
+.cl{ direction:ltr; unicode-bidi:isolate; }
+.bi{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
+.cert-title{ display:flex; justify-content:center; align-items:baseline; gap:12px; font-weight:700; font-size:22px; color:#122A4E; margin:7px 0 5px; }
+.cert-title .cl{ font-family:'Fraunces',Georgia,serif; letter-spacing:.03em; }
+.cert-title .ca{ font-size:22px; }
+.cert-rule{ height:0; border-top:1px solid #122A4E; margin:0 0 10px; }
+.cert-grid{ display:grid; grid-template-columns:1fr 1fr; gap:7px 44px; margin-bottom:12px; }
+.cert-cell{ min-width:0; display:flex; gap:16px; align-items:baseline; border-bottom:1px dotted #777; padding:2px 0 4px; }
+.cert-cell .lbl{ flex:0 0 41mm; min-width:0; width:41mm; color:#444; font-size:13.4px; }
+.cert-cell .val{ flex:1 1 auto; min-width:0; font-weight:700; font-size:14.5px; overflow-wrap:anywhere; word-break:break-word; }
+.cert-cell.wide{ grid-column:1 / -1; }
+.cert-cell .val.clamp{ font-size:13.4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.cert-cell .val .ca{ font-weight:600; }
+.cert-h{ display:flex; justify-content:space-between; align-items:baseline; font-size:13.4px; font-weight:700; color:#B8862F; margin:0 0 3px; }
+.cert-h .cl{ text-transform:uppercase; letter-spacing:.08em; }
+.cert-rx{ width:100%; border-collapse:collapse; table-layout:fixed; margin:0; }
+.cert-rx td{ border:1px solid #444; padding:4px 8px; text-align:center; font-size:15px; font-family:'IBM Plex Mono',monospace; font-weight:700; overflow-wrap:anywhere; word-break:break-word; }
+.cert-rx td.side{ text-align:left; font-family:'IBM Plex Sans','IBM Plex Sans Arabic',sans-serif; font-size:13.4px; background:#FAF8F2; width:44%; }
+.cert-yn{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.cert-yn > div{ min-width:0; text-align:center; }
+.cert-yn .lbl{ justify-content:center; gap:8px; font-size:13.4px; font-weight:700; color:#122A4E; }
+.cert-yn .gv{ display:flex; justify-content:center; align-items:baseline; gap:8px; font-size:14.5px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; word-break:break-word; }
+.cert-yn .gv.sm{ font-size:13.4px; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
 @media print{
   @page{ margin:8mm; }
   html, body{ background:#fff !important; color:#000 !important; }
@@ -959,13 +995,18 @@ table.data td.empty.err{ color:var(--negative); }
               <select id="rop-le"><option>6/6</option><option>6/9</option><option>6/12</option><option>6/18</option><option>6/24</option><option>6/36</option><option>6/60</option></select>
             </div>
             <div class="field"><label for="rop-glass">Glass</label><select id="rop-glass"><option>No</option><option>Yes</option></select></div>
+            <div class="field"><label for="rop-cl">Contact Lenses</label><select id="rop-cl" required><option value="" selected disabled>Select…</option><option>Yes</option><option>No</option></select></div>
+            <div class="field"><label for="rop-blind">Blindness</label><select id="rop-blind" required><option value="" selected disabled>Select…</option><option>Yes</option><option>No</option></select></div>
             <div class="field"><label for="rop-payment">Payment Method</label>
               <select id="rop-payment"><option>Cash</option><option>Card</option></select>
             </div>
           </div>
           <div class="field" style="max-width:260px;"><label for="rop-amount">Amount (OMR)</label><input type="number" step="0.001" id="rop-amount" placeholder="0.000" inputmode="decimal"></div>
         </fieldset>
-        <button type="button" class="btn btn-primary btn-lg" id="rop-save-btn" onclick="saveROPToCloud()">Save Exam Record</button>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+          <button type="button" class="btn btn-primary btn-lg" id="rop-save-btn" onclick="saveROPToCloud()">Save Exam Record</button>
+          <button type="button" class="btn btn-ghost btn-lg" id="rop-save-print-btn" onclick="saveROPToCloud(true)"><svg class="ic" aria-hidden="true"><use href="#i-printer"/></svg> Save &amp; Print certificate</button>
+        </div>
       </div>
     </div>
 
@@ -987,9 +1028,9 @@ table.data td.empty.err{ color:var(--negative); }
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',2,'text')">Name <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',3,'text')">Mobile <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',4,'text')">ID No <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th>RE</th><th>LE</th><th>Glass</th><th>G/N</th>
-              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',9,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',10,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>Blindness</th><th>G/N</th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',11,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',12,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody id="rop-list-table"></tbody>
@@ -3316,6 +3357,8 @@ function resetROPForm(){
   document.getElementById('rop-re').selectedIndex = 0;
   document.getElementById('rop-le').selectedIndex = 0;
   document.getElementById('rop-glass').selectedIndex = 0;
+  document.getElementById('rop-cl').selectedIndex = 0;
+  document.getElementById('rop-blind').selectedIndex = 0;
   document.getElementById('rop-gender').selectedIndex = 0;
   document.getElementById('rop-nat').selectedIndex = 0;
   document.getElementById('rop-payment').selectedIndex = 0;
@@ -3325,8 +3368,10 @@ function resetROPForm(){
   prepROPForm();
 }
 
-async function saveROPToCloud(){
-  const btn = document.getElementById('rop-save-btn');
+let __ropSaving = false; // shared by both save buttons so Save then Save & Print can't double-submit
+async function saveROPToCloud(andPrint = false){
+  if (__ropSaving) return;
+  const btn = document.getElementById(andPrint === true ? 'rop-save-print-btn' : 'rop-save-btn');
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   if (!sessionUser) return showToast('Please log in again.', 'error');
   const method = document.getElementById('rop-payment').value;
@@ -3346,17 +3391,155 @@ async function saveROPToCloud(){
     card: method === 'Card' ? feeAmount : 0, dob: ropDobISO, branch: sessionUser.activeBranch
   };
   if (!data.mobile) return showToast('Enter Mobile No', 'error');
-  await withLoadingState(btn, 'Saving…', async () => {
-    try{
-      await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-      showToast('Eye exam record saved', 'success');
-      invalidateCache();
-      resetROPForm();
-      refreshDashboard();
-    }catch(e){
-      showToast('Error saving record.', 'error');
-    }
-  });
+  data.contactLenses = document.getElementById('rop-cl').value;
+  data.blindness = document.getElementById('rop-blind').value;
+  if (!data.contactLenses){ showToast('Select Contact Lenses (Yes or No)', 'error'); document.getElementById('rop-cl').focus(); return; }
+  if (!data.blindness){ showToast('Select Blindness (Yes or No)', 'error'); document.getElementById('rop-blind').focus(); return; }
+  // Row in the sheet's column order, captured before the form is reset (used only for Save & Print)
+  const printRow = [data.no, data.date || new Date().toISOString(), data.mobile, data.idNo, data.re, data.le, data.glass,
+    data.gender, data.nationality, data.cash, data.card, data.dob, data.branch, data.name, new Date().toISOString(), data.contactLenses, data.blindness];
+  const otherBtn = document.getElementById(andPrint === true ? 'rop-save-btn' : 'rop-save-print-btn');
+  __ropSaving = true;
+  if (otherBtn) otherBtn.disabled = true;
+  try{
+    await withLoadingState(btn, 'Saving…', async () => {
+      let saved = false;
+      try{
+        await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
+        showToast('Eye exam record saved', 'success');
+        invalidateCache();
+        resetROPForm();
+        refreshDashboard();
+        saved = true;
+      }catch(e){
+        showToast('Error saving record.', 'error');
+      }
+      if (saved && andPrint === true) await printRopCertificate(printRow);
+    });
+  } finally {
+    __ropSaving = false;
+    if (otherBtn) otherBtn.disabled = false;
+  }
+}
+
+/* ---------- Eye Test Certificate ---------- */
+// name -> accepted spellings (ISO codes, demonyms, short forms), '|'-separated, compared lower-case
+const CERT_COUNTRY_LIST = [
+  ['Oman', 'om|oman|omani|omn'], ['Pakistan', 'pak|pk|pakistan|pakistani|pak.'], ['India', 'india|in|indian|ind'],
+  ['Bangladesh', 'bangladesh|bd|bangladeshi|bangla|bgd'], ['Egypt', 'egypt|eg|egyptian|egy'], ['Sudan', 'sudan|sd|sudanese|sdn'],
+  ['Yemen', 'yemen|ye|yemeni|yem'], ['Philippines', 'philippines|philippine|ph|phil|filipino|filipina|philippino|phl'],
+  ['Nepal', 'nepal|np|nepali|nepalese|npl'], ['Sri Lanka', 'sri lanka|srilanka|lk|sri lankan|srilankan|lka|ceylon'],
+  ['Afghanistan', 'afghanistan|af|afghan|afg'], ['Indonesia', 'indonesia|id|indonesian|idn'], ['Iran', 'iran|ir|iranian'],
+  ['Iraq', 'iraq|iq|iraqi'], ['Jordan', 'jordan|jo|jordanian'], ['Syria', 'syria|sy|syrian'], ['Lebanon', 'lebanon|lb|lebanese'],
+  ['Palestine', 'palestine|ps|palestinian'], ['Saudi Arabia', 'saudi arabia|saudi|sa|ksa|saudi arabian'],
+  ['United Arab Emirates', 'united arab emirates|uae|ae|emirati'], ['Kuwait', 'kuwait|kw|kuwaiti'], ['Bahrain', 'bahrain|bh|bahraini'],
+  ['Qatar', 'qatar|qa|qatari'], ['Tanzania', 'tanzania|tz|tanzanian'], ['Kenya', 'kenya|ke|kenyan'], ['Ethiopia', 'ethiopia|et|ethiopian'],
+  ['Eritrea', 'eritrea|er|eritrean'], ['Somalia', 'somalia|so|somali'], ['Uganda', 'uganda|ug|ugandan'], ['Nigeria', 'nigeria|ng|nigerian'],
+  ['Ghana', 'ghana|gh|ghanaian'], ['Morocco', 'morocco|ma|moroccan'], ['Tunisia', 'tunisia|tn|tunisian'], ['Algeria', 'algeria|dz|algerian'],
+  ['Turkey', 'turkey|tr|turkish'], ['China', 'china|cn|chinese'], ['Thailand', 'thailand|th|thai'], ['Vietnam', 'vietnam|vn|vietnamese'],
+  ['Myanmar', 'myanmar|mm|burmese|burma'], ['Malaysia', 'malaysia|my|malaysian'], ['United Kingdom', 'united kingdom|uk|gb|british'],
+  ['United States', 'united states|usa|us|american']
+];
+const CERT_COUNTRIES = new Map();
+CERT_COUNTRY_LIST.forEach(([name, keys]) => keys.split('|').forEach(k => { k = k.replace(/\./g, ''); if (!CERT_COUNTRIES.has(k)) CERT_COUNTRIES.set(k, name); }));
+
+const CERT_COUNTRY_AR = {
+  'Oman':'عمان','Pakistan':'باكستان','India':'الهند','Bangladesh':'بنغلاديش','Egypt':'مصر','Sudan':'السودان','Yemen':'اليمن',
+  'Philippines':'الفلبين','Nepal':'نيبال','Sri Lanka':'سريلانكا','Afghanistan':'أفغانستان','Indonesia':'إندونيسيا','Iran':'إيران',
+  'Iraq':'العراق','Jordan':'الأردن','Syria':'سوريا','Lebanon':'لبنان','Palestine':'فلسطين','Saudi Arabia':'السعودية',
+  'United Arab Emirates':'الإمارات العربية المتحدة','Kuwait':'الكويت','Bahrain':'البحرين','Qatar':'قطر','Tanzania':'تنزانيا',
+  'Kenya':'كينيا','Ethiopia':'إثيوبيا','Eritrea':'إريتريا','Somalia':'الصومال','Uganda':'أوغندا','Nigeria':'نيجيريا','Ghana':'غانا',
+  'Morocco':'المغرب','Tunisia':'تونس','Algeria':'الجزائر','Turkey':'تركيا','China':'الصين','Thailand':'تايلاند','Vietnam':'فيتنام',
+  'Myanmar':'ميانمار','Malaysia':'ماليزيا','United Kingdom':'المملكة المتحدة','United States':'الولايات المتحدة', 'Other':'أخرى'
+};
+// -> { en, ar }: full English name + Arabic where known; "Other" -> Other / أخرى; unknown -> as typed, no Arabic; blank -> '-'
+function certCountryParts(v){
+  const raw = String(v == null ? '' : v).trim();
+  if (!raw) return { en:'-', ar:'' };
+  const key = raw.toLowerCase().replace(/[.'’]/g, '').replace(/[\s_\-\/]+/g, ' ').trim();
+  if (key === 'other') return { en:'Other', ar:CERT_COUNTRY_AR.Other };
+  const en = CERT_COUNTRIES.get(key);
+  return en ? { en, ar:CERT_COUNTRY_AR[en] || '' } : { en:raw, ar:'' };
+}
+function certCountry(v){ return certCountryParts(v).en; }
+
+function certText(v){ // stored text, minus the sheet's leading text-marker apostrophe; never blank
+  const s = String(v == null ? '' : v).trim().replace(/^'/, '').trim();
+  return s || '-';
+}
+function certDate(v){ // dd-mm-yyyy, '-' when missing/invalid
+  if (v === undefined || v === null || v === '') return '-';
+  const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/); // plain date: no timezone shifting
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return isoToDDMMYYYY(v) || '-';
+}
+
+function certYN(v){ // -> { en, ar }: YES / نعم, NO / لا (any case); blank -> '-'; anything else as typed (no Arabic)
+  const t = certText(v);
+  if (/^yes$/i.test(t)) return { en:'YES', ar:'نعم' };
+  if (/^no$/i.test(t)) return { en:'NO', ar:'لا' };
+  return { en:t, ar:'' };
+}
+function buildRopCertificate(row){
+  row = row || [];
+  const name = certText(row[13]).toUpperCase();
+  const nat = certCountryParts(row[8]);
+  const bi = (en, ar) => `<span class="cl">${en}</span><span class="ca" dir="rtl">${ar}</span>`;
+  const valHtml = p => `<span class="cl">${esc(p.en)}</span>${p.ar ? ` <span class="cl">/</span> <span class="ca" dir="rtl">${esc(p.ar)}</span>` : ''}`;
+  const cell = (en, ar, p, long) => {
+    const plain = p.en + (p.ar ? ' / ' + p.ar : '');
+    return `<div class="cert-cell${long ? ' wide' : ''}"><span class="lbl bi">${bi(en, ar)}</span><span class="val${plain.length > 18 ? ' clamp' : ''}">${valHtml(p)}</span></div>`;
+  };
+  const plainP = v => ({ en: String(v), ar: '' });
+  const yn = (en, ar, v) => {
+    const t = certYN(v);
+    const small = (t.en.length + t.ar.length) > 10;
+    return `<div><div class="lbl bi">${bi(en, ar)}</div><div class="gv${small ? ' sm' : ''}">${valHtml(t)}</div></div>`;
+  };
+  return `
+  <div class="cert-page">
+    <div class="cert-head">
+      <div class="en"><strong>C.R: ${SHOP.cr}</strong> &nbsp;P.O. Box: ${SHOP.po} &nbsp;P.C: ${SHOP.pc}<br>Manzaliya, Izki<br>Near Bank Dhofar<br>Sultanate of Oman<br><strong>GSM: ${SHOP.gsm}</strong></div>
+      <div class="brandbox">
+        <div style="font-size:18px; font-weight:700; color:#122A4E; line-height:1.2;">${SHOP.nameAr}</div>
+        <div class="cert-brand-en"><img src="${SHOP.logo}" alt="Logo"><span>${SHOP.nameEn}</span></div>
+      </div>
+      <div class="ar"><strong>س.ت: ١٠١٩٨٤٠</strong> &nbsp;ص.ب: ٢٥٥ &nbsp;ر.ب: ٦١٤<br>منزلية / إزكي<br>قريب بنك ظفار<br>سلطنة عمان<br><strong>نقال: ٩٣٠٣٦٦١٤</strong></div>
+    </div>
+    <div class="cert-title"><span class="cl">Eye Test Certificate</span><span class="cl">/</span><span class="ca" dir="rtl">شهادة فحص النظر</span></div>
+    <div class="cert-rule"></div>
+    <div class="cert-grid">
+      ${cell('Exam No', 'رقم الفحص', plainP(certText(row[0])))}${cell('Date', 'التاريخ', plainP(certDate(row[1])))}
+      ${cell('Name', 'الاسم', plainP(name), name.length > 30)}${cell('Tel No', 'رقم الهاتف', plainP(certText(row[2])))}
+      ${cell('ID No', 'رقم الهوية', plainP(certText(row[3])))}${cell('Nationality', 'الجنسية', nat)}
+    </div>
+    <div class="cert-yn">${yn('Glasses', 'النظارات', row[6])}${yn('Contact Lenses', 'العدسات اللاصقة', row[15])}${yn('Blindness', 'العمى', row[16])}</div>
+    <div class="cert-h">${bi('Visual Acuity', 'حدة البصر')}</div>
+    <table class="cert-rx">
+      <tbody>
+        <tr><td class="side"><div class="bi">${bi('Right Eye', 'العين اليمنى')}</div></td><td class="cl">${esc(certText(row[4]))}</td></tr>
+        <tr><td class="side"><div class="bi">${bi('Left Eye', 'العين اليسرى')}</div></td><td class="cl">${esc(certText(row[5]))}</td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+async function printRopCertificate(row){
+  let html;
+  try{ html = buildRopCertificate(row); }
+  catch(e){ console.error(e); return showToast('Could not build the certificate.', 'error'); }
+  const root = document.getElementById('print-root');
+  root.innerHTML = html;
+  const img = root.querySelector('img');
+  if (img && !img.complete) await new Promise(r => { img.onload = img.onerror = r; setTimeout(r, 2500); });
+  window.print();
+}
+
+let __ropListRows = [];
+function printRopFromList(btn, i){
+  const row = __ropListRows[i];
+  if (!row) return showToast('Exam data not found.', 'error');
+  return withLoadingState(btn, 'Preparing…', () => printRopCertificate(row));
 }
 
 async function loadROPList(isFiltered = false){
@@ -3378,10 +3561,11 @@ async function loadROPList(isFiltered = false){
       return isFiltered ? (rowDate >= startDate && rowDate <= endDate) : true;
     }).sort((a, b) => new Date(b[1]) - new Date(a[1]));
     if (rows.length === 0){
-      tableBody.innerHTML = `<tr><td colspan="12" class="empty">No records found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="14" class="empty">No records found.</td></tr>`;
       return;
     }
-    tableBody.innerHTML = rows.map(row => {
+    __ropListRows = rows;
+    tableBody.innerHTML = rows.map((row, rowIdx) => {
       const dateStr = new Date(row[1]).toLocaleDateString('en-GB');
       const cash = parseFloat(row[9]) || 0;
       const card = parseFloat(row[10]) || 0;
@@ -3399,16 +3583,18 @@ async function loadROPList(isFiltered = false){
         <td data-label="RE" class="mono">${esc(row[4])}</td>
         <td data-label="LE" class="mono">${esc(row[5])}</td>
         <td data-label="Glass">${esc(row[6])}</td>
+        <td data-label="Contact Lenses">${esc(row[15] || '-')}</td>
+        <td data-label="Blindness">${esc(row[16] || '-')}</td>
         <td data-label="G/N"><span class="chip plain">${esc(row[7])}/${esc(row[8])}</span></td>
         <td data-label="Payment"><span class="chip" style="--dot:${method==='Cash' ? 'var(--positive)' : 'var(--navy)'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-label="DOB" data-sort="${esc(row[11] || '')}">${dobStr}</td>
-        <td class="actions">${isAdmin ? `<button type="button" class="btn btn-danger-quiet btn-icon" title="Delete Record" aria-label="Delete record" onclick="deleteRecord('ROP Eye Exam', ${qj(delMatches)}, () => { loadROPList(); refreshDashboard(); })">${ic('trash')}</button>` : ''}</td>
+        <td class="actions"><button type="button" class="btn btn-ghost btn-sm" title="Print certificate" aria-label="Print eye test certificate" onclick="printRopFromList(this, ${rowIdx})">${ic('printer')} Certificate</button>${isAdmin ? `<button type="button" class="btn btn-danger-quiet btn-icon" title="Delete Record" aria-label="Delete record" onclick="deleteRecord('ROP Eye Exam', ${qj(delMatches)}, () => { loadROPList(); refreshDashboard(); })">${ic('trash')}</button>` : ''}</td>
       </tr>`;
     }).join('');
     searchROP();
   }catch(e){
     console.error(e);
-    tableBody.innerHTML = '<tr><td colspan="12" class="empty err">Connection error</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="14" class="empty err">Connection error</td></tr>';
   }
 }
 
