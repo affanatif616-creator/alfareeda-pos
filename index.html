@@ -157,6 +157,13 @@ h1,h2,h3{ font-weight:600; }
 .items-cell .tile-v{ margin-top:4px; font-size:24px; }
 
 /* ---------- item type chips (multi-select toggles) ---------- */
+.type-chip-wrap{ display:inline-flex; align-items:center; gap:6px; }
+.qty-step{ display:inline-flex; align-items:center; border:1px solid var(--primary); border-radius:var(--r-sm); background:var(--surface); overflow:hidden; }
+.qty-step[hidden]{ display:none; }
+.qty-btn{ min-width:44px; min-height:44px; border:0; background:transparent; color:var(--primary); font-size:20px; font-weight:700; cursor:pointer; }
+.qty-btn:hover{ background:var(--sunken); }
+.qty-val{ min-width:32px; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; }
+
 .type-chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .type-chip{
   min-height:44px; padding:0 16px; border-radius:var(--r-sm); border:1px solid var(--field-border); background:var(--surface);
@@ -1406,21 +1413,62 @@ function initDateFields(){
 
 // ---- Item type chips (New Order + Full Edit) ----
 const ITEM_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Reading glasses', 'Accessory', 'Other'];
+// Item Type text (Records column T): "Frame x2, Lens x2, Solution". A bare label = quantity 1.
+// parseItemTypes: -> [{type, qty}] in ITEM_TYPES order. Accepts "x2", "×2", " x 2", any case/spacing.
+// A quantity below 1 or above 99 (or not a whole number) is ignored (= 1). Unknown labels -> Other.
+function parseItemTypes(text){
+  const found = {};
+  String(text === null || text === undefined ? '' : text).split(',').forEach(tok => {
+    const m = tok.trim().match(/^(.*?)\s*(?:[x×]\s*(\d+))?$/i);
+    if (!m) return;
+    const label = m[1].trim().toLowerCase();
+    if (!label) return;
+    const type = ITEM_TYPES.find(t => t.toLowerCase() === label) || 'Other';
+    let q = m[2] === undefined ? 1 : parseInt(m[2], 10);
+    if (!(q >= 1 && q <= 99)) q = 1;
+    found[type] = Math.max(found[type] || 0, q);
+  });
+  return ITEM_TYPES.filter(t => found[t]).map(t => ({ type: t, qty: found[t] }));
+}
+// formatItemTypes: [{type, qty}] -> "Frame x2, Lens" (quantity 1 is left off).
+function formatItemTypes(list){
+  return (list || []).map(i => {
+    const q = Math.min(99, Math.max(1, parseInt(i.qty, 10) || 1));
+    return q > 1 ? i.type + ' x' + q : i.type;
+  }).join(', ');
+}
 function initItemTypeChips(){
   ['order-itemtype', 'fe-itemtype'].forEach(id => {
     const wrap = document.getElementById(id);
     if (!wrap) return;
-    wrap.innerHTML = ITEM_TYPES.map(t => `<button type="button" class="type-chip" aria-pressed="false" data-type="${esc(t)}" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">${esc(t)}</button>`).join('');
+    wrap.innerHTML = ITEM_TYPES.map(t => `<span class="type-chip-wrap" data-wrap="${esc(t)}"><button type="button" class="type-chip" aria-pressed="false" data-type="${esc(t)}" data-qty="1" onclick="toggleItemTypeChip(this)">${esc(t)}</button><span class="qty-step" hidden><button type="button" class="qty-btn" aria-label="Decrease ${esc(t)} quantity" onclick="stepItemTypeQty(this, -1)">−</button><span class="qty-val" aria-live="polite">1</span><button type="button" class="qty-btn" aria-label="Increase ${esc(t)} quantity" onclick="stepItemTypeQty(this, 1)">+</button></span></span>`).join('');
   });
 }
-// Selected labels in the fixed option order, joined with ", " ('' if none).
+function paintItemTypeChip(chip, on, qty){
+  chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+  chip.dataset.qty = on ? String(qty || 1) : '1';
+  const step = chip.parentElement.querySelector('.qty-step');
+  step.hidden = !on;
+  step.querySelector('.qty-val').textContent = chip.dataset.qty;
+}
+function toggleItemTypeChip(chip){
+  paintItemTypeChip(chip, chip.getAttribute('aria-pressed') !== 'true', 1); // switching off resets the quantity
+}
+function stepItemTypeQty(btn, delta){
+  const chip = btn.closest('.type-chip-wrap').querySelector('.type-chip');
+  const q = Math.min(99, Math.max(1, (parseInt(chip.dataset.qty, 10) || 1) + delta));
+  paintItemTypeChip(chip, true, q);
+}
+// Selected labels + quantities in the fixed option order, e.g. "Frame x2, Lens" ('' if none).
 function getItemTypes(id){
-  return Array.from(document.querySelectorAll('#' + id + ' .type-chip[aria-pressed="true"]')).map(b => b.dataset.type).join(', ');
+  return formatItemTypes(Array.from(document.querySelectorAll('#' + id + ' .type-chip[aria-pressed="true"]'))
+    .map(b => ({ type: b.dataset.type, qty: parseInt(b.dataset.qty, 10) || 1 })));
 }
 function setItemTypes(id, csv){
-  const chosen = String(csv || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const chosen = {};
+  parseItemTypes(csv).forEach(i => { chosen[i.type] = i.qty; });
   document.querySelectorAll('#' + id + ' .type-chip').forEach(b => {
-    b.setAttribute('aria-pressed', chosen.includes(b.dataset.type.toLowerCase()) ? 'true' : 'false');
+    paintItemTypeChip(b, !!chosen[b.dataset.type], chosen[b.dataset.type]);
   });
 }
 
@@ -1817,11 +1865,11 @@ function filterOrdersForPeriod(rows, branch, period, now){
     return period === 'month' || x.getDate() === d;
   });
 }
-// Pure: one total per type (exact + estimated), Unclassified omitted.
+// Pure: one PIECES total per type (exact + estimated), Unclassified omitted.
 function itemsSoldTotals(rows, branch, period, now){
   const res = countItemsSold(filterOrdersForPeriod(rows, branch, period, now));
   const totals = {};
-  ACC_TYPES.forEach(t => { totals[t] = res.exact[t] + res.est[t]; });
+  ACC_TYPES.forEach(t => { totals[t] = res.exactPieces[t] + res.estPieces[t]; });
   return totals;
 }
 function renderItemsSoldCard(allSales, branch){
@@ -1846,7 +1894,7 @@ function paintItemsSoldCard(){
     <h3 class="sec-h" id="h-items">Items sold — ${esc(itemsSoldBranch)}</h3>
     <div class="card items-card">
       <div class="items-head">
-        <span class="muted small">Number of orders containing each item</span>
+        <span class="muted small">Pieces sold</span>
         <div class="type-chips" role="group" aria-label="Period">${chip('today', 'Today')}${chip('month', 'This month')}</div>
       </div>
       ${any ? `<div class="items-grid">${ACC_TYPES.map(t => `<div class="items-cell"><span class="tile-l">${esc(t)}</span><div class="tile-v">${totals[t]}</div></div>`).join('')}</div>`
@@ -2980,19 +3028,16 @@ function accAggregate(data, start, end, branch){
   return r;
 }
 
-// Which item types an order contains. Exact when Records column T is filled, otherwise estimated from typed text.
+// Which item types an order contains (+ pieces per type). Exact when Records column T is filled, otherwise estimated from typed text.
+// Returns { types:Set, qty:{type:pieces}, exact }.
 function accClassify(row){
-  const types = new Set();
+  const types = new Set(), qty = {};
   const t = accStr(row[19]);
   if (t){
-    t.split(',').forEach(tok => {
-      const k = tok.trim().toLowerCase();
-      if (!k) return;
-      types.add(ACC_TYPES.find(x => x.toLowerCase() === k) || 'Other');
-    });
-    return { types, exact: true };
+    parseItemTypes(t).forEach(i => { types.add(i.type); qty[i.type] = i.qty; });
+    return { types, qty, exact: true };
   }
-  // Estimate from typed text (case-insensitive) over Items, Frame, Lens and Description.
+  // Estimate from typed text (case-insensitive) over Items, Frame, Lens and Description. Pieces default to 1.
   const frameF = accStr(row[14]).toLowerCase(), lensF = accStr(row[15]);
   let txt = [row[6], row[14], row[15], row[16]].map(x => accStr(x)).join(' ').toLowerCase();
   const SUN = /sun\s*glass|sunglass|s\/glass|sun/;
@@ -3005,26 +3050,50 @@ function accClassify(row){
   if (/\b(cord|spray|cleaner|cloth)/.test(txt)) types.add('Accessory');
   const hasOther = /difference|adjust/.test(txt);
   if (hasOther) types.add('Other');
-  // Frame: the word "frame", or a filled Frame field that is not the customer's own/old frame and not a sunglass.
   if (/frame/.test(txt)) types.add('Frame');
   if (frameF && !/^(own|old)/.test(frameF) && !SUN.test(frameF)) types.add('Frame');
-  // Lens: only a filled Lens field, or "cr" + lens words. A price-difference line is an adjustment, not a lens sale.
   if (lensF) types.add('Lens');
-  else if (!hasOther && /\bcr\s*(b\s*\/?\s*cut|pg|arc|39)/.test(txt)) types.add('Lens');
-  return { types, exact: false };
+  else if (!hasOther && /\bcr\s*(b\s*\/?\s*cut|blue\s*cut|pg|arc|39)/.test(txt)) types.add('Lens');
+  types.forEach(x => { qty[x] = 1; });
+
+  // Narrow quantity patterns. A usable number is a standalone 2-20 that is NOT part of a prescription / model code:
+  // we only accept start, space or "(" before it (so never after - + . or a digit) and nothing "." or digit after it.
+  const NUM = '(\\d{1,2})(?![\\d.])';
+  const okN = v => { const n = parseInt(v, 10); return n >= 2 && n <= 20 ? n : 0; };
+  // a) "N pair(s)" -> Contact lens qty, else Lens qty.
+  const pm = txt.match(new RegExp('(?:^|[\\s(])' + NUM + '\\s*pairs?\\b'));
+  if (pm && okN(pm[1])){
+    if (types.has('Contact lens')) qty['Contact lens'] = okN(pm[1]);
+    else if (types.has('Lens')) qty['Lens'] = okN(pm[1]);
+  }
+  // b) "N word" or "word N" for spray / cleaner / cord / cloth (Accessory), solution, reading.
+  const wordType = { spray:'Accessory', cleaner:'Accessory', cord:'Accessory', cloth:'Accessory', solution:'Solution', reading:'Reading glasses' };
+  Object.keys(wordType).forEach(w => {
+    const ty = wordType[w];
+    if (!types.has(ty)) return;
+    const before = txt.match(new RegExp('(?:^|[\\s(])' + NUM + ' ' + w));
+    const after = txt.match(new RegExp(w + '\\w* ' + NUM));
+    const n = Math.max(before ? okN(before[1]) : 0, after ? okN(after[1]) : 0);
+    if (n) qty[ty] = Math.max(qty[ty], n);
+  });
+  return { types, qty, exact: false };
 }
-// ONE shared counter (Accounting + cashier dashboard). An order counts once per type. Records rows only
-// (Order Members are never passed in). exact = column T filled; est = guessed from text; unclassified = no match.
+// ONE shared counter (Accounting + cashier dashboard). An order counts once per type; pieces use the quantity.
+// Records rows only (Order Members are never passed in). exact = column T filled; est = guessed from text.
+// -> { exact, est (orders), exactPieces, estPieces, unclassified }
 function countItemsSold(orders){
-  const exact = {}, est = {};
-  ACC_TYPES.forEach(t => { exact[t] = 0; est[t] = 0; });
+  const exact = {}, est = {}, exactPieces = {}, estPieces = {};
+  ACC_TYPES.forEach(t => { exact[t] = 0; est[t] = 0; exactPieces[t] = 0; estPieces[t] = 0; });
   let unclassified = 0;
   (orders || []).forEach(row => {
     const c = accClassify(row);
     if (!c.types.size){ unclassified++; return; }
-    c.types.forEach(t => { (c.exact ? exact : est)[t]++; });
+    c.types.forEach(t => {
+      (c.exact ? exact : est)[t]++;
+      (c.exact ? exactPieces : estPieces)[t] += c.qty[t] || 1;
+    });
   });
-  return { exact, est, unclassified };
+  return { exact, est, exactPieces, estPieces, unclassified };
 }
 function accItems(orders){ return countItemsSold(orders); }
 function accBestFrames(orders){
@@ -3126,6 +3195,11 @@ function accBuildCsv(res){
     rows.push([dmy(new Date(res.y, res.m, i + 1)), accOMR(d.sales), accOMR(d.cash), accOMR(d.card), accOMR(d.other), accOMR(d.rop), accOMR(d.exp)]);
   });
   rows.push(['TOTAL', accOMR(tot.sales), accOMR(tot.cash), accOMR(tot.card), accOMR(tot.other), accOMR(tot.rop), accOMR(tot.exp)]);
+  rows.push([]);
+  rows.push(['ITEMS SOLD']);
+  rows.push(['Type', 'Orders (exact)', 'Orders (estimated)', 'Pieces (exact)', 'Pieces (estimated)']);
+  ACC_TYPES.forEach(t => rows.push([t, res.items.exact[t], res.items.est[t], res.items.exactPieces[t], res.items.estPieces[t]]));
+  rows.push(['Unclassified', res.items.unclassified, '', '', '']);
   rows.push([]);
   rows.push(['ORDERS']);
   rows.push(['Date', 'Invoice', 'Name', 'Branch', 'Total', 'Advance', 'Balance', 'Status', 'Item Type']);
@@ -3261,10 +3335,11 @@ function accRender(){
 
   // 2. items sold
   const it = r.items;
-  const itemRows = ACC_TYPES.map(t => `<tr><td>${esc(t)}</td><td class="num">${it.exact[t]}${it.est[t] ? ` <span class="soft" style="opacity:1;">(+${it.est[t]} estimated)</span>` : ''}</td></tr>`).join('')
-    + (it.unclassified ? `<tr><td class="soft" style="opacity:1;">Unclassified (no type, no keyword)</td><td class="num">${it.unclassified}</td></tr>` : '');
-  h += section('Items sold', 'Exact = item type chosen on the order. "Estimated" = older orders without a type, guessed from the typed Items / Frame / Lens / Description text (keywords: sun / s/glass, c/lens / c/l / contact, solution, reading, cord / spray / cleaner / cloth, difference / adjust, frame, CR lens codes; a filled Lens field or a Frame field that is not own/old/sunglass also counts). An order can contain several types.',
-    table('<th>Type</th><th class="num">Orders</th>', itemRows));
+  const itemCell = (e, x) => `<td class="num">${e}${x ? ` <span class="soft" style="opacity:1;">(+${x} estimated)</span>` : ''}</td>`;
+  const itemRows = ACC_TYPES.map(t => `<tr><td>${esc(t)}</td>${itemCell(it.exact[t], it.est[t])}${itemCell(it.exactPieces[t], it.estPieces[t])}</tr>`).join('')
+    + (it.unclassified ? `<tr><td class="soft" style="opacity:1;">Unclassified (no type, no keyword)</td><td class="num">${it.unclassified}</td><td class="num"></td></tr>` : '');
+  h += section('Items sold', 'Orders = number of orders containing the type. Pieces = quantity (Item type "Frame x2" = 2 pieces; estimated orders count 1 unless the text clearly says e.g. "2 pairs", "spray 2", "2 cleaner"). Exact = item type chosen on the order. "Estimated" = older orders without a type, guessed from the typed Items / Frame / Lens / Description text (keywords: sun / s/glass, c/lens / c/l / contact, solution, reading, cord / spray / cleaner / cloth, difference / adjust, frame, CR lens codes; a filled Lens field or a Frame field that is not own/old/sunglass also counts). An order can contain several types.',
+    table('<th>Type</th><th class="num">Orders</th><th class="num">Pieces</th>', itemRows));
 
   // 3. balances cleared
   const clearRows = list => list.rows.map(x => `<tr><td>${esc(x.invoice)}</td><td>${esc(x.name)}</td><td>${dmy(x.orderDate)}</td><td class="num">${money(x.amount)}</td><td>${formatDateTime12(x.paidOn)}</td></tr>`).join('');
