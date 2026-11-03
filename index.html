@@ -147,6 +147,15 @@ h1,h2,h3{ font-weight:600; }
 .branch-chip:hover{ background:var(--sunken); }
 .branch-chip.active{ background:var(--primary); border-color:var(--primary); color:var(--on-primary); }
 
+/* ---------- cashier Items sold card ---------- */
+.items-card{ padding:20px 24px; }
+.items-head{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.items-head .type-chips{ gap:6px; }
+.items-head .type-chip{ min-height:40px; padding:0 14px; }
+.items-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
+.items-cell{ background:var(--sunken); border-radius:var(--r-sm); padding:12px 14px; }
+.items-cell .tile-v{ margin-top:4px; font-size:24px; }
+
 /* ---------- item type chips (multi-select toggles) ---------- */
 .type-chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .type-chip{
@@ -1396,7 +1405,7 @@ function initDateFields(){
 }
 
 // ---- Item type chips (New Order + Full Edit) ----
-const ITEM_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Accessory', 'Other'];
+const ITEM_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Reading glasses', 'Accessory', 'Other'];
 function initItemTypeChips(){
   ['order-itemtype', 'fe-itemtype'].forEach(id => {
     const wrap = document.getElementById(id);
@@ -1782,6 +1791,7 @@ function renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop){
             <div class="ledger-cell"><span class="tile-l">Monthly ROP Revenue</span><div class="tile-v pos">${mRop.toFixed(3)}<small>OMR</small></div></div>
           </div>
         </section>
+        <section aria-labelledby="h-items" id="items-sold-wrap"></section>
       </div>
       <aside class="dash-rail">
         <article class="tile tile-alert">
@@ -1790,6 +1800,57 @@ function renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop){
         </article>
         ${birthdayHtml || ''}
       </aside>
+    </div>`;
+  renderItemsSoldCard(allSales, branch);
+}
+
+// ---- Cashier "Items sold" card: COUNTS ONLY (no money). Cashier role only; own branch only. ----
+let itemsSoldPeriod = 'today';
+let itemsSoldRows = null, itemsSoldBranch = '';
+// Pure: Records rows of one branch whose Order date (column A) falls today / in the current month (device local time).
+function filterOrdersForPeriod(rows, branch, period, now){
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  return (rows || []).filter(r => {
+    if (!Array.isArray(r) || String(r[12] === null || r[12] === undefined ? '' : r[12]).trim() !== branch) return false;
+    const x = accDate(r[0]);
+    if (!x || x.getFullYear() !== y || x.getMonth() !== m) return false;
+    return period === 'month' || x.getDate() === d;
+  });
+}
+// Pure: one total per type (exact + estimated), Unclassified omitted.
+function itemsSoldTotals(rows, branch, period, now){
+  const res = countItemsSold(filterOrdersForPeriod(rows, branch, period, now));
+  const totals = {};
+  ACC_TYPES.forEach(t => { totals[t] = res.exact[t] + res.est[t]; });
+  return totals;
+}
+function renderItemsSoldCard(allSales, branch){
+  const wrap = document.getElementById('items-sold-wrap');
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user') || 'null');
+  if (!wrap || !user || user.role !== 'Cashier') { if (wrap) wrap.remove(); return; }
+  itemsSoldRows = allSales || []; itemsSoldBranch = branch;
+  paintItemsSoldCard();
+}
+function setItemsSoldPeriod(p){ itemsSoldPeriod = p; paintItemsSoldCard(); }
+function paintItemsSoldCard(){
+  const wrap = document.getElementById('items-sold-wrap');
+  if (!wrap) return;
+  if (itemsSoldRows === null){
+    wrap.innerHTML = '<h3 class="sec-h" id="h-items">Items sold</h3><div class="card items-card loading-box">Loading…</div>';
+    return;
+  }
+  const totals = itemsSoldTotals(itemsSoldRows, itemsSoldBranch, itemsSoldPeriod, new Date());
+  const any = ACC_TYPES.some(t => totals[t] > 0);
+  const chip = (p, label) => `<button type="button" class="type-chip" aria-pressed="${itemsSoldPeriod === p}" onclick="setItemsSoldPeriod('${p}')">${label}</button>`;
+  wrap.innerHTML = `
+    <h3 class="sec-h" id="h-items">Items sold — ${esc(itemsSoldBranch)}</h3>
+    <div class="card items-card">
+      <div class="items-head">
+        <span class="muted small">Number of orders containing each item</span>
+        <div class="type-chips" role="group" aria-label="Period">${chip('today', 'Today')}${chip('month', 'This month')}</div>
+      </div>
+      ${any ? `<div class="items-grid">${ACC_TYPES.map(t => `<div class="items-cell"><span class="tile-l">${esc(t)}</span><div class="tile-v">${totals[t]}</div></div>`).join('')}</div>`
+            : `<div class="empty">No orders yet ${itemsSoldPeriod === 'today' ? 'today' : 'this month'}.</div>`}
     </div>`;
 }
 
@@ -2849,7 +2910,7 @@ async function denyDevice(evt, staffId, deviceId){
 // Column indexes — Records: 0 date,6 items,7 total,8 advance,9 balance,11 status,12 branch,14 frame,15 lens,16 desc,19 item type
 // Collections: 0 date,1 invoice,2 name,3 branch,4 type,5 amount,6 method · Expenses: 0 date,1 category,2 amount,4 branch
 // ROP Eye Exam: 1 date,9 cash,10 card,12 branch
-const ACC_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Accessory', 'Other'];
+const ACC_TYPES = ['Frame', 'Lens', 'Sunglasses', 'Contact lens', 'Solution', 'Reading glasses', 'Accessory', 'Other'];
 const ACC_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function accBaisa(v){ const n = parseFloat(v); return Number.isFinite(n) ? Math.round(n * 1000) : 0; }
 function accOMR(b){ return (b / 1000).toFixed(3); }
@@ -2931,29 +2992,41 @@ function accClassify(row){
     });
     return { types, exact: true };
   }
+  // Estimate from typed text (case-insensitive) over Items, Frame, Lens and Description.
+  const frameF = accStr(row[14]).toLowerCase(), lensF = accStr(row[15]);
   let txt = [row[6], row[14], row[15], row[16]].map(x => accStr(x)).join(' ').toLowerCase();
-  const hasSun = /sun/.test(txt), hasContact = /contact/.test(txt);
-  if (hasSun) types.add('Sunglasses');
-  if (hasContact){ types.add('Contact lens'); txt = txt.replace(/contact\s*lens(es)?|contact/g, ' '); }
+  const SUN = /sun\s*glass|sunglass|s\/glass|sun/;
+  const CONTACT = /c\/lens|\bc\/l(?=$|[\s+])|contact\s*lens\w*|contact/;
+  if (SUN.test(txt)) types.add('Sunglasses');
+  const hasContact = CONTACT.test(txt);
+  if (hasContact){ types.add('Contact lens'); txt = txt.replace(new RegExp(CONTACT.source, 'g'), ' '); } // its "lens" must not count as Lens
   if (/solution/.test(txt)) types.add('Solution');
+  if (/reading/.test(txt)) types.add('Reading glasses');
+  if (/\b(cord|spray|cleaner|cloth)/.test(txt)) types.add('Accessory');
+  const hasOther = /difference|adjust/.test(txt);
+  if (hasOther) types.add('Other');
+  // Frame: the word "frame", or a filled Frame field that is not the customer's own/old frame and not a sunglass.
   if (/frame/.test(txt)) types.add('Frame');
-  if (/lens/.test(txt)) types.add('Lens');
-  // A typed Frame / Lens field is itself evidence (unless the text says it is sunglasses / a contact lens).
-  if (accStr(row[14]) && !hasSun) types.add('Frame');
-  if (accStr(row[15]) && !hasContact) types.add('Lens');
+  if (frameF && !/^(own|old)/.test(frameF) && !SUN.test(frameF)) types.add('Frame');
+  // Lens: only a filled Lens field, or "cr" + lens words. A price-difference line is an adjustment, not a lens sale.
+  if (lensF) types.add('Lens');
+  else if (!hasOther && /\bcr\s*(b\s*\/?\s*cut|pg|arc|39)/.test(txt)) types.add('Lens');
   return { types, exact: false };
 }
-function accItems(orders){
+// ONE shared counter (Accounting + cashier dashboard). An order counts once per type. Records rows only
+// (Order Members are never passed in). exact = column T filled; est = guessed from text; unclassified = no match.
+function countItemsSold(orders){
   const exact = {}, est = {};
   ACC_TYPES.forEach(t => { exact[t] = 0; est[t] = 0; });
   let unclassified = 0;
-  orders.forEach(row => {
+  (orders || []).forEach(row => {
     const c = accClassify(row);
     if (!c.types.size){ unclassified++; return; }
     c.types.forEach(t => { (c.exact ? exact : est)[t]++; });
   });
   return { exact, est, unclassified };
 }
+function accItems(orders){ return countItemsSold(orders); }
 function accBestFrames(orders){
   const map = {};
   orders.forEach(row => {
@@ -3190,7 +3263,7 @@ function accRender(){
   const it = r.items;
   const itemRows = ACC_TYPES.map(t => `<tr><td>${esc(t)}</td><td class="num">${it.exact[t]}${it.est[t] ? ` <span class="soft" style="opacity:1;">(+${it.est[t]} estimated)</span>` : ''}</td></tr>`).join('')
     + (it.unclassified ? `<tr><td class="soft" style="opacity:1;">Unclassified (no type, no keyword)</td><td class="num">${it.unclassified}</td></tr>` : '');
-  h += section('Items sold', 'Exact = item type chosen on the order. "Estimated" = older orders without a type, guessed from the typed Items / Frame / Lens / Description text (keywords: sun, contact, solution, frame, lens; a filled Frame or Lens field also counts). An order can contain several types.',
+  h += section('Items sold', 'Exact = item type chosen on the order. "Estimated" = older orders without a type, guessed from the typed Items / Frame / Lens / Description text (keywords: sun / s/glass, c/lens / c/l / contact, solution, reading, cord / spray / cleaner / cloth, difference / adjust, frame, CR lens codes; a filled Lens field or a Frame field that is not own/old/sunglass also counts). An order can contain several types.',
     table('<th>Type</th><th class="num">Orders</th>', itemRows));
 
   // 3. balances cleared
