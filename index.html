@@ -451,6 +451,31 @@ table.data td.empty.err{ color:var(--negative); }
 .compare tr.emph th{ color:var(--brass-ink); font-family:var(--font-ui); }
 .compare .neg{ color:var(--negative); } .compare .pos{ color:var(--positive); }
 
+/* Manager dashboard: one card per branch */
+.branch-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+.branch-card{
+  display:flex; flex-direction:column; gap:10px; min-width:0; min-height:44px; padding:16px 14px; text-align:left;
+  font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+  cursor:pointer; transition:border-color .15s, box-shadow .15s, transform .15s;
+}
+.branch-card:hover{ border-color:var(--brass); box-shadow:var(--sh-2); transform:translateY(-1px); }
+.branch-card:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+.branch-card.dim{ background:var(--sunken); border-style:dashed; }
+.bc-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+.bc-title{ font-size:16px; font-weight:600; overflow-wrap:anywhere; }
+.bc-chev{ flex:none; width:18px; height:18px; color:var(--ink-soft); }
+.branch-card:hover .bc-chev{ color:var(--brass-ink); }
+.bc-note{ margin-top:-6px; font-size:12px; color:var(--ink-soft); }
+.bc-row{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:2px 8px; min-width:0; }
+.bc-label{ flex:1 1 84px; min-width:0; font-size:13px; line-height:1.3; color:var(--ink-soft); overflow-wrap:break-word; }
+.bc-val{ flex:0 1 auto; max-width:100%; margin-left:auto; font:500 14px var(--font-mono); font-variant-numeric:tabular-nums; text-align:right; overflow-wrap:anywhere; }
+.bc-val.neg{ color:var(--negative); } .bc-val.pos{ color:var(--positive); }
+.bc-net{ margin-top:2px; padding:10px; border-radius:var(--r-sm); background:var(--brass-tint); }
+.bc-net .bc-label{ font-weight:600; color:var(--brass-ink); }
+.bc-net .bc-val{ font-size:18px; font-weight:600; }
+.bc-cap{ flex:1 1 100%; font-size:12px; color:var(--ink-soft); }
+@media (max-width:900px){ .branch-grid{ grid-template-columns:1fr; } }
+
 /* ---------- modal ---------- */
 .modal{ position:fixed; inset:0; background:rgba(11,27,51,.62); z-index:2000; display:none; align-items:center; justify-content:center; padding:20px; }
 .dialog{
@@ -684,7 +709,8 @@ table.data td.empty.err{ color:var(--negative); }
   <symbol id="i-hourglass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol>
   <symbol id="i-glasses" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M14 15a2 2 0 0 0-4 0"/><path d="M2.5 13 5 7c.7-1.3 1.4-2 3-2"/><path d="M21.5 13 19 7c-.7-1.3-1.5-2-3-2"/></symbol>
   <symbol id="i-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></symbol>
-  <symbol id="i-chevrons" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-chevrons"viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
   <symbol id="i-device" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
 </defs></svg>
 
@@ -1902,43 +1928,50 @@ function paintItemsSoldCard(){
     </div>`;
 }
 
+// Pure: per-branch figures in integer baisa. Net = Sales + ROP - Expenses (today and month).
+// Branch names are matched trimmed (like Accounting). hasAnyRows = any row ever in Records, Expenses or ROP Eye Exam.
+function mgrBranchStats(branch, allSales, allExpenses, allRop){
+  const mine = (rows, i) => (rows || []).filter(r => Array.isArray(r) && accStr(r[i]) === branch);
+  const bSales = mine(allSales, 12), bExp = mine(allExpenses, 4), bRop = mine(allRop, 12);
+  const sum = (rows, dateIdx, test, val) => rows.filter(r => test(r[dateIdx])).reduce((s, r) => s + val(r), 0);
+  const sale = r => accBaisa(r[7]), exp = r => accBaisa(r[2]), rop = r => accBaisa(r[9]) + accBaisa(r[10]);
+  const tSales = sum(bSales, 0, isToday, sale), tExp = sum(bExp, 0, isToday, exp), tRop = sum(bRop, 1, isToday, rop);
+  const revenue = sum(bSales, 0, isThisMonth, sale), expenses = sum(bExp, 0, isThisMonth, exp), ropMonth = sum(bRop, 1, isThisMonth, rop);
+  return { branch, todayNet: tSales + tRop - tExp, revenue, expenses, rop: ropMonth, profit: revenue + ropMonth - expenses,
+           hasAnyRows: bSales.length + bExp.length + bRop.length > 0 };
+}
+
+function mgrBranchCardHtml(c){
+  const row = (label, baisa, cls) => `<div class="bc-row"><span class="bc-label">${label}</span><span class="bc-val ${cls}">${accOMR(baisa)}</span></div>`;
+  const sign = v => v >= 0 ? 'pos' : 'neg';
+  return `
+      <button type="button" class="branch-card${c.hasAnyRows ? '' : ' dim'}" data-branch="${esc(c.branch)}" onclick="openAccountingForBranch(this.dataset.branch)">
+        <span class="bc-head"><span class="bc-title">${esc(c.branch)}</span><svg class="bc-chev" aria-hidden="true"><use href="#i-chevron-right"/></svg></span>
+        ${c.hasAnyRows ? '' : '<span class="bc-note">Not started yet</span>'}
+        ${row("Today's Net", c.todayNet, sign(c.todayNet))}
+        ${row('Month Revenue', c.revenue, '')}
+        ${row('Month Expenses', c.expenses, 'neg')}
+        ${row('Month ROP Revenue', c.rop, 'pos')}
+        <div class="bc-row bc-net"><span class="bc-label">Monthly Net Profit</span><span class="bc-val ${sign(c.profit)}">${accOMR(c.profit)}</span><span class="bc-cap">Sales + ROP − Expenses</span></div>
+      </button>`;
+}
+
 function renderManagerDash(allSales, allExpenses, birthdayHtml, allRop){
-  const branches = ['Sumail','Izki','Sinaw'];
-  const cols = branches.map(b => {
-    const bSales = allSales.filter(r => r[12] === b);
-    const bExp = allExpenses.filter(e => e[4] === b);
-    const bRop = (allRop || []).filter(r => r[12] === b);
-    const tSales = bSales.filter(r=>isToday(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
-    const tExp = bExp.filter(e=>isToday(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
-    const totalRev = bSales.filter(r=>isThisMonth(r[0])).reduce((s,r)=>s+(parseFloat(r[7])||0),0);
-    const totalExp = bExp.filter(e=>isThisMonth(e[0])).reduce((s,e)=>s+(parseFloat(e[2])||0),0);
-    const totalRop = bRop.filter(r=>isThisMonth(r[1])).reduce((s,r)=>s+(parseFloat(r[9])||0)+(parseFloat(r[10])||0),0);
-    return { b, net: tSales - tExp, totalRev, totalExp, totalRop, profit: totalRev - totalExp };
-  });
-  const row = (label, key, cls, emph) => `
-        <tr${emph ? ' class="emph"' : ''}><th scope="row">${label}</th>${cols.map(c => {
-          const c2 = typeof cls === 'function' ? cls(c[key]) : (cls || '');
-          return `<td class="${c2}">${c[key].toFixed(3)}</td>`;
-        }).join('')}</tr>`;
-  document.getElementById('dash-body').innerHTML = `
+  const box = document.getElementById('dash-body');
+  const focused = document.activeElement && box.contains(document.activeElement) ? document.activeElement.dataset.branch : null;
+  const cards = ['Sumail','Izki','Sinaw'].map(b => mgrBranchStats(b, allSales, allExpenses, allRop));
+  box.innerHTML = `
     <div class="dash">
       <section aria-labelledby="h-branch">
         <h3 class="sec-h" id="h-branch">Branch performance — this month <span class="muted" style="font-weight:400;">(OMR)</span></h3>
-        <div class="card card-flush">
-          <table class="compare">
-            <thead><tr><th scope="col">Metric</th>${cols.map(c => `<th scope="col">${esc(c.b)}</th>`).join('')}</tr></thead>
-            <tbody>
-              ${row("Today's Net", 'net', v => v >= 0 ? 'pos' : 'neg')}
-              ${row('Month Revenue', 'totalRev', '')}
-              ${row('Month Expenses', 'totalExp', 'neg')}
-              ${row('Month ROP Revenue', 'totalRop', 'pos')}
-              ${row('Monthly Net Profit', 'profit', '', true)}
-            </tbody>
-          </table>
-        </div>
+        <div class="branch-grid">${cards.map(mgrBranchCardHtml).join('')}</div>
       </section>
       <aside class="dash-rail">${birthdayHtml || ''}</aside>
     </div>`;
+  if (focused){
+    const again = Array.from(box.querySelectorAll('.branch-card')).find(el => el.dataset.branch === focused);
+    if (again) again.focus();
+  }
 }
 
 function calcBalance(){
@@ -3229,6 +3262,15 @@ function openAccounting(evt){
     acc.y = n.getFullYear(); acc.m = n.getMonth(); acc.init = true;
   }
   loadAccounting(false);
+}
+
+// Manager dashboard card click: open Accounting for one branch, current month. Same path as the sidebar item.
+function openAccountingForBranch(branch){
+  const user = JSON.parse(sessionStorage.getItem('alfareeda_user'));
+  if (!user || user.role !== 'Manager') return;
+  const n = new Date();
+  acc.y = n.getFullYear(); acc.m = n.getMonth(); acc.branch = branch; acc.init = true;
+  openAccounting({ currentTarget: document.getElementById('nav-accounting') }); // keep the sidebar item (not the card) highlighted
 }
 
 async function loadAccounting(force){
