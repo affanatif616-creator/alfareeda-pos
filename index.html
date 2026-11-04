@@ -1078,9 +1078,9 @@ table.data td.empty.err{ color:var(--negative); }
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',2,'text')">Name <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',3,'text')">Mobile <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',4,'text')">ID No <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>Remarks</th><th>G/N</th>
-              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',11,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',12,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>G/N</th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',10,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',11,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody id="rop-list-table"></tbody>
@@ -3770,7 +3770,7 @@ async function loadROPList(isFiltered = false){
       return isFiltered ? (rowDate >= startDate && rowDate <= endDate) : true;
     }).sort((a, b) => new Date(b[1]) - new Date(a[1]));
     if (rows.length === 0){
-      tableBody.innerHTML = `<tr><td colspan="14" class="empty">No records found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="13" class="empty">No records found.</td></tr>`;
       return;
     }
     __ropListRows = rows;
@@ -3793,7 +3793,6 @@ async function loadROPList(isFiltered = false){
         <td data-label="LE" class="mono">${esc(row[5])}</td>
         <td data-label="Glass">${esc(row[6])}</td>
         <td data-label="Contact Lenses">${esc(row[15] || '-')}</td>
-        <td data-label="Remarks">${row[16] ? `<span class="rem-clip" title="${esc(row[16])}">${esc(row[16])}</span>` : '-'}</td>
         <td data-label="G/N"><span class="chip plain">${esc(row[7])}/${esc(row[8])}</span></td>
         <td data-label="Payment"><span class="chip" style="--dot:${method==='Cash' ? 'var(--positive)' : 'var(--navy)'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-label="DOB" data-sort="${esc(row[11] || '')}">${dobStr}</td>
@@ -3803,7 +3802,7 @@ async function loadROPList(isFiltered = false){
     searchROP();
   }catch(e){
     console.error(e);
-    tableBody.innerHTML = '<tr><td colspan="14" class="empty err">Connection error</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="13" class="empty err">Connection error</td></tr>';
   }
 }
 
