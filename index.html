@@ -502,6 +502,117 @@ table.data td.empty.err{ color:var(--negative); }
 @keyframes toast-in{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:none; } }
 @keyframes toast-out{ to{ opacity:0; transform:translateY(-6px); } }
 
+/* ---------- inventory (screen only; nothing here is used by print) ---------- */
+.inv-head-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+.inv-bar{ display:flex; flex-wrap:wrap; gap:10px 12px; align-items:flex-end; margin-bottom:16px; }
+.inv-bar .field{ margin:0; min-width:150px; }
+.inv-tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+.inv-cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; }
+.inv-card-wrap{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+.inv-card{
+  display:flex; flex-direction:column; gap:6px; width:100%; min-height:104px; padding:14px 16px; text-align:left;
+  font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+  cursor:pointer; transition:border-color .15s, box-shadow .15s;
+}
+.inv-card:hover{ border-color:var(--brass); box-shadow:var(--sh-2); }
+.inv-card .nm{ font-size:13px; font-weight:600; color:var(--ink-soft); overflow-wrap:anywhere; }
+.inv-card .big{ font:600 24px/1.15 var(--font-ui); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.inv-card .sm{ font-size:12px; color:var(--ink-soft); }
+.inv-card .flag{ font-size:12px; font-weight:600; }
+.inv-card.amber{ background:var(--brass-tint); border-color:var(--brass); }
+.inv-card.amber .big, .inv-card.amber .flag{ color:var(--brass-ink); }
+.inv-card.red{ background:var(--negative-tint); border-color:var(--negative); }
+.inv-card.red .big, .inv-card.red .flag{ color:var(--negative); }
+.inv-hid{ font-weight:400; color:var(--ink-soft); }
+.inv-back{ margin-bottom:12px; }
+.inv-sub-h{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.inv-sub-h h2{ font-size:18px; font-weight:600; }
+.inv-list{ list-style:none; }
+.inv-list li{ display:flex; justify-content:space-between; gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); }
+.inv-list li:last-child{ border-bottom:0; }
+.inv-list .n{ font:600 15px var(--font-mono); font-variant-numeric:tabular-nums; }
+.inv-list .n.neg, .inv-neg{ color:var(--negative); }
+.inv-gridwrap{ overflow:auto; max-height:70vh; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); }
+table.inv-grid{ border-collapse:separate; border-spacing:0; font-size:13px; }
+.inv-grid th, .inv-grid td{ padding:9px 10px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap; min-width:58px; }
+.inv-grid thead th{ position:sticky; top:0; z-index:2; background:var(--sunken); color:var(--ink-soft); font:600 12px var(--font-mono); }
+.inv-grid td{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+.inv-grid th:first-child, .inv-grid td:first-child{
+  position:sticky; left:0; z-index:1; text-align:left; min-width:110px; background:var(--surface);
+  border-right:1px solid var(--border); font-family:var(--font-ui); font-weight:600;
+}
+.inv-grid thead th:first-child{ z-index:3; background:var(--sunken); }
+.inv-grid td.dim{ color:var(--ink-soft); opacity:.45; }
+.inv-grid td.neg{ color:var(--negative); font-weight:600; }
+.inv-grid td.tot, .inv-grid th.tot{ font-weight:600; background:var(--brass-tint); color:var(--ink); }
+.inv-note{ font-size:12px; color:var(--ink-soft); margin:8px 0 12px; }
+.inv-err{ background:var(--negative-tint); color:var(--negative); padding:10px 12px; border-radius:var(--r-sm); font-size:13px; font-weight:500; margin-bottom:12px; overflow-wrap:anywhere; }
+.inv-ok{ background:var(--positive-tint); color:var(--positive); padding:10px 12px; border-radius:var(--r-sm); font-size:13px; font-weight:500; margin-bottom:12px; }
+.inv-line{ border:1px solid var(--border); border-radius:var(--r-md); padding:12px; margin-bottom:12px; background:var(--surface); }
+.inv-line .field{ margin-bottom:10px; }
+.inv-line-h{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; font-weight:600; color:var(--ink-soft); }
+.inv-step{ display:flex; gap:8px; align-items:center; }
+.inv-step input{ text-align:center; max-width:96px; font-family:var(--font-mono); }
+.inv-step .btn{ width:48px; padding:0; font-size:20px; }
+.inv-newrow{ background:var(--sunken); border-radius:var(--r-sm); padding:10px; margin-bottom:10px; }
+.inv-newrow .field{ margin-bottom:8px; }
+.inv-newrow .row{ display:flex; gap:8px; flex-wrap:wrap; }
+.inv-preview{ margin:4px 0 12px; padding:10px 12px; border-radius:var(--r-sm); background:var(--positive-tint); color:var(--positive); font-size:13px; font-weight:500; }
+.inv-preview div + div{ margin-top:2px; }
+.inv-preview.empty{ background:var(--sunken); color:var(--ink-soft); font-weight:400; }
+.inv-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+.inv-row .v{ font-weight:600; overflow-wrap:anywhere; }
+.inv-row .acts{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.inv-row input.mini{ width:84px; height:36px; padding:0 8px; font:inherit; border:1px solid var(--field-border); border-radius:var(--r-sm); background:var(--surface); color:var(--ink); }
+.inv-row input.txt{ width:180px; max-width:100%; height:36px; padding:0 8px; font:inherit; border:1px solid var(--field-border); border-radius:var(--r-sm); background:var(--surface); color:var(--ink); }
+.inv-warn{ flex-basis:100%; padding:8px 10px; border-radius:var(--r-sm); background:var(--brass-tint); border-left:3px solid var(--brass); font-size:13px; }
+.inv-filters{ display:flex; flex-wrap:wrap; gap:10px 12px; align-items:flex-end; padding:14px 16px; border-bottom:1px solid var(--border); }
+.inv-filters .field{ margin:0; flex:1 1 130px; min-width:110px; }
+.inv-filters .field select, .inv-filters .field input{ height:40px; font-size:14px; }
+table.inv-log td.pos{ color:var(--positive); } table.inv-log td.neg{ color:var(--negative); }
+@media (max-width:760px){
+  .inv-bar .field{ flex:1 1 100%; }
+  table.data.inv-log thead{ display:none; }
+  .inv-head-actions .btn{ flex:1 1 auto; }
+}
+
+/* ---------- inventory step 3: stock items on orders ---------- */
+.inv-stock{ font-size:12px; color:var(--ink-soft); margin:2px 0 8px; overflow-wrap:anywhere; }
+.inv-low{ background:var(--brass-tint); border-left:3px solid var(--brass); color:var(--brass-ink); padding:8px 10px; font-size:13px; border-radius:0 var(--r-sm) var(--r-sm) 0; margin:6px 0 10px; overflow-wrap:anywhere; }
+.inv-hint{ font-size:12px; color:var(--ink-soft); margin:8px 0; }
+.inv-hint:empty{ display:none; }
+.inv-greynote{ padding:10px 12px; border-radius:var(--r-sm); background:var(--sunken); color:var(--ink-soft); font-size:13px; }
+.inv-sametoggle{ display:flex; align-items:center; gap:10px; min-height:44px; margin:0 0 10px; font-size:14px; cursor:pointer; }
+.inv-sametoggle input{ width:20px; height:20px; accent-color:var(--primary); }
+.inv-overlay{ position:fixed; inset:0; background:rgba(11,27,51,.62); z-index:2600; display:none; align-items:center; justify-content:center; padding:20px; }
+.inv-overlay .dialog{ outline:none; }
+.inv-rxstock{ margin:12px 0 0; font-size:13px; color:var(--ink-soft); overflow-wrap:anywhere; }
+.inv-rxstock:empty{ display:none; }
+@media (max-width:600px){
+  .inv-overlay{ align-items:flex-end; padding:0; }
+  .inv-overlay .dialog{ width:100%; max-height:92vh; border-radius:var(--r-lg) var(--r-lg) 0 0; animation-name:sheet-in; }
+}
+
+/* ---------- inventory step 4: stock alerts + accounting stock section ---------- */
+.stock-alert{ cursor:pointer; border-left:4px solid var(--brass); }
+.stock-alert.red{ border-left-color:var(--negative); }
+.stock-alert:hover{ box-shadow:var(--sh-2); }
+.sa-h{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+.sa-line{ font-size:13px; font-weight:500; padding:3px 0; overflow-wrap:anywhere; }
+.sa-line.amber{ color:var(--brass-ink); }
+.sa-line.red{ color:var(--negative); }
+.sa-more{ font-size:12px; color:var(--ink-soft); margin-top:4px; }
+.bc-stockslot{ display:flex; flex-wrap:wrap; gap:6px; }
+.bc-stockslot:empty{ display:none; }
+.bc-stock{ display:inline-flex; flex-wrap:wrap; gap:6px; cursor:pointer; border-radius:999px; }
+.bc-chip{ display:inline-flex; align-items:center; height:24px; padding:0 10px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
+.bc-chip.amber{ background:var(--brass-tint); color:var(--brass-ink); }
+.bc-chip.red{ background:var(--negative-tint); color:var(--negative); }
+#acc-stock-section details summary{ cursor:pointer; }
+#acc-stock-section:empty{ display:none; }
+#acc-stock-section table.acct{ min-width:0; }   /* narrow tables: the quantity column stays visible on a phone */
+#acc-stock-section td.num, #acc-stock-section th.num{ white-space:normal; }
+
 /* ---------- responsive ---------- */
 @media (max-width:1100px){
   .dash{ grid-template-columns:1fr; }
@@ -712,6 +823,7 @@ table.data td.empty.err{ color:var(--negative); }
   <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-chevrons"viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
   <symbol id="i-device" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
 </defs></svg>
 
 <!-- ============ LOGIN ============ -->
@@ -788,6 +900,8 @@ table.data td.empty.err{ color:var(--negative); }
       <div class="nav-label">Eye exams</div>
       <button type="button" class="nav-item" onclick="showSection('rop', event); prepROPForm();"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg> ROP Eye Exam</button>
       <button type="button" class="nav-item" onclick="showSection('rop-list', event); loadROPList();"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> ROP Exam History</button>
+      <div class="nav-label">Stock</div>
+      <button type="button" class="nav-item" id="nav-inventory" onclick="openInventory(event)"><svg class="ic" aria-hidden="true"><use href="#i-package"/></svg> Inventory</button>
       <div class="nav-label" id="nav-admin-label" style="display:none;">Manager</div>
       <button type="button" class="nav-item" id="nav-transactions" style="display:none;" onclick="showSection('transactions', event); loadTransactionHistory();"><svg class="ic" aria-hidden="true"><use href="#i-banknote"/></svg> Transaction History</button>
       <button type="button" class="nav-item" id="nav-staff" style="display:none;" onclick="showSection('staff-mgr', event)"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg> Staff Management</button>
@@ -872,7 +986,9 @@ table.data td.empty.err{ color:var(--negative); }
 
           <fieldset class="fset">
             <legend>Items</legend>
-            <div class="field"><label id="order-itemtype-label">Item type <span class="muted small">(choose at least one)</span></label><div class="type-chips" id="order-itemtype" role="group" aria-labelledby="order-itemtype-label"></div></div>
+            <div id="order-stock-err"></div>
+            <div id="order-stock-lines"></div>
+            <button type="button" class="btn btn-ghost" id="order-stock-add" data-sact="add" data-ctx="order" style="margin-bottom:16px;">+ Add item</button>
             <div id="normal-items-wrap" class="grid g-3">
               <div class="field"><label for="order-frame">Frame</label><input type="text" id="order-frame"></div>
               <div class="field"><label for="order-lens">Lens</label><input type="text" id="order-lens"></div>
@@ -1078,9 +1194,9 @@ table.data td.empty.err{ color:var(--negative); }
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',2,'text')">Name <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',3,'text')">Mobile <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',4,'text')">ID No <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>G/N</th>
-              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',10,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
-              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',11,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th>RE</th><th>LE</th><th>Glass</th><th>Contact Lenses</th><th>Remarks</th><th>G/N</th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',11,'text')">Payment <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
+              <th class="sortable" tabindex="0" onclick="sortTableBy('rop-list-table',12,'date')">DOB <svg class="ic sort-ic" aria-hidden="true"><use href="#i-chevrons"/></svg></th>
               <th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody id="rop-list-table"></tbody>
@@ -1161,8 +1277,28 @@ table.data td.empty.err{ color:var(--negative); }
       </div>
     </div>
 
+    <!-- Inventory (per-branch stock; Cashier + Manager) -->
+    <div id="inventory-section" class="content-section">
+      <header class="page-head"><div><h1>Inventory</h1><p id="inv-sub">Stock by type, colour and power</p></div><div class="inv-head-actions" id="inv-head-actions"></div></header>
+      <div id="inv-body" aria-live="polite"></div>
+    </div>
+
     </div><!-- /.page -->
   </main>
+
+  <!-- Inventory step 3 confirmation overlays (own class: the app's modal handlers do not touch them) -->
+  <div id="inv-preview-overlay" class="inv-overlay">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="inv-preview-title">
+      <h2 id="inv-preview-title">Stock will change</h2>
+      <div class="ov-body"></div>
+    </div>
+  </div>
+  <div id="inv-delask-overlay" class="inv-overlay">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="inv-delask-title">
+      <h2 id="inv-delask-title">Return the items to stock?</h2>
+      <div class="ov-body"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ MODALS ============ -->
@@ -1220,12 +1356,20 @@ table.data td.empty.err{ color:var(--negative); }
         </tbody>
       </table>
     </div>
-    <div class="field" style="margin-top:16px;"><label id="fe-itemtype-label">Item type</label><div class="type-chips" id="fe-itemtype" role="group" aria-labelledby="fe-itemtype-label"></div></div>
+    <div class="field" id="fe-itemtype-field" style="margin-top:16px;"><label id="fe-itemtype-label">Item type</label><div class="type-chips" id="fe-itemtype" role="group" aria-labelledby="fe-itemtype-label"></div></div>
     <div class="grid g-3" style="margin-top:16px;">
       <div class="field"><label for="fe-frame">Frame</label><input type="text" id="fe-frame"></div>
       <div class="field"><label for="fe-lens">Lens</label><input type="text" id="fe-lens"></div>
       <div class="field"><label for="fe-desc">Description</label><input type="text" id="fe-desc"></div>
     </div>
+
+    <fieldset class="fset" id="fe-stock-wrap">
+      <legend>Stock items</legend>
+      <div id="fe-stock-note"></div>
+      <div id="fe-stock-err"></div>
+      <div id="fe-stock-lines"></div>
+      <button type="button" class="btn btn-ghost" id="fe-stock-add" data-sact="add" data-ctx="fe" style="display:none;">+ Add item</button>
+    </fieldset>
 
     <fieldset class="fset" id="fe-family-members-wrap">
       <legend>Family Members <span>Optional — cover a spouse or children in this same order</span></legend>
@@ -1296,6 +1440,26 @@ table.data td.empty.err{ color:var(--negative); }
       <button type="button" class="btn btn-ghost" onclick="closeModals()">Cancel</button>
       <button type="button" class="btn btn-primary" onclick="confirmSaveAnyway()">Save Anyway</button>
     </div>
+  </div>
+</div>
+
+<!-- Inventory modals (drawn by the Inventory script) -->
+<div id="inv-add-modal" class="modal">
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="inv-add-title">
+    <h2 id="inv-add-title">Add stock</h2>
+    <div id="inv-add-body"></div>
+  </div>
+</div>
+<div id="inv-correct-modal" class="modal">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="inv-correct-title">
+    <h2 id="inv-correct-title">Correct stock <span class="chip brass">Manager</span></h2>
+    <div id="inv-correct-body"></div>
+  </div>
+</div>
+<div id="inv-lists-modal" class="modal">
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="inv-lists-title">
+    <h2 id="inv-lists-title">Manage lists <span class="chip brass">Manager</span></h2>
+    <div id="inv-lists-body"></div>
   </div>
 </div>
 
@@ -1868,6 +2032,7 @@ function renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop){
         <section aria-labelledby="h-items" id="items-sold-wrap"></section>
       </div>
       <aside class="dash-rail">
+        <div id="stock-alert-slot"></div>
         <article class="tile tile-alert">
           <div class="tile-top"><span class="tile-l">Total Pending Balances</span><span class="tile-ic">${ic('hourglass')}</span></div>
           <div class="tile-v">${pending.toFixed(3)}<small>OMR</small></div>
@@ -1876,6 +2041,7 @@ function renderCashierDash(allSales, allExpenses, branch, birthdayHtml, allRop){
       </aside>
     </div>`;
   renderItemsSoldCard(allSales, branch);
+  if (window.invDashAlerts) window.invDashAlerts();   // stock alerts load in the background and appear when ready
 }
 
 // ---- Cashier "Items sold" card: COUNTS ONLY (no money). Cashier role only; own branch only. ----
@@ -1947,6 +2113,7 @@ function mgrBranchCardHtml(c){
   return `
       <button type="button" class="branch-card${c.hasAnyRows ? '' : ' dim'}" data-branch="${esc(c.branch)}" onclick="openAccountingForBranch(this.dataset.branch)">
         <span class="bc-head"><span class="bc-title">${esc(c.branch)}</span><svg class="bc-chev" aria-hidden="true"><use href="#i-chevron-right"/></svg></span>
+        <span class="bc-stockslot" data-slot-branch="${esc(c.branch)}"></span>
         ${c.hasAnyRows ? '' : '<span class="bc-note">Not started yet</span>'}
         ${row("Today's Net", c.todayNet, sign(c.todayNet))}
         ${row('Month Revenue', c.revenue, '')}
@@ -1972,6 +2139,7 @@ function renderManagerDash(allSales, allExpenses, birthdayHtml, allRop){
     const again = Array.from(box.querySelectorAll('.branch-card')).find(el => el.dataset.branch === focused);
     if (again) again.focus();
   }
+  if (window.invDashAlerts) window.invDashAlerts();   // low / out badges appear when the stock data has loaded
 }
 
 function calcBalance(){
@@ -2288,6 +2456,7 @@ function resetOrderForm(){
   document.getElementById('order-payment').selectedIndex = 0;
   document.getElementById('order-status').selectedIndex = 0;
   document.getElementById('order-date').value = todayDDMMYYYY();
+  if (window.invResetOrderLines) window.invResetOrderLines();
   orderMembers = [];
   renderMemberCards();
   updatePriceModeUI();
@@ -2321,11 +2490,12 @@ async function saveOrderToCloud(andPrint){
       status: document.getElementById('order-status').value, branch: sessionUser.activeBranch
     };
     if (!data.name || !data.invoice) return showToast('Fill Name and Invoice', 'error');
-    if (!data.itemType){
-      const firstChip = document.querySelector('#order-itemtype .type-chip');
-      if (firstChip) firstChip.focus();
-      return showToast('Choose at least one Item type (Frame, Lens, Sunglasses…)', 'error');
-    }
+    // Items section: at least one line is required. Column T (Item Type text) is derived from the lines; only IN-STOCK
+    // lines go in the `items` array. An order with only not-in-stock lines keeps the old no-cors path unchanged.
+    const lines = window.invGatherOrder ? window.invGatherOrder() : { error: 'Add at least one item.' };
+    if (lines.error) return showToast(lines.error, 'error');
+    data.itemType = lines.itemType;
+    if (lines.stockLines.length){ data.itemsText = data.items; data.items = lines.stockLines; }
 
     {
       try{
@@ -2363,6 +2533,7 @@ async function confirmSaveAnyway(){
 }
 
 async function commitOrderSave(data, btn, andPrint){
+  if (Array.isArray(data.items) && window.invCommitStockOrder) return window.invCommitStockOrder(data, btn, andPrint);
   const sessionUser = JSON.parse(sessionStorage.getItem('alfareeda_user'));
   try{
     await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
@@ -2420,7 +2591,7 @@ async function loadOrderList(isFiltered = false){
       const examVal = row[13] || '-';
       const rowMembers = membersByInvoice[String(row[1])] || [];
       const rxData = JSON.stringify({
-        total:row[7], balance:row[9], status:row[11], itemType:row[19],
+        total:row[7], balance:row[9], status:row[11], itemType:row[19], date:row[0],
         name:row[2], invoice:row[1], re:row[4], le:row[5], items:row[6], exam:row[13], frame:row[14], lens:row[15], description:row[16],
         members: rowMembers.map(m => ({ name:m[1], relation:m[2], dob:m[3], re:m[4], le:m[5], frame:m[6], lens:m[7], description:m[8], price:m[9] }))
       });
@@ -2537,6 +2708,7 @@ async function openFullEditModal(invoice){
     rowMembers.forEach(m => addFeFamilyMember(m));
   }catch(e){ /* member fetch failing shouldn't block opening the editor */ }
 
+  if (window.invFeLoad) window.invFeLoad(order);   // stock items of this order (or the "old order" note)
   document.getElementById('full-edit-modal').style.display = 'flex';
   focusModal('full-edit-modal');
 }
@@ -2579,6 +2751,13 @@ async function submitFullUpdate(evt){
     // Only send itemType when something is selected (old orders with a blank column T stay blank).
     const feItemType = getItemTypes('fe-itemtype');
     if (feItemType) data.itemType = feItemType;
+    // Stock items: replaceOrderItems goes FIRST (readable reply). If it fails we stop and fullUpdate is never sent.
+    let stockAdjusted = false;
+    if (window.invFeBeforeSave){
+      const pre = await window.invFeBeforeSave(data);
+      if (!pre.proceed) return;
+      stockAdjusted = !!pre.adjusted;
+    }
     try{
       await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
       let membersOk = true;
@@ -2591,13 +2770,13 @@ async function submitFullUpdate(evt){
           branch: data.branch
         })});
       }catch(memberErr){ membersOk = false; }
-      showToast(membersOk ? 'Order fully updated' : 'Order saved, but member changes may not have saved. Please check.', membersOk ? 'success' : 'error');
+      showToast(membersOk ? 'Order fully updated' + (stockAdjusted ? '. Stock was adjusted.' : '') : 'Order saved, but member changes may not have saved. Please check.', membersOk ? 'success' : 'error');
       invalidateCache();
       closeModals();
       loadOrderList();
       refreshDashboard();
     }catch(e){
-      showToast('Error updating order.', 'error');
+      showToast('Error updating order.' + (stockAdjusted ? ' The stock WAS already adjusted: check the order before saving again.' : ''), 'error');
     }
   });
 }
@@ -2618,12 +2797,20 @@ async function deleteRecord(sheetName, matches, onDone){
 
 async function deleteOrderCascade(invoice, dateRaw, onDone){
   if (!confirm('Delete this order permanently? This also removes its transaction history entries. This cannot be undone.')) return;
+  // Orders with tracked stock items get a second question; old orders do not (and send no returnStock).
+  let stockChoice;
+  if (window.invAskReturnStock){
+    try{ stockChoice = await window.invAskReturnStock(invoice, dateRaw); }
+    catch(e){ return showToast('Could not check this order\'s stock items. Nothing was deleted. Try again.', 'error'); }
+    if (stockChoice === 'cancel') return;
+  }
   try{
-    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
-      action: 'deleteOrderCascade', invoice: invoice, originalDate: dateRaw
-    })});
-    showToast('Order and transaction history deleted', 'success');
+    const delPayload = { action: 'deleteOrderCascade', invoice: invoice, originalDate: dateRaw };
+    if (typeof stockChoice === 'boolean') delPayload.returnStock = stockChoice;
+    await fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify(delPayload)});
+    showToast('Order and transaction history deleted' + (stockChoice === true ? '. Items returned to stock.' : stockChoice === false ? '. Items not returned to stock.' : ''), 'success');
     invalidateCache();
+    if (typeof stockChoice === 'boolean' && window.invAfterStockChange) window.invAfterStockChange();
     if (onDone) onDone();
   }catch(e){
     showToast('Error deleting order.', 'error');
@@ -2725,11 +2912,13 @@ function showRx(jsonStr){
     </table></div>
     ${hasSplit ? note('Frame', data.frame) + note('Lens', data.lens) + note('Description', data.description) : note('Lens/Description', data.items)}
     ${memberCardsHTML}
+    <div class="inv-rxstock" id="rx-stock"></div>
     <div class="pay-section" id="rx-payments" aria-live="polite"><h3>Payments</h3><div class="pay-empty">Loading…</div></div>
     <div class="dialog-foot"><button type="button" class="btn btn-primary" onclick="closeModals()">Close</button></div>`;
   document.getElementById('rx-modal').style.display = 'flex';
   focusModal('rx-modal');
   renderRxPayments(data);
+  if (window.invRxStockLine) window.invRxStockLine(data);   // read-only "Stock items:" line (screen only)
 }
 
 // dd-mm-yyyy h:mm AM/PM, in the viewer's local timezone (same as isoToDDMMYYYY).
@@ -3286,6 +3475,7 @@ async function loadAccounting(force){
     acc.data = { records: records || [], collections: collections || [], expenses: expenses || [], rop: rop || [] };
     accSyncControls();
     accRecompute();
+    if (window.invAccLoad) window.invAccLoad(!!force);   // stock section loads separately; Accounting itself never waits for it
   }catch(e){
     if (token === acc.token) body.innerHTML = '<div class="card empty err">Failed to load accounting data. Try Refresh.</div>';
   }
@@ -3382,6 +3572,7 @@ function accRender(){
     + (it.unclassified ? `<tr><td class="soft" style="opacity:1;">Unclassified (no type, no keyword)</td><td class="num">${it.unclassified}</td><td class="num"></td></tr>` : '');
   h += section('Items sold', 'Orders = number of orders containing the type. Pieces = quantity (Item type "Frame x2" = 2 pieces; estimated orders count 1 unless the text clearly says e.g. "2 pairs", "spray 2", "2 cleaner"). Exact = item type chosen on the order. "Estimated" = older orders without a type, guessed from the typed Items / Frame / Lens / Description text (keywords: sun / s/glass, c/lens / c/l / contact, solution, reading, cord / spray / cleaner / cloth, difference / adjust, frame, CR lens codes; a filled Lens field or a Frame field that is not own/old/sunglass also counts). An order can contain several types.',
     table('<th>Type</th><th class="num">Orders</th><th class="num">Pieces</th>', itemRows));
+  h += '<div id="acc-stock-section"></div>';   // "Stock this month" (inventory) is filled in below the existing Items sold numbers
 
   // 3. balances cleared
   const clearRows = list => list.rows.map(x => `<tr><td>${esc(x.invoice)}</td><td>${esc(x.name)}</td><td>${dmy(x.orderDate)}</td><td class="num">${money(x.amount)}</td><td>${formatDateTime12(x.paidOn)}</td></tr>`).join('');
@@ -3428,6 +3619,7 @@ function accRender(){
     r.best.length ? table('<th>#</th><th>Frame</th><th class="num">Sold</th>', r.best.map((b, i) => `<tr><td>${i + 1}</td><td>${esc(b.label)}</td><td class="num">${b.n}</td></tr>`).join('')) : '<div class="acct-empty">No frames recorded this month.</div>');
 
   body.innerHTML = h;
+  if (window.invAccRender) window.invAccRender();
 }
 
 // ---- Unrecorded Payments (Manager) ----
@@ -3770,7 +3962,7 @@ async function loadROPList(isFiltered = false){
       return isFiltered ? (rowDate >= startDate && rowDate <= endDate) : true;
     }).sort((a, b) => new Date(b[1]) - new Date(a[1]));
     if (rows.length === 0){
-      tableBody.innerHTML = `<tr><td colspan="13" class="empty">No records found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="14" class="empty">No records found.</td></tr>`;
       return;
     }
     __ropListRows = rows;
@@ -3793,6 +3985,7 @@ async function loadROPList(isFiltered = false){
         <td data-label="LE" class="mono">${esc(row[5])}</td>
         <td data-label="Glass">${esc(row[6])}</td>
         <td data-label="Contact Lenses">${esc(row[15] || '-')}</td>
+        <td data-label="Remarks">${row[16] ? `<span class="rem-clip" title="${esc(row[16])}">${esc(row[16])}</span>` : '-'}</td>
         <td data-label="G/N"><span class="chip plain">${esc(row[7])}/${esc(row[8])}</span></td>
         <td data-label="Payment"><span class="chip" style="--dot:${method==='Cash' ? 'var(--positive)' : 'var(--navy)'};">${method} · ${amount.toFixed(3)}</span></td>
         <td data-label="DOB" data-sort="${esc(row[11] || '')}">${dobStr}</td>
@@ -3802,7 +3995,7 @@ async function loadROPList(isFiltered = false){
     searchROP();
   }catch(e){
     console.error(e);
-    tableBody.innerHTML = '<tr><td colspan="13" class="empty err">Connection error</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="14" class="empty err">Connection error</td></tr>';
   }
 }
 
@@ -4086,6 +4279,7 @@ function correctStaleDateFields(){
 
 function silentDataRefresh(){
   invalidateCache();
+  if (window.invSilentRefresh) window.invSilentRefresh();   // keeps the stock alerts fresh (quiet: errors only go to the console)
   if (Array.from(document.querySelectorAll('.modal')).some(m => m.style.display === 'flex')) return;
   const visible = document.querySelector('.content-section.visible');
   if (!visible) return;
@@ -4113,6 +4307,1520 @@ scheduleMidnightTasks();
 setInterval(silentDataRefresh, 30 * 60 * 1000);
 
 initUX();
+</script>
+
+<script>
+/* ============================================================
+   INVENTORY (Step 2) — per-branch stock screen.
+   Separate script block: it only USES existing helpers (esc, showToast, showSection, fetchCloud, scriptURL)
+   and does not change any existing function.
+
+   ROLES: the Apps Script does NOT check roles. "Correct stock", "Manage lists" (hide / unhide / rename-merge /
+   Reorder Below) and the full Stock Log are Manager-only and are enforced in this app only (the controls are not
+   drawn for a Cashier, and the handlers check the role again).
+
+   Writes use the same fetch pattern as the login action: plain POST with a JSON body, no mode:'no-cors', no
+   Content-Type header, and the JSON reply {ok, error} is READ. "Saved" is only ever shown when ok === true.
+   ============================================================ */
+(function(){
+'use strict';
+
+const INV_BRANCHES = ['Izki', 'Sumail', 'Sinaw'];
+const inv = {
+  branch: '', logRows: [], listRows: [], ready: false, loading: false, error: '', token: 0,
+  tab: 'stock', view: { kind: 'cards' }, colourQ: '',
+  log: { type: '', reason: '', from: '', to: '', limit: 200 },
+  form: null, corr: null, mgr: { list: 'Type', edit: null, msg: '', err: '' }, busy: false
+};
+
+/* ---------- small helpers ---------- */
+const $ = id => document.getElementById(id);
+function sessionUser(){ try{ return JSON.parse(sessionStorage.getItem('alfareeda_user') || 'null'); }catch(e){ return null; } }
+function isMgr(){ const u = sessionUser(); return !!u && u.role === 'Manager'; }
+function curBranch(){
+  const u = sessionUser();
+  if (!u) return '';
+  if (u.role === 'Manager'){
+    if (!inv.branch) inv.branch = INV_BRANCHES.indexOf(u.activeBranch) >= 0 ? u.activeBranch : 'Sumail';
+    return inv.branch;
+  }
+  return String(u.activeBranch || '').trim();   // a Cashier only ever sees his own branch
+}
+function byName(){ const u = sessionUser(); return u ? String(u.id || u.name || '') : ''; } // same value the app sends as staff/By elsewhere
+function collapse(v){ return String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); }
+function norm(v){ return collapse(v).toLowerCase(); }
+function truthy(v){ return v === true || String(v).trim().toUpperCase() === 'TRUE'; }
+function opt(v, label, sel){ return '<option value="' + esc(v) + '"' + (sel ? ' selected' : '') + '>' + esc(label) + '</option>'; }
+
+/* ONE shared power formatter: -1 -> "-1.00", "+1" -> "+1.00", 0 -> "0.00", "" -> "" */
+function fmtPower(v){
+  if (v === null || v === undefined) return '';
+  const s = typeof v === 'number' ? String(v) : String(v).trim();
+  if (s === '') return '';
+  if (!/^[+\-]?(\d+\.?\d*|\.\d+)$/.test(s)) return s;
+  const n = Number(s);
+  if (!isFinite(n)) return s;
+  const r = Math.round(n * 100) / 100;
+  if (r === 0) return '0.00';
+  return (r > 0 ? '+' : '-') + Math.abs(r).toFixed(2);
+}
+/* user-typed power: multiple of 0.25 between -30 and +30 -> formatted, otherwise null */
+function parsePowerInput(raw){
+  const s = String(raw == null ? '' : raw).trim();
+  if (!/^[+\-]?(\d+\.?\d*|\.\d+)$/.test(s)) return null;
+  const n = Number(s);
+  if (!isFinite(n) || n < -30 || n > 30) return null;
+  if (Math.abs(n * 4 - Math.round(n * 4)) > 1e-9) return null;
+  return fmtPower(n);
+}
+/* -1.00 … -9.00 first (closest to zero first), then everything else ascending */
+function powerOrder(list){
+  const v = p => Number(p), inRange = p => v(p) <= -1 && v(p) >= -9;
+  return list.filter(inRange).sort((a, b) => v(b) - v(a)).concat(list.filter(p => !inRange(p)).sort((a, b) => v(a) - v(b)));
+}
+/* contact lens counts are stored in SINGLE lenses */
+function fmtContact(n){
+  if (n < 0) return { main: String(n), small: 'singles', neg: true };
+  const p = Math.floor(n / 2), odd = n % 2, pw = p === 1 ? 'pair' : 'pairs', sg = n === 1 ? 'single' : 'singles';
+  return odd ? { main: p + ' ' + pw + ' + 1 single', small: '(' + n + ' ' + sg + ')' } : { main: p + ' ' + pw, small: '(' + n + ' ' + sg + ')' };
+}
+
+/* ---------- parse the two tabs (doGet already removes the header row; a header-looking first row is skipped too) ---------- */
+function stripHeader(rows, names){
+  rows = Array.isArray(rows) ? rows.filter(Array.isArray) : [];
+  if (rows.length && names.every((n, i) => norm(rows[0][i]) === norm(n))) return rows.slice(1);
+  return rows;
+}
+function parseLists(rows){
+  return stripHeader(rows, ['List', 'Value', 'Active']).map(r => {
+    const list = collapse(r[0]);
+    const rb = r[4];
+    return {
+      list,
+      value: list === 'Power' ? fmtPower(r[1]) : collapse(r[1]),
+      active: truthy(r[2]), kind: collapse(r[3]),
+      reorder: (rb === '' || rb === null || rb === undefined || isNaN(Number(rb))) ? null : Number(rb)
+    };
+  }).filter(e => e.list && e.value !== '');
+}
+function parseLog(rows){
+  return stripHeader(rows, ['Date', 'Branch', 'Type']).map(r => ({
+    date: r[0], branch: collapse(r[1]), type: collapse(r[2]), colour: collapse(r[3]), power: fmtPower(r[4]),
+    change: Number(r[5]) || 0, reason: collapse(r[6]), invoice: collapse(r[7]), by: collapse(r[10])
+  }));
+}
+function computeStock(log, branch){
+  const b = norm(branch), m = new Map();
+  log.forEach(r => {
+    if (norm(r.branch) !== b) return;
+    const k = [norm(r.type), norm(r.colour), r.power].join('|');
+    let e = m.get(k);
+    if (!e){ e = { type: r.type, colour: r.colour, power: r.power, units: 0 }; m.set(k, e); }
+    e.units += r.change;
+  });
+  return Array.from(m.values());
+}
+
+/* ---------- list lookups ---------- */
+const entries = name => inv.listRows.filter(e => e.list === name);
+const findEntry = (name, v) => { const k = norm(name === 'Power' ? fmtPower(v) : v); return inv.listRows.find(e => e.list === name && norm(e.value) === k) || null; };
+const isContactType = t => { const e = findEntry('Type', t); return !!e && norm(e.kind) === 'contact'; };
+const activeValues = name => entries(name).filter(e => e.active).map(e => e.value);
+const canon = (name, v) => { const e = findEntry(name, v); return e ? e.value : v; };
+const isHiddenValue = (name, v) => { const e = findEntry(name, v); return !!e && !e.active; };
+const typeHasColours = t => inv.logRows.some(r => norm(r.type) === norm(t) && r.colour !== '');
+function currentStockOf(stock, type, colour, power){
+  return stock.filter(s => norm(s.type) === norm(type) && norm(s.colour) === norm(colour) && s.power === fmtPower(power)).reduce((a, s) => a + s.units, 0);
+}
+
+function typeSummaries(stock){
+  const by = new Map();
+  entries('Type').forEach(e => by.set(norm(e.value), { type: e.value, entry: e, units: 0 }));
+  stock.forEach(s => {
+    const k = norm(s.type);
+    let t = by.get(k);
+    if (!t){ t = { type: s.type, entry: null, units: 0 }; by.set(k, t); }
+    t.units += s.units;
+  });
+  return Array.from(by.values())
+    .filter(t => (t.entry && t.entry.active) || t.units !== 0)       // hidden / unknown types only while they still hold stock
+    .map(t => ({ type: t.type, entry: t.entry, units: t.units, hidden: !!t.entry && !t.entry.active, unknown: !t.entry,
+                 contact: !!t.entry && norm(t.entry.kind) === 'contact' }));
+}
+function statusOf(units, reorder){
+  if (units < 0) return 'neg';
+  if (units === 0) return 'zero';
+  if (reorder !== null && reorder !== undefined && units <= reorder) return 'low';
+  return 'ok';
+}
+
+/* ---------- loading ---------- */
+async function reload(force){
+  const token = ++inv.token;
+  inv.loading = true;
+  if (!inv.ready) renderMain();
+  try{
+    const [s, l] = await Promise.all([fetchCloud('Stock Log', !!force), fetchCloud('Inventory Lists', !!force)]);
+    if (token !== inv.token) return;
+    inv.logRows = parseLog(s);
+    inv.listRows = parseLists(l);
+    inv.ready = true; inv.error = '';
+  }catch(e){
+    if (token === inv.token) inv.error = 'Could not load the inventory. Check the connection and try again.';
+  }finally{
+    if (token === inv.token){ inv.loading = false; renderMain(); paintDashAlerts(); }
+  }
+}
+window.openInventory = function(evt){
+  showSection('inventory', evt);
+  inv.view = { kind: 'cards' }; inv.colourQ = '';
+  reload(true);
+};
+
+/* ---------- server calls (same pattern as login: plain POST, JSON reply is read) ---------- */
+async function send(payload){
+  const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) });
+  let data;
+  try{ data = await res.json(); }
+  catch(e){ throw new Error('The server sent a reply that could not be read. Check the stock before trying again.'); }
+  return data;
+}
+async function run(task){
+  if (inv.busy) return;            // no double submits: the flag is set synchronously, before any await
+  inv.busy = true; syncBusy();
+  try{ await task(); }
+  finally{ inv.busy = false; syncBusy(); }
+}
+function syncBusy(){
+  document.querySelectorAll('#inventory-section .inv-lock, #inv-add-modal .inv-lock, #inv-correct-modal .inv-lock, #inv-lists-modal .inv-lock')
+    .forEach(b => { b.disabled = inv.busy; });
+  const sb = $('inv-a-save'); if (sb) sb.textContent = inv.busy ? 'Saving…' : 'Save stock';
+  const cb = $('inv-c-save'); if (cb) cb.textContent = inv.busy ? 'Saving…' : 'Save correction';
+}
+const NET_MSG = 'Connection error. The request may not have reached the server, so check the stock before sending it again.';
+const failText = (data, fallback) => (data && typeof data.error === 'string' && data.error) ? data.error : fallback;
+
+/* ---------- modal plumbing ---------- */
+const INV_MODALS = ['inv-add-modal', 'inv-correct-modal', 'inv-lists-modal'];
+function openModal(id){
+  const m = $(id); if (!m) return;
+  m.style.display = 'flex'; document.body.style.overflow = 'hidden';
+  const first = m.querySelector('select, input:not([type=hidden]), textarea, button.inv-first');
+  if (first) setTimeout(() => first.focus(), 30);
+}
+function closeModal(id){
+  const m = $(id); if (!m) return;
+  m.style.display = 'none';
+  if (!Array.from(document.querySelectorAll('.modal')).some(x => x.style.display === 'flex')) document.body.style.overflow = '';
+  if (id === 'inv-add-modal') inv.form = null;
+  if (id === 'inv-correct-modal') inv.corr = null;
+  if (id === 'inv-lists-modal') inv.mgr.edit = null;
+}
+
+/* ============================================================
+   MAIN SCREEN
+   ============================================================ */
+function renderHeadActions(){
+  const box = $('inv-head-actions'); if (!box) return;
+  box.innerHTML = inv.ready && inv.listRows.length
+    ? '<button type="button" class="btn btn-primary inv-lock" data-iact="add-open">' + ic('file-plus') + ' Add stock</button>' +
+      (isMgr() ? '<button type="button" class="btn btn-ghost inv-lock" data-iact="corr-open">Correct stock</button>' +
+                 '<button type="button" class="btn btn-ghost inv-lock" data-iact="lists-open">Manage lists</button>' : '')
+    : '';
+}
+function toolbarHtml(){
+  const mgr = isMgr();
+  const branch = mgr
+    ? '<div class="field"><label for="inv-branch">Branch</label><select id="inv-branch" data-if="branch">' + INV_BRANCHES.map(b => opt(b, b, b === curBranch())).join('') + '</select></div>'
+    : '';
+  const tabs = mgr
+    ? '<div class="inv-tabs" role="group" aria-label="View">' +
+      '<button type="button" class="type-chip" data-iact="tab" data-v="stock" aria-pressed="' + (inv.tab === 'stock') + '">Stock</button>' +
+      '<button type="button" class="type-chip" data-iact="tab" data-v="log" aria-pressed="' + (inv.tab === 'log') + '">Stock log</button></div>'
+    : '';
+  return '<div class="inv-bar">' + branch + tabs + '<button type="button" class="btn btn-ghost" data-iact="refresh">Refresh</button></div>';
+}
+function renderMain(){
+  const box = $('inv-body'); if (!box) return;
+  const sub = $('inv-sub'); if (sub) sub.textContent = 'Stock for ' + curBranch();
+  renderHeadActions();
+  if (!inv.ready){
+    box.innerHTML = inv.error
+      ? '<div class="card empty err">' + esc(inv.error) + '<div style="margin-top:12px;"><button type="button" class="btn btn-primary" data-iact="refresh">Try again</button></div></div>'
+      : '<div class="card loading-box">Loading stock…</div>';
+    return;
+  }
+  if (!inv.listRows.length){
+    box.innerHTML = toolbarHtml() + '<div class="card empty">Inventory is not set up yet. The owner must run <b>setupInventory()</b> once in the Apps Script editor, then press Refresh.</div>';
+    return;
+  }
+  let body;
+  if (inv.tab === 'log' && isMgr()) body = logHtml();
+  else if (inv.view.kind === 'type') body = simpleDetailHtml(inv.view.type);
+  else if (inv.view.kind === 'grid') body = gridScreenHtml(inv.view.type);
+  else body = cardsHtml();
+  box.innerHTML = toolbarHtml() + (inv.error ? '<div class="inv-err">' + esc(inv.error) + '</div>' : '') + body;
+  syncBusy();
+}
+
+/* ---- 1. summary cards ---- */
+function cardsHtml(){
+  const stock = computeStock(inv.logRows, curBranch());
+  const list = typeSummaries(stock);
+  if (!list.length) return '<div class="card empty">No types yet.</div>';
+  return '<div class="inv-cards">' + list.map(t => {
+    const st = statusOf(t.units, t.entry ? t.entry.reorder : null);
+    const cls = (st === 'neg' || st === 'zero') ? ' red' : st === 'low' ? ' amber' : '';
+    let main, small;
+    if (t.contact){ const f = fmtContact(t.units); main = f.main; small = f.small; }
+    else { main = String(t.units); small = Math.abs(t.units) === 1 ? 'piece' : 'pieces'; }
+    const flag = st === 'neg' ? 'Check stock' : st === 'zero' ? 'Out of stock' : st === 'low' ? 'Low stock' : '';
+    const reorder = t.entry && t.entry.reorder !== null ? '<span class="sm">Reorder below ' + t.entry.reorder + (t.contact ? ' singles' : '') + '</span>' : '';
+    return '<div class="inv-card-wrap"><button type="button" class="inv-card' + cls + '" data-iact="open-type" data-v="' + esc(t.type) + '" data-contact="' + (t.contact ? '1' : '0') + '">' +
+      '<span class="nm">' + esc(t.type) + (t.hidden ? ' <span class="inv-hid">(hidden)</span>' : '') + '</span>' +
+      '<span class="big">' + esc(main) + '</span><span class="sm">' + esc(small) + '</span>' +
+      (flag ? '<span class="flag">' + flag + '</span>' : '') + reorder + '</button>' +
+      (isMgr() ? '<button type="button" class="btn btn-quiet btn-sm inv-lock" data-iact="corr-open" data-v="' + esc(t.type) + '">Correct</button>' : '') +
+      '</div>';
+  }).join('') + '</div>';
+}
+
+/* ---- 2. simple type detail ---- */
+function simpleDetailHtml(typeName){
+  const stock = computeStock(inv.logRows, curBranch()).filter(s => norm(s.type) === norm(typeName));
+  const by = new Map();
+  stock.forEach(s => {
+    const k = norm(s.colour);
+    const e = by.get(k) || { colour: s.colour, units: 0 };
+    e.units += s.units; by.set(k, e);
+  });
+  if (!by.size) by.set('', { colour: '', units: 0 });
+  const rows = Array.from(by.values()).sort((a, b) => (a.colour === '') - (b.colour === '') || a.colour.localeCompare(b.colour));
+  return '<button type="button" class="btn btn-ghost btn-sm inv-back" data-iact="back">‹ All types</button>' +
+    '<div class="inv-sub-h"><h2>' + esc(canon('Type', typeName)) + (isHiddenValue('Type', typeName) ? ' <span class="inv-hid">(hidden)</span>' : '') + '</h2>' +
+    (isMgr() ? '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="corr-open" data-v="' + esc(typeName) + '">Correct</button>' : '') + '</div>' +
+    '<div class="card card-flush"><ul class="inv-list">' + rows.map(r =>
+      '<li><span>' + (r.colour === '' ? 'No colour' : esc(canon('Colour', r.colour)) + (isHiddenValue('Colour', r.colour) ? ' <span class="inv-hid">(hidden)</span>' : '')) + '</span>' +
+      '<span class="n' + (r.units < 0 ? ' neg' : '') + '">' + r.units + (r.units < 0 ? ' · Check stock' : '') + '</span></li>').join('') + '</ul></div>';
+}
+
+/* ---- 3. contact lens grid ---- */
+function gridData(typeName){
+  const stock = computeStock(inv.logRows, curBranch()).filter(s => norm(s.type) === norm(typeName) && s.power !== '');
+  const cell = new Map(), colours = new Map(), powers = new Set();
+  stock.forEach(s => {
+    const k = norm(s.colour) + '|' + s.power;
+    cell.set(k, (cell.get(k) || 0) + s.units);
+  });
+  activeValues('Colour').forEach(c => colours.set(norm(c), c));
+  activeValues('Power').forEach(p => powers.add(p));
+  stock.forEach(s => {                                            // inactive values stay visible while they still hold stock
+    if (s.units !== 0){ colours.set(norm(s.colour), s.colour); powers.add(s.power); }
+  });
+  return { cell, colours: Array.from(colours.values()).sort((a, b) => a.localeCompare(b)), powers: powerOrder(Array.from(powers)) };
+}
+function gridTableHtml(typeName){
+  const d = gridData(typeName), q = norm(inv.colourQ);
+  const cols = d.colours.filter(c => !q || norm(c).indexOf(q) >= 0);
+  if (!d.powers.length || !cols.length) return '<div class="card empty">' + (q ? 'No colour matches “' + esc(inv.colourQ) + '”.' : 'No colours or powers yet. Use “Add stock” to start.') + '</div>';
+  const head = '<tr><th>Colour</th>' + d.powers.map(p => '<th>' + esc(p) + (isHiddenValue('Power', p) ? '*' : '') + '</th>').join('') + '<th class="tot">Total</th></tr>';
+  const body = cols.map(c => {
+    let tot = 0;
+    const tds = d.powers.map(p => {
+      const n = d.cell.get(norm(c) + '|' + p) || 0; tot += n;
+      return n === 0 ? '<td class="dim">–</td>' : '<td' + (n < 0 ? ' class="neg"' : '') + '>' + n + '</td>';
+    }).join('');
+    return '<tr><th scope="row">' + esc(c) + (isHiddenValue('Colour', c) ? ' <span class="inv-hid">(hidden)</span>' : '') + '</th>' + tds + '<td class="tot' + (tot < 0 ? ' neg' : '') + '">' + tot + '</td></tr>';
+  }).join('');
+  return '<div class="inv-gridwrap"><table class="inv-grid"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+}
+function gridScreenHtml(typeName){
+  return '<button type="button" class="btn btn-ghost btn-sm inv-back" data-iact="back">‹ All types</button>' +
+    '<div class="inv-sub-h"><h2>' + esc(canon('Type', typeName)) + (isHiddenValue('Type', typeName) ? ' <span class="inv-hid">(hidden)</span>' : '') + '</h2>' +
+    (isMgr() ? '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="corr-open" data-v="' + esc(typeName) + '">Correct</button>' : '') + '</div>' +
+    '<p class="inv-note">Numbers are <b>single lenses</b> (1 pair = 2). * = hidden power.</p>' +
+    '<div class="field" style="max-width:320px;"><label for="inv-colourq">Find a colour</label><input type="search" id="inv-colourq" data-if="colourq" value="' + esc(inv.colourQ) + '" placeholder="Type a colour…" autocomplete="off"></div>' +
+    '<div id="inv-gridbox">' + gridTableHtml(typeName) + '</div>';
+}
+
+/* ---- 6. Stock log (Manager only) ---- */
+function logFiltered(){
+  const b = norm(curBranch()), f = inv.log;
+  const from = f.from ? new Date(f.from + 'T00:00:00') : null, to = f.to ? new Date(f.to + 'T23:59:59.999') : null;
+  return inv.logRows.map((r, i) => ({ r, i, t: new Date(r.date).getTime() || 0 })).filter(x => {
+    if (norm(x.r.branch) !== b) return false;
+    if (f.type && norm(x.r.type) !== norm(f.type)) return false;
+    if (f.reason && x.r.reason !== f.reason) return false;
+    if (from && x.t < from.getTime()) return false;
+    if (to && x.t > to.getTime()) return false;
+    return true;
+  }).sort((a, c) => c.t - a.t || c.i - a.i);
+}
+function fmtLogDate(v){
+  const d = new Date(v);
+  if (isNaN(d)) return esc(collapse(v));
+  const p = n => String(n).padStart(2, '0');
+  return p(d.getDate()) + '-' + p(d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function logRowsHtml(){
+  if (!isMgr()) return '';
+  const all = logFiltered(), shown = all.slice(0, inv.log.limit);
+  if (!all.length) return '<div class="empty">No stock movements match.</div>';
+  return '<div class="table-wrap"><table class="data inv-log"><thead><tr><th>Date</th><th>Type</th><th>Colour</th><th>Power</th><th style="text-align:right;">Change</th><th>Reason</th><th>Invoice</th><th>By</th></tr></thead><tbody>' +
+    shown.map(x => { const r = x.r; return '<tr><td data-label="Date">' + fmtLogDate(r.date) + '</td><td data-label="Type">' + esc(r.type) + '</td><td data-label="Colour">' + esc(r.colour || '–') + '</td><td data-label="Power" class="mono">' + esc(r.power || '–') + '</td>' +
+      '<td data-label="Change" class="num ' + (r.change > 0 ? 'pos' : r.change < 0 ? 'neg' : '') + '">' + (r.change > 0 ? '+' : '') + r.change + '</td><td data-label="Reason">' + esc(r.reason) + '</td><td data-label="Invoice">' + esc(r.invoice || '–') + '</td><td data-label="By">' + esc(r.by || '–') + '</td></tr>'; }).join('') +
+    '</tbody></table></div><div style="padding:12px 16px;" class="inv-note">Showing ' + shown.length + ' of ' + all.length + ' (newest first)' +
+    (all.length > shown.length ? ' <button type="button" class="btn btn-ghost btn-sm" data-iact="log-more" style="margin-left:8px;">Show more</button>' : '') + '</div>';
+}
+function logHtml(){
+  const f = inv.log;
+  const types = Array.from(new Set(inv.logRows.filter(r => norm(r.branch) === norm(curBranch())).map(r => r.type))).filter(Boolean).sort();
+  const reasons = Array.from(new Set(inv.logRows.map(r => r.reason))).filter(Boolean).sort();
+  return '<div class="card card-flush"><div class="inv-filters">' +
+    '<div class="field"><label for="inv-f-type">Type</label><select id="inv-f-type" data-if="f-type">' + opt('', 'All types', !f.type) + types.map(t => opt(t, t, t === f.type)).join('') + '</select></div>' +
+    '<div class="field"><label for="inv-f-reason">Reason</label><select id="inv-f-reason" data-if="f-reason">' + opt('', 'All reasons', !f.reason) + reasons.map(t => opt(t, t, t === f.reason)).join('') + '</select></div>' +
+    '<div class="field"><label for="inv-f-from">From</label><input type="date" id="inv-f-from" data-if="f-from" value="' + esc(f.from) + '"></div>' +
+    '<div class="field"><label for="inv-f-to">To</label><input type="date" id="inv-f-to" data-if="f-to" value="' + esc(f.to) + '"></div>' +
+    '</div><div id="inv-logbox">' + logRowsHtml() + '</div></div>';
+}
+
+/* ============================================================
+   ADD STOCK form (Cashier + Manager)
+   ============================================================ */
+const newLine = () => ({ type: '', colour: '', power: '', unit: '', qty: '1', newMode: null, newText: '', newContact: null, showColour: false, err: '' });
+function openAdd(){
+  if (!inv.ready || !inv.listRows.length) return;
+  inv.form = { reason: 'Received', lines: [newLine()], error: '' };
+  renderAdd(); openModal('inv-add-modal');
+}
+function needsColourPicker(l){ return isContactType(l.type) || typeHasColours(l.type) || l.showColour || l.colour !== ''; }
+function lineValid(l){
+  if (!l.type) return null;
+  const contact = isContactType(l.type), q = Number(l.qty);
+  if (!(Number.isInteger(q) && q >= 1 && q <= 9999) || String(l.qty).trim() === '') return null;
+  if (contact && (!l.colour || !l.power)) return null;
+  return { contact, q, units: contact && l.unit === 'Pair' ? 2 * q : q };
+}
+function previewText(l){
+  const v = lineValid(l); if (!v) return '';
+  const name = [l.type, l.colour, v.contact ? l.power : ''].filter(Boolean).join(', ');
+  if (!v.contact) return name + ': +' + v.q + (v.q === 1 ? ' piece' : ' pieces');
+  const what = l.unit === 'Pair' ? (v.q === 1 ? 'pair' : 'pairs') : (v.q === 1 ? 'single' : 'singles');
+  return name + ': +' + v.q + ' ' + what + ' = +' + v.units + (v.units === 1 ? ' lens' : ' lenses');
+}
+function previewHtml(){
+  const lines = inv.form.lines.map(previewText).filter(Boolean);
+  return lines.length ? '<div class="inv-preview" id="inv-a-preview">' + lines.map(t => '<div>' + esc(t) + '</div>').join('') + '</div>'
+                      : '<div class="inv-preview empty" id="inv-a-preview">Fill in the lines to see a preview.</div>';
+}
+function lineHtml(l, i, canRemove){
+  const contact = isContactType(l.type);
+  const types = activeValues('Type');
+  let h = '<div class="inv-line" data-line="' + i + '"><div class="inv-line-h"><span>Line ' + (i + 1) + '</span>' +
+    (canRemove ? '<button type="button" class="btn btn-danger-quiet btn-sm inv-lock" data-iact="a-rmline" data-i="' + i + '" aria-label="Remove line ' + (i + 1) + '">Remove</button>' : '') + '</div>';
+  if (l.err) h += '<div class="inv-err">' + esc(l.err) + '</div>';
+  // type
+  h += '<div class="field"><label for="inv-a-type-' + i + '">Type</label><select id="inv-a-type-' + i + '" data-if="type" data-i="' + i + '">' +
+    opt('', 'Select type…', !l.type) + types.map(t => opt(t, t, t === l.type)).join('') + opt('__new__', '+ New type…', false) + '</select></div>';
+  if (l.newMode === 'type') h += newRowHtml(l, i, 'type');
+  // colour
+  if (l.type && needsColourPicker(l)){
+    const cols = activeValues('Colour');
+    h += '<div class="field"><label for="inv-a-colour-' + i + '">Colour' + (contact ? '' : ' <span class="muted small">(optional)</span>') + '</label><select id="inv-a-colour-' + i + '" data-if="colour" data-i="' + i + '">' +
+      opt('', contact ? 'Select colour…' : 'No colour', !l.colour) + cols.map(c => opt(c, c, c === l.colour)).join('') + opt('__new__', '+ New colour…', false) + '</select></div>';
+    if (l.newMode === 'colour') h += newRowHtml(l, i, 'colour');
+  } else if (l.type && !contact){
+    h += '<button type="button" class="btn btn-quiet btn-sm inv-lock" style="margin:-4px 0 10px;" data-iact="a-showcolour" data-i="' + i + '">+ Add a colour</button>';
+  }
+  // power (contact lens only)
+  if (l.type && contact){
+    const pw = powerOrder(activeValues('Power'));
+    h += '<div class="field"><label for="inv-a-power-' + i + '">Power</label><select id="inv-a-power-' + i + '" data-if="power" data-i="' + i + '">' +
+      opt('', 'Select power…', !l.power) + pw.map(p => opt(p, p, p === l.power)).join('') + opt('__new__', '+ New power…', false) + '</select></div>';
+    if (l.newMode === 'power') h += newRowHtml(l, i, 'power');
+  }
+  // unit + qty
+  if (l.type){
+    h += '<div class="grid g-2"><div class="field"><label for="inv-a-unit-' + i + '">Unit</label>' + (contact
+      ? '<select id="inv-a-unit-' + i + '" data-if="unit" data-i="' + i + '">' + opt('Pair', 'Pair', l.unit === 'Pair') + opt('Single', 'Single', l.unit === 'Single') + '</select>'
+      : '<input type="text" id="inv-a-unit-' + i + '" value="Piece" readonly>') + '</div>' +
+      '<div class="field"><label for="inv-a-qty-' + i + '">Quantity</label><div class="inv-step">' +
+      '<button type="button" class="btn btn-ghost inv-lock" data-iact="a-qty" data-i="' + i + '" data-d="-1" aria-label="Decrease quantity">−</button>' +
+      '<input type="number" id="inv-a-qty-' + i + '" data-if="qty" data-i="' + i + '" min="1" max="9999" step="1" inputmode="numeric" value="' + esc(l.qty) + '">' +
+      '<button type="button" class="btn btn-ghost inv-lock" data-iact="a-qty" data-i="' + i + '" data-d="1" aria-label="Increase quantity">+</button></div></div></div>';
+  }
+  return h + '</div>';
+}
+function newRowHtml(l, i, kind){
+  const label = kind === 'type' ? 'New type name' : kind === 'colour' ? 'New colour name' : 'New power (multiple of 0.25, -30 to +30)';
+  return '<div class="inv-newrow"><div class="field"><label for="inv-a-new-' + i + '">' + label + '</label>' +
+    '<input type="text" id="inv-a-new-' + i + '" data-if="newtext" data-i="' + i + '" value="' + esc(l.newText) + '" maxlength="40" autocomplete="off"' + (kind === 'power' ? ' inputmode="decimal" placeholder="-2.25"' : '') + '></div>' +
+    (kind === 'type' ? '<div class="field"><span class="lbl">Is it a contact lens?</span><div class="type-chips">' +
+      '<button type="button" class="type-chip inv-lock" data-iact="a-newcontact" data-i="' + i + '" data-v="1" aria-pressed="' + (l.newContact === true) + '">Yes</button>' +
+      '<button type="button" class="type-chip inv-lock" data-iact="a-newcontact" data-i="' + i + '" data-v="0" aria-pressed="' + (l.newContact === false) + '">No</button></div></div>' : '') +
+    '<div class="row"><button type="button" class="btn btn-primary btn-sm inv-lock" data-iact="a-newsave" data-i="' + i + '">Add</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="a-newcancel" data-i="' + i + '">Cancel</button></div></div>';
+}
+function renderAdd(focusSel){
+  const f = inv.form, body = $('inv-add-body'); if (!f || !body) return;
+  body.innerHTML = (f.error ? '<div class="inv-err" role="alert">' + esc(f.error) + '</div>' : '') +
+    '<div class="field"><span class="lbl">Reason</span><div class="type-chips" role="group" aria-label="Reason">' +
+    ['Opening', 'Received'].map(r => '<button type="button" class="type-chip inv-lock" data-iact="a-reason" data-v="' + r + '" aria-pressed="' + (f.reason === r) + '">' + r + '</button>').join('') + '</div>' +
+    '<div class="hint">Opening = stock counted when starting. Received = new delivery.</div></div>' +
+    '<p class="inv-note">Branch: <b>' + esc(curBranch()) + '</b></p>' +
+    f.lines.map((l, i) => lineHtml(l, i, f.lines.length > 1)).join('') +
+    '<button type="button" class="btn btn-ghost btn-block inv-lock" data-iact="a-addline" style="margin-bottom:12px;">+ Add another line</button>' +
+    previewHtml() +
+    '<div class="dialog-foot"><button type="button" class="btn btn-ghost inv-lock" data-iact="a-cancel">Cancel</button>' +
+    '<button type="button" class="btn btn-primary inv-lock" id="inv-a-save" data-iact="a-save">Save stock</button></div>';
+  syncBusy();
+  if (focusSel){ const el = body.querySelector(focusSel); if (el) el.focus(); }
+}
+function updatePreview(){
+  const p = $('inv-a-preview'); if (!p || !inv.form) return;
+  const lines = inv.form.lines.map(previewText).filter(Boolean);
+  p.className = 'inv-preview' + (lines.length ? '' : ' empty');
+  p.innerHTML = lines.length ? lines.map(t => '<div>' + esc(t) + '</div>').join('') : 'Fill in the lines to see a preview.';
+}
+async function addNewListValue(i){
+  const f = inv.form, l = f && f.lines[i]; if (!l || !l.newMode) return;
+  const listName = l.newMode === 'type' ? 'Type' : l.newMode === 'colour' ? 'Colour' : 'Power';
+  let value = collapse(l.newText);
+  l.err = '';
+  if (listName === 'Power'){
+    const p = parsePowerInput(value);
+    if (p === null){ l.err = 'Power must be a number that is a multiple of 0.25, between -30 and +30 (for example -2.25).'; return renderAdd('#inv-a-new-' + i); }
+    value = p;
+  } else {
+    if (!value){ l.err = 'Enter a name first.'; return renderAdd('#inv-a-new-' + i); }
+    if (value.length > 40){ l.err = 'The name is too long (max 40 characters).'; return renderAdd('#inv-a-new-' + i); }
+    if (/^[=+\-@]/.test(value)){ l.err = 'The name cannot start with = + - or @.'; return renderAdd('#inv-a-new-' + i); }
+    if (listName === 'Type' && l.newContact === null){ l.err = 'Choose Yes or No: is it a contact lens?'; return renderAdd('#inv-a-new-' + i); }
+  }
+  const payload = { action: 'inventoryAddListValue', list: listName, value, by: byName() };
+  if (listName === 'Type') payload.kind = l.newContact ? 'Contact' : 'Simple';
+  await run(async () => {
+    let data;
+    try{ data = await send(payload); }
+    catch(e){ l.err = e.message === 'Failed to fetch' ? NET_MSG : (e.message || NET_MSG); return renderAdd('#inv-a-new-' + i); }
+    if (!data || data.ok !== true){ l.err = failText(data, 'The server did not accept the new value.'); showToast(l.err, 'error'); return renderAdd('#inv-a-new-' + i); }
+    await reload(true).catch(() => {});
+    const e = findEntry(listName, data.value);
+    if (e && !e.active){ l.err = '“' + data.value + '” already exists but is hidden. Ask a manager to unhide it.'; return renderAdd('#inv-a-new-' + i); }
+    if (listName === 'Type'){ l.type = data.value; l.unit = isContactType(data.value) ? 'Pair' : 'Piece'; l.colour = ''; l.power = ''; }
+    else if (listName === 'Colour') l.colour = data.value;
+    else l.power = data.value;
+    l.newMode = null; l.newText = ''; l.newContact = null;
+    showToast(data.existed ? '“' + data.value + '” already existed, selected it.' : '“' + data.value + '” added.', data.existed ? 'info' : 'success');
+    renderAdd();
+  });
+}
+async function saveStock(){
+  const f = inv.form; if (!f || inv.busy) return;
+  f.error = '';
+  const lines = [];
+  for (let i = 0; i < f.lines.length; i++){
+    const l = f.lines[i], n = 'Line ' + (i + 1) + ': ';
+    l.err = '';
+    if (l.newMode){ f.error = n + 'finish or cancel the “new value” box first.'; break; }
+    if (!l.type){ f.error = n + 'choose a type.'; break; }
+    const contact = isContactType(l.type), q = Number(l.qty);
+    if (contact && !l.colour){ f.error = n + 'choose a colour.'; break; }
+    if (contact && !l.power){ f.error = n + 'choose a power.'; break; }
+    if (String(l.qty).trim() === '' || !Number.isInteger(q) || q < 1 || q > 9999){ f.error = n + 'quantity must be a whole number from 1 to 9999.'; break; }
+    const o = { type: l.type, unit: contact ? (l.unit || 'Pair') : 'Piece', qty: q };
+    if (l.colour) o.colour = l.colour;
+    if (contact) o.power = l.power;
+    lines.push(o);
+  }
+  if (f.error){ renderAdd(); return; }
+  const payload = { action: 'inventoryAddStock', branch: curBranch(), by: byName(), reason: f.reason, lines };
+  await run(async () => {
+    let data;
+    try{ data = await send(payload); }
+    catch(e){ f.error = (e.message && e.message !== 'Failed to fetch') ? e.message : NET_MSG; showToast(f.error, 'error'); return renderAdd(); }
+    if (!data || data.ok !== true){ f.error = failText(data, 'The server did not accept the stock. Nothing was saved.'); showToast(f.error, 'error'); return renderAdd(); }
+    closeModal('inv-add-modal');                       // only now, on ok:true
+    showToast('Stock saved (' + lines.length + (lines.length === 1 ? ' line' : ' lines') + ').', 'success');
+    await reload(true).catch(() => showToast('Saved, but the list could not be refreshed. Press Refresh.', 'info'));
+  });
+}
+
+/* ============================================================
+   CORRECT STOCK (Manager only)
+   ============================================================ */
+function openCorrect(type){
+  if (!isMgr() || !inv.ready) return;
+  inv.corr = { type: type ? canon('Type', type) : '', colour: '', power: '', newTotal: '', note: '', error: '' };
+  renderCorrect(); openModal('inv-correct-modal');
+}
+function renderCorrect(focusSel){
+  const c = inv.corr, body = $('inv-correct-body'); if (!c || !body) return;
+  const contact = c.type && isContactType(c.type);
+  const stock = computeStock(inv.logRows, curBranch());
+  const showColour = c.type && (contact || typeHasColours(c.type) || c.colour);
+  const lab = v => v.value + (v.active ? '' : ' (hidden)');
+  let h = c.error ? '<div class="inv-err" role="alert">' + esc(c.error) + '</div>' : '';
+  h += '<p class="inv-note">Branch: <b>' + esc(curBranch()) + '</b></p>';
+  h += '<div class="field"><label for="inv-c-type">Type</label><select id="inv-c-type" data-if="c-type">' + opt('', 'Select type…', !c.type) +
+    entries('Type').map(e => opt(e.value, lab(e), e.value === c.type)).join('') + '</select></div>';
+  if (showColour) h += '<div class="field"><label for="inv-c-colour">Colour</label><select id="inv-c-colour" data-if="c-colour">' + opt('', contact ? 'Select colour…' : 'No colour', !c.colour) +
+    entries('Colour').map(e => opt(e.value, lab(e), e.value === c.colour)).join('') + '</select></div>';
+  if (contact) h += '<div class="field"><label for="inv-c-power">Power</label><select id="inv-c-power" data-if="c-power">' + opt('', 'Select power…', !c.power) +
+    powerOrder(entries('Power').map(e => e.value)).map(p => opt(p, p + (isHiddenValue('Power', p) ? ' (hidden)' : ''), p === c.power)).join('') + '</select></div>';
+  const ready = c.type && (!contact || (c.colour && c.power));
+  if (ready){
+    const cur = currentStockOf(stock, c.type, c.colour, c.power);
+    h += '<div class="note"><b>Current stock</b><span id="inv-c-current">' + (contact ? esc(fmtContact(cur).main) + ' ' + esc(fmtContact(cur).small) : cur + (cur === 1 ? ' piece' : ' pieces')) + '</span></div>';
+  }
+  h += '<div class="field" style="margin-top:12px;"><label for="inv-c-new">New count ' + (contact ? '(<b>single lenses</b>, 1 pair = 2)' : '(pieces)') + '</label>' +
+    '<input type="number" id="inv-c-new" data-if="c-new" min="0" step="1" inputmode="numeric" value="' + esc(c.newTotal) + '"></div>';
+  h += '<div class="field"><label for="inv-c-note">Note <span class="muted small">(required)</span></label><textarea id="inv-c-note" data-if="c-note" rows="2" maxlength="200">' + esc(c.note) + '</textarea></div>';
+  h += '<div class="dialog-foot"><button type="button" class="btn btn-ghost inv-lock" data-iact="c-cancel">Cancel</button>' +
+    '<button type="button" class="btn btn-primary inv-lock" id="inv-c-save" data-iact="c-save">Save correction</button></div>';
+  body.innerHTML = h; syncBusy();
+  if (focusSel){ const el = body.querySelector(focusSel); if (el) el.focus(); }
+}
+async function saveCorrection(){
+  if (!isMgr()) return;                                 // Manager-only (app-enforced)
+  const c = inv.corr; if (!c || inv.busy) return;
+  c.error = '';
+  const contact = c.type && isContactType(c.type), n = Number(c.newTotal);
+  if (!c.type) c.error = 'Choose a type.';
+  else if (contact && !c.colour) c.error = 'Choose a colour.';
+  else if (contact && !c.power) c.error = 'Choose a power.';
+  else if (String(c.newTotal).trim() === '' || !Number.isInteger(n) || n < 0) c.error = 'The new count must be a whole number, 0 or more.';
+  else if (!collapse(c.note)) c.error = 'A note is required.';
+  if (c.error){ renderCorrect(); return; }
+  const payload = { action: 'inventoryCorrect', branch: curBranch(), by: byName(), type: c.type, newTotal: n, note: collapse(c.note) };
+  if (c.colour) payload.colour = c.colour;
+  if (contact) payload.power = c.power;
+  await run(async () => {
+    let data;
+    try{ data = await send(payload); }
+    catch(e){ c.error = (e.message && e.message !== 'Failed to fetch') ? e.message : NET_MSG; showToast(c.error, 'error'); return renderCorrect(); }
+    if (!data || data.ok !== true){ c.error = failText(data, 'The server did not accept the correction.'); showToast(c.error, 'error'); return renderCorrect(); }
+    closeModal('inv-correct-modal');
+    showToast('Stock corrected (' + (data.change > 0 ? '+' : '') + data.change + ').', 'success');
+    await reload(true).catch(() => showToast('Saved, but the list could not be refreshed. Press Refresh.', 'info'));
+  });
+}
+
+/* ============================================================
+   MANAGE LISTS (Manager only)
+   ============================================================ */
+function openLists(){
+  if (!isMgr() || !inv.ready) return;
+  inv.mgr = { list: 'Type', edit: null, msg: '', err: '' };
+  renderLists(); openModal('inv-lists-modal');
+}
+function renderLists(){
+  const body = $('inv-lists-body'); if (!body) return;
+  const m = inv.mgr, list = m.list;
+  const rows = entries(list);
+  const ordered = list === 'Power' ? powerOrder(rows.map(r => r.value)).map(v => rows.find(r => r.value === v)) : rows;
+  let h = '<div class="type-chips" role="group" aria-label="List" style="margin-bottom:12px;">' +
+    ['Type', 'Colour', 'Power'].map(n => '<button type="button" class="type-chip inv-lock" data-iact="m-tab" data-v="' + n + '" aria-pressed="' + (list === n) + '">' + n + '</button>').join('') + '</div>';
+  if (m.err) h += '<div class="inv-err" role="alert">' + esc(m.err) + '</div>';
+  if (m.msg) h += '<div class="inv-ok">' + esc(m.msg) + '</div>';
+  if (list === 'Type') h += '<p class="inv-note">“Reorder below” turns a card amber when stock is at or under it (Contact Lens: in <b>single lenses</b>).</p>';
+  h += ordered.length ? ordered.map((e, i) => {
+    const editing = m.edit && m.edit.list === list && norm(m.edit.value) === norm(e.value);
+    let r = '<div class="inv-row" data-row="' + i + '"><span class="v">' + esc(e.value) + (e.active ? '' : ' <span class="inv-hid">(hidden)</span>') + (list === 'Type' ? ' <span class="inv-hid">· ' + esc(e.kind || 'Simple') + '</span>' : '') + '</span><span class="acts">';
+    if (editing){
+      r += '<input class="txt" id="inv-m-rename" data-if="m-rename" value="' + esc(m.edit.text) + '" maxlength="40" aria-label="New name">' +
+        '<button type="button" class="btn btn-primary btn-sm inv-lock" data-iact="m-rename-save" data-v="' + esc(e.value) + '">' + (m.edit.mergeInto ? 'Merge' : 'Save') + '</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="m-rename-cancel">Cancel</button>';
+    } else {
+      r += (list === 'Type' ? '<label class="small muted" for="inv-m-ro-' + i + '">Reorder below</label><input class="mini" id="inv-m-ro-' + i + '" type="number" min="0" step="1" inputmode="numeric" value="' + (e.reorder === null ? '' : e.reorder) + '" data-ro="' + esc(e.value) + '">' +
+        '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="m-reorder" data-v="' + esc(e.value) + '" data-ro-id="inv-m-ro-' + i + '">Set</button>' : '') +
+        '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="m-rename" data-v="' + esc(e.value) + '">Rename</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm inv-lock" data-iact="' + (e.active ? 'm-hide' : 'm-unhide') + '" data-v="' + esc(e.value) + '">' + (e.active ? 'Hide' : 'Unhide') + '</button>';
+    }
+    r += '</span>';
+    if (editing && m.edit.mergeInto) r += '<div class="inv-warn">This will <b>merge into “' + esc(m.edit.mergeInto) + '”</b>: every stock row and order line using “' + esc(e.value) + '” moves to “' + esc(m.edit.mergeInto) + '” and “' + esc(e.value) + '” is removed. This cannot be undone. Press Merge to continue.</div>';
+    return r + '</div>';
+  }).join('') : '<div class="empty">Nothing in this list yet.</div>';
+  h += '<div class="dialog-foot"><button type="button" class="btn btn-ghost inv-lock inv-first" data-iact="m-close">Close</button></div>';
+  body.innerHTML = h; syncBusy();
+}
+async function manage(payload, okText){
+  if (!isMgr()) return;                                 // Manager-only (app-enforced)
+  const m = inv.mgr;
+  m.err = ''; m.msg = '';
+  await run(async () => {
+    let data;
+    try{ data = await send(Object.assign({ action: 'inventoryManageList', by: byName() }, payload)); }
+    catch(e){ m.err = (e.message && e.message !== 'Failed to fetch') ? e.message : NET_MSG; showToast(m.err, 'error'); return renderLists(); }
+    if (!data || data.ok !== true){ m.err = failText(data, 'The server did not accept the change.'); showToast(m.err, 'error'); return renderLists(); }
+    m.edit = null;
+    m.msg = typeof okText === 'function' ? okText(data) : okText;
+    showToast(m.msg, 'success');
+    await reload(true).catch(() => showToast('Saved, but the list could not be refreshed. Press Refresh.', 'info'));
+    renderLists();
+  });
+}
+function renameSave(oldValue){
+  const m = inv.mgr, e = m.edit, list = m.list; if (!e) return;
+  m.err = ''; m.msg = '';
+  let nv;
+  if (list === 'Power'){
+    nv = parsePowerInput(e.text);
+    if (nv === null){ m.err = 'Power must be a multiple of 0.25 between -30 and +30.'; return renderLists(); }
+  } else {
+    nv = collapse(e.text);
+    if (!nv){ m.err = 'Enter the new name.'; return renderLists(); }
+    if (nv.length > 40){ m.err = 'The name is too long (max 40 characters).'; return renderLists(); }
+    if (/^[=+\-@]/.test(nv)){ m.err = 'The name cannot start with = + - or @.'; return renderLists(); }
+  }
+  const target = entries(list).find(x => norm(x.value) === norm(nv) && norm(x.value) !== norm(oldValue));
+  if (target && e.mergeInto !== target.value){ e.mergeInto = target.value; return renderLists(); }   // ask first, send on the second press
+  manage({ list, value: oldValue, op: 'rename', newValue: e.text }, d => d.changed === false ? 'No change.' :
+    (d.merged ? 'Merged “' + d.from + '” into “' + d.to + '” (' + (d.stockLogRowsChanged || 0) + ' stock rows, ' + (d.orderItemCellsChanged || 0) + ' order cells updated).' : 'Renamed to “' + d.to + '”.'));
+}
+
+/* ============================================================
+   EVENTS (delegated; the controls are drawn by the functions above)
+   ============================================================ */
+document.addEventListener('click', ev => {
+  const el = ev.target.closest ? ev.target.closest('[data-iact]') : null;
+  if (!el || !el.closest('#inventory-section, #inv-add-modal, #inv-correct-modal, #inv-lists-modal')) return;
+  if (el.disabled) return;
+  const act = el.dataset.iact, v = el.dataset.v, i = el.dataset.i === undefined ? -1 : Number(el.dataset.i);
+  const f = inv.form, l = f && i >= 0 ? f.lines[i] : null;
+  switch (act){
+    case 'refresh': reload(true); break;
+    case 'tab': inv.tab = v; renderMain(); break;
+    case 'open-type': inv.colourQ = ''; inv.view = { kind: el.dataset.contact === '1' ? 'grid' : 'type', type: v }; renderMain(); window.scrollTo(0, 0); break;
+    case 'back': inv.view = { kind: 'cards' }; renderMain(); break;
+    case 'add-open': openAdd(); break;
+    case 'corr-open': openCorrect(v); break;
+    case 'lists-open': openLists(); break;
+    case 'log-more': inv.log.limit += 200; renderMain(); break;
+    // add stock
+    case 'a-reason': if (f){ f.reason = v; renderAdd(); } break;
+    case 'a-addline': if (f){ f.lines.push(newLine()); renderAdd(); } break;
+    case 'a-rmline': if (f && f.lines.length > 1){ f.lines.splice(i, 1); renderAdd(); } break;
+    case 'a-showcolour': if (l){ l.showColour = true; renderAdd('#inv-a-colour-' + i); } break;
+    case 'a-qty': if (l){ const q = Math.min(9999, Math.max(1, (parseInt(l.qty, 10) || 0) + Number(el.dataset.d))); l.qty = String(q); const inp = $('inv-a-qty-' + i); if (inp) inp.value = l.qty; updatePreview(); } break;
+    case 'a-newcontact': if (l){ l.newContact = v === '1'; renderAdd('#inv-a-new-' + i); } break;
+    case 'a-newcancel': if (l){ l.newMode = null; l.newText = ''; l.newContact = null; l.err = ''; renderAdd(); } break;
+    case 'a-newsave': addNewListValue(i); break;
+    case 'a-save': saveStock(); break;
+    case 'a-cancel': closeModal('inv-add-modal'); break;
+    // correct
+    case 'c-save': saveCorrection(); break;
+    case 'c-cancel': closeModal('inv-correct-modal'); break;
+    // manage lists (Manager only: checked again here)
+    case 'm-close': closeModal('inv-lists-modal'); break;
+    case 'm-tab': if (isMgr()){ inv.mgr.list = v; inv.mgr.edit = null; inv.mgr.msg = ''; inv.mgr.err = ''; renderLists(); } break;
+    case 'm-hide': manage({ list: inv.mgr.list, value: v, op: 'hide' }, 'Hidden “' + v + '”.'); break;
+    case 'm-unhide': manage({ list: inv.mgr.list, value: v, op: 'unhide' }, 'Unhidden “' + v + '”.'); break;
+    case 'm-rename': if (isMgr()){ inv.mgr.edit = { list: inv.mgr.list, value: v, text: v, mergeInto: null }; inv.mgr.msg = ''; inv.mgr.err = ''; renderLists(); const r = $('inv-m-rename'); if (r) r.focus(); } break;
+    case 'm-rename-cancel': inv.mgr.edit = null; renderLists(); break;
+    case 'm-rename-save': renameSave(v); break;
+    case 'm-reorder': {
+      const inp = $(el.dataset.roId), raw = inp ? inp.value.trim() : '';
+      if (raw !== '' && (!/^\d+$/.test(raw))){ inv.mgr.err = 'Reorder Below must be a whole number (or empty).'; inv.mgr.msg = ''; renderLists(); break; }
+      manage({ list: 'Type', value: v, op: 'setReorder', reorderBelow: raw === '' ? '' : Number(raw) }, raw === '' ? 'Reorder level cleared for “' + v + '”.' : 'Reorder level for “' + v + '” set to ' + raw + '.');
+      break;
+    }
+  }
+});
+
+document.addEventListener('change', ev => {
+  const el = ev.target; if (!el || !el.dataset || el.dataset.if === undefined) return;
+  const key = el.dataset.if, i = el.dataset.i === undefined ? -1 : Number(el.dataset.i);
+  const f = inv.form, l = f && i >= 0 ? f.lines[i] : null;
+  if (key === 'branch'){ if (isMgr()){ inv.branch = el.value; renderMain(); } return; }
+  if (key === 'f-type'){ inv.log.type = el.value; inv.log.limit = 200; $('inv-logbox').innerHTML = logRowsHtml(); return; }
+  if (key === 'f-reason'){ inv.log.reason = el.value; inv.log.limit = 200; $('inv-logbox').innerHTML = logRowsHtml(); return; }
+  if (key === 'f-from'){ inv.log.from = el.value; inv.log.limit = 200; $('inv-logbox').innerHTML = logRowsHtml(); return; }
+  if (key === 'f-to'){ inv.log.to = el.value; inv.log.limit = 200; $('inv-logbox').innerHTML = logRowsHtml(); return; }
+  if (l){
+    if (key === 'type'){
+      if (el.value === '__new__'){ l.newMode = 'type'; l.newText = ''; l.newContact = null; renderAdd('#inv-a-new-' + i); return; }
+      l.type = el.value; l.newMode = null; l.err = '';
+      const contact = isContactType(l.type);
+      l.unit = contact ? 'Pair' : 'Piece';
+      if (!contact) l.power = '';
+      renderAdd(); return;
+    }
+    if (key === 'colour' || key === 'power'){
+      if (el.value === '__new__'){ l.newMode = key; l.newText = ''; renderAdd('#inv-a-new-' + i); return; }
+      l[key] = el.value; l.err = ''; renderAdd(); return;
+    }
+    if (key === 'unit'){ l.unit = el.value; updatePreview(); return; }
+  }
+  const c = inv.corr;
+  if (c){
+    if (key === 'c-type'){ c.type = el.value; c.colour = ''; c.power = ''; renderCorrect(); return; }
+    if (key === 'c-colour'){ c.colour = el.value; renderCorrect(); return; }
+    if (key === 'c-power'){ c.power = el.value; renderCorrect(); return; }
+  }
+});
+
+document.addEventListener('input', ev => {
+  const el = ev.target; if (!el || !el.dataset || el.dataset.if === undefined) return;
+  const key = el.dataset.if, i = el.dataset.i === undefined ? -1 : Number(el.dataset.i);
+  const f = inv.form, l = f && i >= 0 ? f.lines[i] : null;
+  if (key === 'colourq'){ inv.colourQ = el.value; const b = $('inv-gridbox'); if (b && inv.view.kind === 'grid') b.innerHTML = gridTableHtml(inv.view.type); return; }
+  if (key === 'qty' && l){ l.qty = el.value; updatePreview(); return; }
+  if (key === 'newtext' && l){ l.newText = el.value; return; }
+  if (key === 'c-new' && inv.corr){ inv.corr.newTotal = el.value; return; }
+  if (key === 'c-note' && inv.corr){ inv.corr.note = el.value; return; }
+  if (key === 'm-rename' && inv.mgr.edit){ inv.mgr.edit.text = el.value; inv.mgr.edit.mergeInto = null; return; }
+});
+
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Escape') return;
+  const open = INV_MODALS.find(id => $(id) && $(id).style.display === 'flex');
+  if (open && !inv.busy) closeModal(open);
+});
+INV_MODALS.forEach(id => {                              // a tap on the dark backdrop must not drop a half-filled form
+  const m = $(id);
+  if (m) m.addEventListener('click', ev => { if (ev.target === m) ev.stopImmediatePropagation(); }, true);
+});
+
+/* ============================================================
+   STEP 3 — stock items on orders (New Order, Full Edit, Delete, View Rx).
+   The order lines (stock and not-in-stock items) are the single source for the Item Type text of column T; Full Edit of old orders keeps the chips.
+   Stock rules are enforced in the app only; the script does not check roles or stock levels,
+   and an order is never blocked because stock is low.
+   ============================================================ */
+
+/* Soft hint only: which Item Type chip a stock type belongs to. Edit this table to change the mapping. */
+const SALE_CATEGORY = {
+  'metal frame': 'Frame', 'plastic frame': 'Frame', 'kids frame': 'Frame', 'rimless': 'Frame',
+  'sunglass': 'Sunglasses', 'reading bluecut': 'Reading glasses', 'solution': 'Solution'
+};
+/* Types that are NOT tracked in stock (no stock check). Their Item Type category is the same word. */
+const FREE_TYPES = ['Lens', 'Reading glasses', 'Accessory', 'Other'];
+
+const ED = {
+  order: { lines: [], err: '', box: 'order-stock-lines', errBox: 'order-stock-err' },
+  fe: { lines: [], err: '', box: 'fe-stock-lines', errBox: 'fe-stock-err', loading: false, loadError: '', hasItems: false, orig: [], branch: '', invoiceOrig: '', dateRaw: '', token: 0 }
+};
+const edBranch = ctx => ctx === 'fe' ? ED.fe.branch : String((sessionUser() || {}).activeBranch || '').trim();
+const newEdLine = () => ({ type: '', colour: '', unit: '', qty: '1', same: true, powerR: '', powerL: '', showColour: false, newMode: null, newText: '', newContact: null, err: '', free: false, ro: false, cat: '' });
+const lineIsContact = l => { if (l.free || l.ro) return false; const e = findEntry('Type', l.type); return e ? norm(e.kind) === 'contact' : (l.unit === 'Pair' || l.unit === 'Single'); };
+/* Item Type category of a line (column T): mapping table above; any contact-kind type = Contact lens; unmapped stock types = Other */
+const catOfStockType = name => { const e = findEntry('Type', name); if (e && norm(e.kind) === 'contact') return 'Contact lens'; return SALE_CATEGORY[norm(name)] || 'Other'; };
+const catOfLine = l => l.ro ? l.cat : (l.free ? l.type : catOfStockType(l.type));
+/* Item Type text for column T: sum the quantities per category, write with the existing formatItemTypes (e.g. "Frame x3, Lens x2") */
+function deriveItemType(lines){
+  const sums = {};
+  lines.forEach(l => { const q = Number(l.qty); if (!(q >= 1)) return; const c = catOfLine(l); sums[c] = (sums[c] || 0) + q; });
+  return formatItemTypes(ITEM_TYPES.filter(t => sums[t]).map(t => ({ type: t, qty: sums[t] })));
+}
+const pluralLens = n => Math.abs(n) === 1 ? 'lens' : 'lenses';
+
+/* smallest units one order line takes out of stock (same rules as the script) */
+function consumption(line){
+  const q = line.qty, pr = line.powerR || '', pl = line.powerL || '';
+  if (line.unit === 'Piece') return [{ type: line.type, colour: line.colour, power: '', units: q }];
+  if (line.unit === 'Single') return [{ type: line.type, colour: line.colour, power: pr, units: q }];
+  if (!pl || pl === pr) return [{ type: line.type, colour: line.colour, power: pr, units: 2 * q }];
+  return [{ type: line.type, colour: line.colour, power: pr, units: q }, { type: line.type, colour: line.colour, power: pl, units: q }];
+}
+const stockKey = (branch, e) => [norm(branch), norm(e.type), norm(e.colour), fmtPower(e.power)].join('|');
+function lineSignature(l){
+  const pl = l.unit === 'Pair' ? (l.powerL || l.powerR) : '';
+  return [norm(l.type), norm(l.colour), l.unit, fmtPower(l.powerR), fmtPower(pl), Number(l.qty)].join('|');
+}
+const sameLineSets = (a, b) => a.map(lineSignature).sort().join('\n') === b.map(lineSignature).sort().join('\n');
+
+/* ---- data ---- */
+async function ensureEdData(){
+  if (inv.ready && inv.listRows.length) return true;
+  await reload(true);
+  return inv.ready && inv.listRows.length > 0;
+}
+function parseOrderItems(rows){
+  return stripHeader(rows, ['Invoice', 'Order Date', 'Branch']).map(r => ({
+    invoice: collapse(r[0]), date: r[1], branch: collapse(r[2]), type: collapse(r[3]), colour: collapse(r[4]),
+    powerR: fmtPower(r[5]), powerL: fmtPower(r[6]), unit: collapse(r[7]), qty: Number(r[8]) || 0
+  }));
+}
+const sameMomentJS = (a, b) => { const x = new Date(a).getTime(), y = new Date(b).getTime(); return !isNaN(x) && !isNaN(y) && x === y; };
+async function orderItemsFor(invoice, dateRaw, force){
+  const rows = parseOrderItems(await fetchCloud('Order Items', !!force));
+  return rows.filter(r => r.invoice === String(invoice) && sameMomentJS(r.date, dateRaw));
+}
+function describeLine(l){
+  const name = [l.type, l.colour].filter(Boolean).join(' ');
+  if (l.unit === 'Pair'){
+    const diff = l.powerL && l.powerL !== l.powerR;
+    return name + ' ' + (diff ? 'R' + l.powerR + ' L' + l.powerL : l.powerR) + ' (pair) x' + l.qty;
+  }
+  if (l.unit === 'Single') return name + ' ' + l.powerR + ' (single) x' + l.qty;
+  return name + ' x' + l.qty;
+}
+
+/* ---- line editor: one renderer for New Order ('order') and Full Edit ('fe') ---- */
+function edDemand(lines){
+  const m = new Map();
+  lines.forEach(l => {
+    const q = Number(l.qty);
+    if (l.free || l.ro || !l.type || !(Number.isInteger(q) && q >= 1)) return;
+    const contact = lineIsContact(l);
+    if (contact && !l.powerR) return;
+    const pl = l.same ? l.powerR : l.powerL;
+    if (contact && l.unit === 'Pair' && !pl) return;
+    consumption({ type: l.type, colour: l.colour, unit: contact ? (l.unit || 'Pair') : 'Piece', powerR: l.powerR, powerL: contact && l.unit === 'Pair' ? pl : '', qty: q })
+      .forEach(e => m.set(stockKey('', e), (m.get(stockKey('', e)) || 0) + e.units));
+  });
+  return m;
+}
+function edInfo(l, stock, demand){
+  if (!l.type || l.free || l.ro) return { text: '', notes: [] };
+  const contact = lineIsContact(l), q = Number(l.qty), qok = Number.isInteger(q) && q >= 1;
+  const have = (colour, power) => currentStockOf(stock, l.type, colour, power);
+  const dem = (colour, power) => demand.get(stockKey('', { type: l.type, colour, power })) || 0;
+  const notes = [];
+  if (!contact){
+    const s = have(l.colour, ''), d = dem(l.colour, '');
+    if (qok && d > s) notes.push('Only ' + s + ' in stock' + (d > q ? ' (the lines of this order together ask for ' + d + ')' : '') + '. You can still save the order.');
+    return { text: 'In stock: ' + s, notes };
+  }
+  if (!l.colour || !l.powerR) return { text: '', notes };
+  const pl = l.same ? l.powerR : l.powerL;
+  if (l.unit === 'Single'){
+    const s = have(l.colour, l.powerR), d = dem(l.colour, l.powerR);
+    if (qok && d > s) notes.push('Only ' + s + ' in stock for ' + l.powerR + ' (single lenses)' + (d > q ? '; the lines of this order together ask for ' + d : '') + '. You can still save the order.');
+    return { text: 'In stock: ' + s + ' ' + pluralLens(s), notes };
+  }
+  if (!pl) return { text: 'In stock: ' + have(l.colour, l.powerR) + ' ' + pluralLens(have(l.colour, l.powerR)), notes };
+  if (pl === l.powerR){
+    const s = have(l.colour, l.powerR), d = dem(l.colour, l.powerR);
+    if (qok && d > s) notes.push('Only ' + s + ' in stock for ' + l.powerR + ' (single lenses). A pair needs 2 lenses, so ' + q + ' pair' + (q === 1 ? '' : 's') + ' need ' + 2 * q + (d > 2 * q ? '; the lines of this order together ask for ' + d : '') + '. You can still save the order.');
+    return { text: 'In stock: ' + s + ' ' + pluralLens(s) + ' (' + Math.floor(Math.max(s, 0) / 2) + ' pair' + (Math.floor(Math.max(s, 0) / 2) === 1 ? '' : 's') + ')', notes };
+  }
+  const sr = have(l.colour, l.powerR), sl = have(l.colour, pl);
+  [[l.powerR, sr], [pl, sl]].forEach(([p, s]) => {
+    if (qok && dem(l.colour, p) > s) notes.push('Only ' + s + ' in stock for ' + p + ' (single lenses). A pair with different powers needs 1 lens of each power. You can still save the order.');
+  });
+  return { text: 'In stock: R ' + l.powerR + ': ' + sr + ' ' + pluralLens(sr) + ' · L ' + pl + ': ' + sl + ' ' + pluralLens(sl), notes };
+}
+function withCurrent(values, current, label){
+  const out = values.slice();
+  if (current && !out.some(v => norm(v) === norm(current))) out.push(current);
+  return out.map(v => opt(v, v + (label && !values.some(x => norm(x) === norm(v)) ? ' (hidden)' : ''), norm(v) === norm(current)));
+}
+function edLineHtml(ctx, S, l, i, stock, demand){
+  const contact = lineIsContact(l), id = k => 'ed-' + ctx + '-' + k + '-' + i;
+  const at = (k) => ' data-sf="' + k + '" data-ctx="' + ctx + '" data-i="' + i + '"';
+  const info = edInfo(l, stock, demand);
+  const removeBtn = '<button type="button" class="btn btn-danger-quiet btn-sm" data-sact="rm" data-ctx="' + ctx + '" data-i="' + i + '" aria-label="Remove item ' + (i + 1) + '">Remove</button>';
+  if (l.ro){   // sold without stock tracking (saved Item Type text that no stock line covers): kept as it is
+    return '<div class="inv-line"><div class="inv-line-h"><span>Not from stock</span>' + removeBtn + '</div><div class="inv-greynote">' +
+      esc(l.cat + (Number(l.qty) > 1 ? ' x' + l.qty : '')) + ' — this part of the order was not taken from stock. It is kept as it is; remove it if it is wrong.</div></div>';
+  }
+  let h = '<div class="inv-line"><div class="inv-line-h"><span>Item ' + (i + 1) + '</span>' + removeBtn + '</div>';
+  if (l.err) h += '<div class="inv-err">' + esc(l.err) + '</div>';
+  h += '<div class="field"><label for="' + id('type') + '">Type</label><select id="' + id('type') + '"' + at('type') + '>' +
+    opt('', 'Select type…', !l.type) +
+    '<optgroup label="In stock">' + withCurrent(activeValues('Type'), l.free ? '' : l.type, true).join('') + opt('__new__', '+ New type…', false) + '</optgroup>' +
+    '<optgroup label="Not in stock">' + FREE_TYPES.map(t => opt('free:' + t, t, l.free && l.type === t)).join('') + '</optgroup></select></div>';
+  if (l.newMode === 'type') h += edNewRow(ctx, l, i, 'type');
+  const showColour = l.type && !l.free && (contact || typeHasColours(l.type) || l.showColour || l.colour !== '');
+  if (showColour){
+    h += '<div class="field"><label for="' + id('colour') + '">Colour' + (contact ? '' : ' <span class="muted small">(optional)</span>') + '</label><select id="' + id('colour') + '"' + at('colour') + '>' +
+      opt('', contact ? 'Select colour…' : 'No colour', !l.colour) + withCurrent(activeValues('Colour'), l.colour, true).join('') + opt('__new__', '+ New colour…', false) + '</select></div>';
+    if (l.newMode === 'colour') h += edNewRow(ctx, l, i, 'colour');
+  } else if (l.type && !contact && !l.free){
+    h += '<button type="button" class="btn btn-quiet btn-sm" style="margin:-4px 0 10px;" data-sact="showcolour" data-ctx="' + ctx + '" data-i="' + i + '">+ Add a colour</button>';
+  }
+  if (l.type && contact){
+    h += '<div class="field"><label for="' + id('unit') + '">Unit</label><select id="' + id('unit') + '"' + at('unit') + '>' + opt('Pair', 'Pair', l.unit !== 'Single') + opt('Single', 'Single', l.unit === 'Single') + '</select></div>';
+    const pw = withCurrent(powerOrder(activeValues('Power')), l.powerR, true);
+    h += '<div class="field"><label for="' + id('powerR') + '">' + (l.unit === 'Single' ? 'Power' : 'Power right') + '</label><select id="' + id('powerR') + '"' + at('powerR') + '>' + opt('', 'Select power…', !l.powerR) + pw.join('') + opt('__new__', '+ New power…', false) + '</select></div>';
+    if (l.newMode === 'powerR') h += edNewRow(ctx, l, i, 'powerR');
+    if (l.unit !== 'Single'){
+      h += '<label class="inv-sametoggle"><input type="checkbox"' + at('same') + (l.same ? ' checked' : '') + '> Same both eyes</label>';
+      if (!l.same){
+        h += '<div class="field"><label for="' + id('powerL') + '">Power left</label><select id="' + id('powerL') + '"' + at('powerL') + '>' + opt('', 'Select power…', !l.powerL) +
+          withCurrent(powerOrder(activeValues('Power')), l.powerL, true).join('') + opt('__new__', '+ New power…', false) + '</select></div>';
+        if (l.newMode === 'powerL') h += edNewRow(ctx, l, i, 'powerL');
+      }
+    }
+  }
+  if (l.type){
+    h += '<div class="field"><label for="' + id('qty') + '">Quantity' + (contact ? (l.unit === 'Single' ? ' (singles)' : ' (pairs)') : '') + '</label><div class="inv-step">' +
+      '<button type="button" class="btn btn-ghost" data-sact="qty" data-ctx="' + ctx + '" data-i="' + i + '" data-d="-1" aria-label="Decrease quantity">−</button>' +
+      '<input type="number" id="' + id('qty') + '"' + at('qty') + ' min="1" max="99" step="1" inputmode="numeric" value="' + esc(l.qty) + '">' +
+      '<button type="button" class="btn btn-ghost" data-sact="qty" data-ctx="' + ctx + '" data-i="' + i + '" data-d="1" aria-label="Increase quantity">+</button></div></div>';
+    if (info.text) h += '<div class="inv-stock">' + esc(info.text) + '</div>';
+    info.notes.forEach(n => { h += '<div class="inv-low" role="status">' + esc(n) + '</div>'; });
+  }
+  return h + '</div>';
+}
+function edNewRow(ctx, l, i, field){
+  const label = field === 'type' ? 'New type name' : field === 'colour' ? 'New colour name' : 'New power (multiple of 0.25, -30 to +30)';
+  return '<div class="inv-newrow"><div class="field"><label for="ed-' + ctx + '-new-' + i + '">' + label + '</label><input type="text" id="ed-' + ctx + '-new-' + i + '" data-sf="newtext" data-ctx="' + ctx + '" data-i="' + i + '" value="' + esc(l.newText) + '" maxlength="40" autocomplete="off"' + (field === 'powerR' || field === 'powerL' ? ' inputmode="decimal" placeholder="-2.25"' : '') + '></div>' +
+    (field === 'type' ? '<div class="field"><span class="lbl">Is it a contact lens?</span><div class="type-chips">' +
+      '<button type="button" class="type-chip" data-sact="newcontact" data-ctx="' + ctx + '" data-i="' + i + '" data-v="1" aria-pressed="' + (l.newContact === true) + '">Yes</button>' +
+      '<button type="button" class="type-chip" data-sact="newcontact" data-ctx="' + ctx + '" data-i="' + i + '" data-v="0" aria-pressed="' + (l.newContact === false) + '">No</button></div></div>' : '') +
+    '<div class="row"><button type="button" class="btn btn-primary btn-sm" data-sact="newsave" data-ctx="' + ctx + '" data-i="' + i + '">Add</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm" data-sact="newcancel" data-ctx="' + ctx + '" data-i="' + i + '">Cancel</button></div></div>';
+}
+function edRender(ctx, focusSel){
+  const S = ED[ctx], box = $(S.box); if (!box) return;
+  const stock = computeStock(inv.logRows, edBranch(ctx));
+  const demand = edDemand(S.lines);
+  box.innerHTML = S.lines.map((l, i) => edLineHtml(ctx, S, l, i, stock, demand)).join('');
+  const eb = $(S.errBox); if (eb) eb.innerHTML = S.err ? '<div class="inv-err" role="alert">' + esc(S.err) + '</div>' : '';
+  if (ctx === 'order') syncFrameBox();
+  if (focusSel){ const el = box.querySelector(focusSel); if (el) el.focus(); }
+}
+/* The Frame text box (column O) is filled with the type name of the first Frame-category stock line, but only while it is
+   empty or still holds what we filled in ourselves: text the cashier typed is never overwritten. */
+let autoFrame = '';
+function syncFrameBox(){
+  const box = document.getElementById('order-frame'); if (!box) return;
+  const first = ED.order.lines.find(l => !l.ro && !l.free && l.type && catOfStockType(l.type) === 'Frame');
+  const want = first ? first.type : '';
+  if (box.value === '' || box.value === autoFrame){ box.value = want; autoFrame = want; }
+}
+/* lines -> {stockLines (for the script), itemType (column T text), count} or {error}.
+   Stock lines go in the `items` array; not-in-stock lines (Lens, Reading glasses, Accessory, Other) and "Not from stock" lines only count for Item Type. */
+function edGather(ctx){
+  const S = ED[ctx], stockLines = [], forType = [];
+  S.err = '';
+  for (let i = 0; i < S.lines.length; i++){
+    const l = S.lines[i], n = 'Item ' + (i + 1) + ': ';
+    l.err = '';
+    if (l.ro){ forType.push(l); continue; }
+    const contact = lineIsContact(l), q = Number(l.qty);
+    let err = '';
+    if (l.newMode) err = 'finish or cancel the “new value” box first.';
+    else if (!l.type) err = 'choose a type (or remove the item).';
+    else if (contact && !l.colour) err = 'choose a colour.';
+    else if (contact && !l.powerR) err = 'choose a power.';
+    else if (contact && l.unit !== 'Single' && !l.same && !l.powerL) err = 'choose the left power.';
+    else if (String(l.qty).trim() === '' || !Number.isInteger(q) || q < 1 || q > 99) err = 'quantity must be a whole number from 1 to 99.';
+    if (err){ S.err = n + err; edRender(ctx); return { error: S.err }; }
+    forType.push(l);
+    if (l.free) continue;                                  // not tracked in stock
+    const unit = contact ? (l.unit === 'Single' ? 'Single' : 'Pair') : 'Piece';
+    stockLines.push({ type: l.type, colour: l.colour || '', powerR: contact ? l.powerR : '', powerL: contact && unit === 'Pair' ? (l.same ? l.powerR : l.powerL) : '', unit, qty: q });
+  }
+  edRender(ctx);
+  return { stockLines, lines: stockLines, itemType: deriveItemType(forType), count: S.lines.length };
+}
+async function edAdd(ctx){
+  const S = ED[ctx];
+  const loaded = await ensureEdData();
+  S.err = loaded ? '' : 'The stock lists could not be loaded, so only “Not in stock” items can be added right now. Check the connection or ask the owner to run setupInventory().';
+  S.lines.push(newEdLine());
+  edRender(ctx, '#ed-' + ctx + '-type-' + (S.lines.length - 1));
+}
+function validateNewValue(listName, text){
+  let value = collapse(text);
+  if (listName === 'Power'){
+    const p = parsePowerInput(value);
+    return p === null ? { err: 'Power must be a number that is a multiple of 0.25, between -30 and +30 (for example -2.25).' } : { value: p };
+  }
+  if (!value) return { err: 'Enter a name first.' };
+  if (value.length > 40) return { err: 'The name is too long (max 40 characters).' };
+  if (/^[=+\-@]/.test(value)) return { err: 'The name cannot start with = + - or @.' };
+  return { value };
+}
+async function edCreate(ctx, i){
+  const S = ED[ctx], l = S.lines[i]; if (!l || !l.newMode) return;
+  const listName = l.newMode === 'type' ? 'Type' : l.newMode === 'colour' ? 'Colour' : 'Power';
+  const v = validateNewValue(listName, l.newText);
+  l.err = '';
+  if (v.err){ l.err = v.err; return edRender(ctx, '#ed-' + ctx + '-new-' + i); }
+  if (listName === 'Type' && l.newContact === null){ l.err = 'Choose Yes or No: is it a contact lens?'; return edRender(ctx, '#ed-' + ctx + '-new-' + i); }
+  await run(async () => {
+    let data;
+    try{ data = await send(Object.assign({ action: 'inventoryAddListValue', list: listName, value: v.value, by: byName() }, listName === 'Type' ? { kind: l.newContact ? 'Contact' : 'Simple' } : {})); }
+    catch(e){ l.err = (e.message && e.message !== 'Failed to fetch') ? e.message : NET_MSG; return edRender(ctx, '#ed-' + ctx + '-new-' + i); }
+    if (!data || data.ok !== true){ l.err = failText(data, 'The server did not accept the new value.'); showToast(l.err, 'error'); return edRender(ctx, '#ed-' + ctx + '-new-' + i); }
+    await reload(true).catch(() => {});
+    const e = findEntry(listName, data.value);
+    if (e && !e.active){ l.err = '“' + data.value + '” already exists but is hidden. Ask a manager to unhide it.'; return edRender(ctx, '#ed-' + ctx + '-new-' + i); }
+    if (l.newMode === 'type'){ l.type = data.value; l.free = false; l.colour = ''; l.powerR = ''; l.powerL = ''; l.same = true; l.unit = lineIsContact(l) ? 'Pair' : 'Piece'; }
+    else l[l.newMode] = data.value;
+    l.newMode = null; l.newText = ''; l.newContact = null;
+    showToast(data.existed ? '“' + data.value + '” already existed, selected it.' : '“' + data.value + '” added.', data.existed ? 'info' : 'success');
+    edRender(ctx);
+  });
+}
+
+/* ---- confirmation overlays (own class, so the app's Escape / Tab / backdrop handlers leave them alone) ---- */
+let ovResolve = null, ovLastFocus = null;
+const OVERLAYS = ['inv-preview-overlay', 'inv-delask-overlay'];
+function ovOpen(id, html, cancelValue){
+  const o = $(id); if (!o) return Promise.resolve(cancelValue);
+  o.querySelector('.ov-body').innerHTML = html;
+  o.dataset.cancel = String(cancelValue);
+  o.style.display = 'flex'; ovLastFocus = document.activeElement;
+  const d = o.querySelector('.dialog'); if (d){ d.setAttribute('tabindex', '-1'); d.focus(); }
+  return new Promise(res => { ovResolve = res; });
+}
+function ovClose(id, val){
+  const o = $(id); if (o) o.style.display = 'none';
+  const r = ovResolve; ovResolve = null;
+  if (ovLastFocus && document.contains(ovLastFocus) && ovLastFocus.focus) ovLastFocus.focus();
+  ovLastFocus = null;
+  if (r) r(val);
+}
+const openOverlay = () => OVERLAYS.find(id => $(id) && $(id).style.display === 'flex');
+document.addEventListener('keydown', ev => {
+  const id = openOverlay(); if (!id) return;
+  if (ev.key === 'Escape'){ ev.preventDefault(); ev.stopImmediatePropagation(); ovClose(id, id === 'inv-preview-overlay' ? false : 'cancel'); return; }
+  if (ev.key === 'Tab'){
+    const f = Array.from($(id).querySelectorAll('button:not([disabled])'));
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1], a = document.activeElement;
+    if (ev.shiftKey && (a === first || !$(id).contains(a))){ ev.preventDefault(); last.focus(); }
+    else if (!ev.shiftKey && (a === last || !$(id).contains(a))){ ev.preventDefault(); first.focus(); }
+    ev.stopImmediatePropagation();
+  }
+}, true);
+
+/* ---- NEW ORDER ---- */
+window.invResetOrderLines = function(){ ED.order.lines = []; ED.order.err = ''; autoFrame = ''; edRender('order'); };
+/* New Order: validates the lines and returns {stockLines, itemType} or {error}. At least one line is required. */
+window.invGatherOrder = function(){
+  const S = ED.order;
+  if (!S.lines.length){
+    S.err = 'Add at least one item (frame, lens, sunglasses…) with “+ Add item”.';
+    edRender('order');
+    const b = $('order-stock-add'); if (b) b.focus();
+    return { error: S.err };
+  }
+  return edGather('order');
+};
+let stockSending = false;
+const stockDone = new Set();
+/* reads the reply: the script answers an `order` with items by TEXT "New Record Added" (success) or JSON {ok:false,error} */
+async function postOrderReadable(data){
+  let res, text;
+  try{ res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) }); }
+  catch(e){ return { kind: 'unknown', why: 'The connection was lost while sending.' }; }
+  try{ text = await res.text(); }catch(e){ return { kind: 'unknown', why: 'The reply could not be read.' }; }
+  let j = null; try{ j = JSON.parse(text); }catch(e){}
+  if (j && j.ok === true) return { kind: 'ok' };
+  if (j && j.ok === false) return { kind: 'fail', error: String(j.error || 'The server did not accept the order.') };
+  if (String(text).trim() === 'New Record Added') return { kind: 'ok' };
+  return { kind: 'unknown', why: 'The server sent an unexpected reply.' };
+}
+/* the request may or may not have been written: look in Records (invoice + created after we sent it) — never resend silently */
+async function verifyOrderSaved(data, sentAt, why){
+  const inv_ = String(data.invoice);
+  let rows;
+  try{ rows = await fetchCloud('Records', true); }
+  catch(e){ return { kind: 'fail', error: why + ' The check for invoice ' + inv_ + ' also failed. Open Order List and look for invoice ' + inv_ + ' before saving again.' }; }
+  const found = (rows || []).some(r => String(r[1]) === inv_ && new Date(r[18]).getTime() >= sentAt - 120000);
+  if (found) return { kind: 'ok', verified: true };
+  return { kind: 'fail', error: why + ' Checked Records for invoice ' + inv_ + ': it was NOT saved. You can press Save again.' };
+}
+window.invCommitStockOrder = async function(data, btn, andPrint){
+  const key = String(data.invoice) + '|' + String(data.date);
+  if (stockSending || stockDone.has(key)) return;
+  stockSending = true;
+  const sessionUserNow = sessionUser();
+  const branch = sessionUserNow ? sessionUserNow.activeBranch : data.branch;
+  try{
+    ED.order.err = ''; edRender('order');
+    const sentAt = Date.now();
+    let out = await postOrderReadable(data);
+    if (out.kind === 'unknown') out = await verifyOrderSaved(data, sentAt, out.why);
+    if (out.kind === 'fail'){
+      ED.order.err = out.error; edRender('order');
+      showToast(out.error, 'error', 6000);
+      return;                                   // form stays filled; no members, no payments, no print
+    }
+    stockDone.add(key);
+    if (out.verified) showToast('Connection was lost, but invoice ' + data.invoice + ' was found in Records, so it was saved.', 'info', 5000);
+    try{ await saveOrderMembers(data.invoice, branch); }catch(e){ showToast('Order saved, but family members may not have saved. Please check.', 'error'); }
+    showToast('Order saved to ' + branch + ' (stock updated)', 'success');
+    invalidateCache();
+    resetOrderForm();
+    refreshDashboard();
+    if (andPrint) openPrintChoice(data.invoice);
+    reload(true).catch(() => {});               // refresh Stock Log + Inventory Lists for the Inventory screen
+    fetchCloud('Order Items', true).catch(() => {});
+  }finally{
+    stockSending = false;
+  }
+};
+
+/* ---- FULL EDIT ---- */
+function feNote(html){ const n = $('fe-stock-note'); if (n) n.innerHTML = html; }
+window.invFeLoad = async function(order){
+  const F = ED.fe, token = ++F.token;
+  F.loading = true; F.loadError = ''; F.hasItems = false; F.orig = []; F.lines = []; F.err = '';
+  F.branch = collapse(order[12]); F.invoiceOrig = String(order[1]); F.dateRaw = order[0];
+  edRender('fe');
+  const add = $('fe-stock-add'); if (add) add.style.display = 'none';
+  { const chips0 = $('fe-itemtype-field'); if (chips0) chips0.style.display = ''; const lg = document.querySelector('#fe-stock-wrap legend'); if (lg) lg.textContent = 'Stock items'; }   // old orders keep the chips UI
+  feNote('<div class="inv-greynote">Loading stock items…</div>');
+  try{
+    const rows = await orderItemsFor(order[1], order[0], true);
+    if (token !== F.token) return;
+    if (rows.length && !(await ensureEdData())) throw new Error('lists');
+    if (token !== F.token) return;
+    if (!rows.length){
+      F.loading = false; F.hasItems = false;
+      feNote('<div class="inv-greynote">Old order: stock is not tracked for it.</div>');
+      return;
+    }
+    F.hasItems = true; F.orig = rows;
+    F.branch = rows[0].branch || F.branch;           // stock moves in the branch the order was sold from
+    const stockLines = rows.map(r => Object.assign(newEdLine(), { type: r.type, colour: r.colour, unit: r.unit === 'Piece' ? 'Piece' : r.unit, qty: String(r.qty), same: r.unit !== 'Pair' || !r.powerL || r.powerL === r.powerR,
+      powerR: r.powerR, powerL: r.powerL && r.powerL !== r.powerR ? r.powerL : '' }));
+    /* The rest of the saved Item Type text (what the stock lines do not cover) becomes the other lines:
+       Lens / Reading glasses / Accessory / Other -> normal "not in stock" lines; anything else (Frame, Sunglasses, Contact lens, Solution…
+       sold without stock tracking) -> a read-only grey "Not from stock" line that is kept as it is. */
+    const covered = {};
+    stockLines.forEach(l => { const c = catOfLine(l); covered[c] = (covered[c] || 0) + Number(l.qty); });
+    const extra = [];
+    parseItemTypes(order[19]).forEach(c => {
+      const left = c.qty - (covered[c.type] || 0);
+      if (left <= 0) return;
+      extra.push(FREE_TYPES.indexOf(c.type) >= 0
+        ? Object.assign(newEdLine(), { free: true, type: c.type, unit: 'Piece', qty: String(left) })
+        : Object.assign(newEdLine(), { ro: true, cat: c.type, qty: String(left) }));
+    });
+    F.lines = stockLines.concat(extra);
+    F.loading = false;
+    const chips = $('fe-itemtype-field'); if (chips) chips.style.display = 'none';     // the unified lines replace the chips for this order
+    const legend = document.querySelector('#fe-stock-wrap legend'); if (legend) legend.textContent = 'Items';
+    feNote('<p class="inv-note" style="margin-top:0;">Stock for branch <b>' + esc(F.branch) + '</b>. Changes to in-stock items adjust the stock when you save.</p>');
+    if (add) add.style.display = '';
+    edRender('fe');
+  }catch(e){
+    if (token !== F.token) return;
+    F.loading = false; F.loadError = 'Stock items could not be loaded. Close and reopen Full Edit to try again.';
+    feNote('<div class="inv-err">' + esc(F.loadError) + '</div>');
+  }
+};
+function netChanges(origRows, newLines, newBranch){
+  const net = new Map();
+  const add = (b, e, d) => { const k = stockKey(b, e); const cur = net.get(k) || { branch: b, e, d: 0 }; cur.d += d; net.set(k, cur); };
+  origRows.forEach(r => consumption({ type: r.type, colour: r.colour, unit: r.unit, powerR: r.powerR, powerL: r.powerL, qty: r.qty }).forEach(e => add(r.branch, e, e.units)));
+  newLines.forEach(l => consumption(l).forEach(e => add(newBranch, e, -e.units)));
+  return Array.from(net.values()).filter(x => x.d !== 0);
+}
+const signed = n => (n > 0 ? '+' : '') + n;
+function previewLineText(c, showBranch){
+  const e = c.e, name = [e.type, e.colour, e.power].filter(Boolean).join(' ');
+  return name + (showBranch ? ' (' + c.branch + ')' : '') + ': ' + signed(c.d) + (e.power ? ' ' + pluralLens(c.d) : '');
+}
+async function feReplaceItems(payload){
+  try{ return await send(payload); }
+  catch(e){ return { ok: false, error: (e.message && e.message !== 'Failed to fetch') ? e.message : 'Connection error. The stock change may or may not have been saved: close and reopen Full Edit to see the current stock items before trying again.' }; }
+}
+/* called by submitFullUpdate before it sends fullUpdate. {proceed:false} = stop (nothing else is sent) */
+window.invFeBeforeSave = async function(data){
+  const F = ED.fe;
+  if (F.loading){ showToast('Stock items are still loading. Wait a moment and save again.', 'info'); return { proceed: false }; }
+  if (F.loadError){ showToast(F.loadError, 'error'); return { proceed: false }; }
+  if (!F.hasItems) return { proceed: true };                  // old order: untouched
+  const dateInput = document.getElementById('fe-date').value;
+  if (dateInput !== isoToDDMMYYYY(F.dateRaw)){
+    F.err = 'This order has tracked stock items, so its date cannot be changed here (the stock history would lose its link). Put the date back to ' + isoToDDMMYYYY(F.dateRaw) + '.';
+    edRender('fe'); showToast(F.err, 'error', 6000); return { proceed: false };
+  }
+  const g = edGather('fe');
+  if (g.error){ showToast(g.error, 'error'); return { proceed: false }; }
+  if (!g.count){
+    F.err = 'Add at least one item (frame, lens, sunglasses…) with “+ Add item”.';
+    edRender('fe'); showToast(F.err, 'error'); return { proceed: false };
+  }
+  data.itemType = g.itemType;                                  // column T, derived from the lines (same text format as the chips)
+  const newLines = g.stockLines;
+  const renamed = String(data.invoice).trim() !== String(F.invoiceOrig).trim();
+  const changed = !sameLineSets(F.orig, newLines);
+  if (!changed && !renamed) return { proceed: true };         // nothing changed: no preview, no stock request
+  if (changed){
+    const net = netChanges(F.orig, newLines, F.branch);
+    const branches = new Set(net.map(c => c.branch));
+    const body = '<p class="inv-note" style="margin-top:0;">Branch: <b>' + esc(F.branch) + '</b>. After saving, the stock changes like this:</p>' +
+      (net.length ? '<div class="card card-flush"><ul class="inv-list">' + net.map(c => '<li><span>' + esc(previewLineText(c, branches.size > 1)) + '</span></li>').join('') + '</ul></div>'
+                  : '<div class="inv-greynote">The stock numbers do not change. Only the item lines are updated.</div>') +
+      '<div class="dialog-foot"><button type="button" class="btn btn-ghost" data-sact="ov-no">Back</button><button type="button" class="btn btn-primary" data-sact="ov-yes">Save and adjust stock</button></div>';
+    const yes = await ovOpen('inv-preview-overlay', body, false);
+    if (!yes) return { proceed: false };
+  }
+  const payload = { action: 'replaceOrderItems', invoice: data.invoice, originalDate: F.dateRaw, branch: F.branch, by: byName(), items: newLines };
+  if (renamed) payload.oldInvoice = F.invoiceOrig;
+  const reply = await feReplaceItems(payload);
+  if (!reply || reply.ok !== true){
+    F.err = failText(reply, 'The server did not accept the stock change. The order was NOT saved.');
+    edRender('fe'); showToast(F.err, 'error', 6000);
+    return { proceed: false };                               // do not send fullUpdate
+  }
+  F.err = '';
+  reload(true).catch(() => {}); fetchCloud('Order Items', true).catch(() => {});
+  return { proceed: true, adjusted: true };
+};
+
+/* ---- DELETE ---- */
+/* resolves true / false (the user's answer), undefined (old order: no stock question) or 'cancel' */
+window.invAskReturnStock = async function(invoice, dateRaw){
+  const rows = await orderItemsFor(invoice, dateRaw, true);   // throws on a network error: the caller stops the delete
+  if (!rows.length) return undefined;
+  const list = '<div class="card card-flush"><ul class="inv-list">' + rows.map(r => '<li><span>' + esc(describeLine(r)) + '</span></li>').join('') + '</ul></div>';
+  const body = '<p class="muted small" style="margin:-8px 0 12px;">Order ' + esc(invoice) + ' has tracked stock items:</p>' + list +
+    '<div class="dialog-foot" style="flex-direction:column;">' +
+    '<button type="button" class="btn btn-primary btn-block" data-sact="ov-yes">Yes, return</button>' +
+    '<button type="button" class="btn btn-ghost btn-block" data-sact="ov-no">No, don\'t return</button>' +
+    '<button type="button" class="btn btn-quiet btn-block" data-sact="ov-cancel">Cancel</button></div>';
+  return ovOpen('inv-delask-overlay', body, 'cancel');
+};
+
+/* ---- VIEW RX ---- */
+window.invRxStockLine = async function(data){
+  const box = $('rx-stock'); if (!box || !data || !data.date) return;
+  box.dataset.inv = String(data.invoice);
+  try{
+    const rows = await orderItemsFor(data.invoice, data.date, false);
+    const b = $('rx-stock');
+    if (!b || b.dataset.inv !== String(data.invoice) || !rows.length) return;
+    b.innerHTML = '<strong>Stock items:</strong> ' + rows.map(r => esc(describeLine(r))).join('; ');
+  }catch(e){ /* the line is optional */ }
+};
+
+/* ---- events for the stock-item editors and overlays ---- */
+document.addEventListener('click', ev => {
+  const el = ev.target.closest ? ev.target.closest('[data-sact]') : null; if (!el || el.disabled) return;
+  const act = el.dataset.sact, ctx = el.dataset.ctx, i = el.dataset.i === undefined ? -1 : Number(el.dataset.i);
+  if (act === 'ov-yes' || act === 'ov-no' || act === 'ov-cancel'){
+    const id = openOverlay(); if (!id) return;
+    if (id === 'inv-preview-overlay') ovClose(id, act === 'ov-yes');
+    else ovClose(id, act === 'ov-yes' ? true : act === 'ov-no' ? false : 'cancel');
+    return;
+  }
+  const S = ED[ctx]; if (!S) return;
+  const l = i >= 0 ? S.lines[i] : null;
+  switch (act){
+    case 'add': edAdd(ctx); break;
+    case 'rm': S.lines.splice(i, 1); edRender(ctx); break;
+    case 'showcolour': if (l){ l.showColour = true; edRender(ctx, '#ed-' + ctx + '-colour-' + i); } break;
+    case 'qty': if (l){ const q = Math.min(99, Math.max(1, (parseInt(l.qty, 10) || 0) + Number(el.dataset.d))); l.qty = String(q); edRender(ctx); } break;
+    case 'newsave': edCreate(ctx, i); break;
+    case 'newcontact': if (l){ l.newContact = el.dataset.v === '1'; edRender(ctx, '#ed-' + ctx + '-new-' + i); } break;
+    case 'newcancel': if (l){ l.newMode = null; l.newText = ''; l.err = ''; edRender(ctx); } break;
+  }
+});
+document.addEventListener('change', ev => {
+  const el = ev.target; if (!el || !el.dataset || el.dataset.sf === undefined) return;
+  const ctx = el.dataset.ctx, S = ED[ctx], i = Number(el.dataset.i), l = S && S.lines[i], k = el.dataset.sf;
+  if (!l) return;
+  l.err = '';
+  if (k === 'type'){
+    const v = el.value;
+    if (v === '__new__'){ l.newMode = 'type'; l.newText = ''; l.newContact = null; edRender(ctx, '#ed-' + ctx + '-new-' + i); return; }
+    l.colour = ''; l.powerR = ''; l.powerL = ''; l.same = true; l.newMode = null; l.showColour = false;
+    if (v.indexOf('free:') === 0){ l.free = true; l.type = v.slice(5); l.unit = 'Piece'; }
+    else { l.free = false; l.type = v; l.unit = lineIsContact(l) ? 'Pair' : 'Piece'; }
+    edRender(ctx); return;
+  }
+  if (k === 'colour' || k === 'powerR' || k === 'powerL'){
+    if (el.value === '__new__'){ l.newMode = k; l.newText = ''; edRender(ctx, '#ed-' + ctx + '-new-' + i); return; }
+    l[k] = el.value; edRender(ctx); return;
+  }
+  if (k === 'unit'){ l.unit = el.value; if (el.value === 'Single'){ l.powerL = ''; l.same = true; } edRender(ctx); return; }
+  if (k === 'same'){ l.same = el.checked; l.powerL = el.checked ? '' : l.powerR; edRender(ctx); return; }
+});
+document.addEventListener('input', ev => {
+  const el = ev.target; if (!el || !el.dataset || el.dataset.sf === undefined) return;
+  const S = ED[el.dataset.ctx], l = S && S.lines[Number(el.dataset.i)]; if (!l) return;
+  if (el.dataset.sf === 'qty'){ l.qty = el.value; const ctx = el.dataset.ctx, pos = el.selectionStart; edRender(ctx, '#' + el.id); const n = $(el.id); if (n && pos !== null) { try{ n.setSelectionRange(pos, pos); }catch(e){} } }
+  if (el.dataset.sf === 'newtext') l.newText = el.value;
+});
+
+/* ============================================================
+   STEP 4 — low-stock warnings on the dashboards, and "Stock this month" in Accounting.
+   Uses the SAME stock code as the Inventory tab (computeStock, typeSummaries, statusOf, fmtContact).
+   Background loading never blocks or changes the dashboards: a failed load is only logged to the console.
+   ============================================================ */
+const ALERT_MAX = 5;
+
+/* Alerts of one branch, or null when the branch has no inventory rows at all (then: no card, no badge).
+   Rules: low = total <= Reorder Below (a number) and above 0; out = total 0; negative = below 0.
+   Hidden types are ignored; a type that never had a Stock Log row in this branch is never "out".
+   Contact Lens totals are in SINGLE lenses and are compared with the Type's Reorder Below only (no per-power thresholds). */
+function alertsFor(branch){
+  const b = norm(branch);
+  if (!inv.logRows.some(r => norm(r.branch) === b)) return null;
+  const stock = computeStock(inv.logRows, branch);
+  const stocked = new Set(stock.map(s => norm(s.type)));
+  const red = [], amber = [];
+  typeSummaries(stock).forEach(t => {
+    if (!t.entry || !t.entry.active) return;
+    if (!stocked.has(norm(t.type))) return;
+    const st = statusOf(t.units, t.entry.reorder);
+    if (st === 'ok') return;
+    const unit = t.contact ? ' singles' : '';
+    if (st === 'neg') red.push({ type: t.type, kind: 'neg', line: t.type + ': negative: ' + t.units + unit + ', check stock' });
+    else if (st === 'zero') red.push({ type: t.type, kind: 'out', line: t.type + ': out of stock' });
+    else amber.push({ type: t.type, kind: 'low', line: t.type + ': ' + (t.contact ? fmtContact(t.units).main : t.units) + ' left (reorder at ' + t.entry.reorder + unit + ')' });
+  });
+  return { red, amber, out: red.length, low: amber.length, lines: red.concat(amber) };
+}
+function alertCardHtml(a){
+  const shown = a.lines.slice(0, ALERT_MAX), more = a.lines.length - shown.length;
+  return '<article class="tile stock-alert' + (a.out ? ' red' : '') + '" role="button" tabindex="0" data-stock-open="1" aria-label="Stock alerts: open Inventory">' +
+    '<div class="sa-h"><span>Stock alerts</span><span class="tile-ic">' + ic('package') + '</span></div>' +
+    shown.map(x => '<div class="sa-line ' + (x.kind === 'low' ? 'amber' : 'red') + '">' + esc(x.line) + '</div>').join('') +
+    (more > 0 ? '<div class="sa-more">' + more + ' more</div>' : '') + '</article>';
+}
+function badgeHtml(branch, a){
+  const chips = (a.out ? '<span class="bc-chip red">' + a.out + ' out</span>' : '') + (a.low ? '<span class="bc-chip amber">' + a.low + ' low</span>' : '');
+  return '<span class="bc-stock" role="button" tabindex="0" data-stock-branch="' + esc(branch) + '" aria-label="' + esc(branch) + ': ' + (a.out ? a.out + ' out of stock' : '') + (a.out && a.low ? ', ' : '') + (a.low ? a.low + ' low' : '') + '. Open Inventory">' + chips + '</span>';
+}
+function paintDashAlerts(){
+  if (!inv.ready) return;
+  const slot = $('stock-alert-slot');
+  if (slot){
+    const u = sessionUser(), a = u && u.role === 'Cashier' ? alertsFor(u.activeBranch) : null;
+    slot.innerHTML = a && a.lines.length ? alertCardHtml(a) : '';
+  }
+  document.querySelectorAll('[data-slot-branch]').forEach(el => {
+    const a = alertsFor(el.dataset.slotBranch);
+    el.innerHTML = a && (a.out || a.low) ? badgeHtml(el.dataset.slotBranch, a) : '';
+  });
+}
+/* Loads Stock Log + Inventory Lists quietly. Never shows an error, never touches the dashboard when it fails. */
+let qInflight = null;
+function quietLoad(force){
+  if (!sessionUser()) return Promise.resolve(false);
+  if (qInflight && !force) return qInflight;
+  const p = (async () => {
+    try{
+      const [s, l] = await Promise.all([fetchCloud('Stock Log', !!force), fetchCloud('Inventory Lists', !!force)]);
+      inv.logRows = parseLog(s); inv.listRows = parseLists(l); inv.ready = true; inv.error = '';
+      const vis = $('inventory-section'); if (vis && vis.classList.contains('visible')) renderMain();
+      paintDashAlerts();
+      return true;
+    }catch(e){
+      console.warn('Inventory data could not be loaded in the background:', e);
+      return false;
+    }
+  })();
+  qInflight = p;
+  p.then(() => { if (qInflight === p) qInflight = null; });
+  return p;
+}
+window.invDashAlerts = function(){ paintDashAlerts(); quietLoad(false); };     // called when a dashboard has been drawn
+window.invSilentRefresh = function(){ return quietLoad(true); };               // called by the 30-minute silent refresh
+window.invAfterStockChange = function(){ return quietLoad(true); };            // e.g. after a delete that returned stock
+window.invOpenFromDash = function(branch){
+  if (branch && isMgr()) inv.branch = branch;
+  inv.tab = 'stock';
+  window.openInventory({ currentTarget: document.getElementById('nav-inventory') });
+};
+/* taps: capture phase, so a tap on the badge does not also open Accounting through the card's own click */
+document.addEventListener('click', ev => {
+  const t = ev.target.closest ? ev.target.closest('[data-stock-branch], [data-stock-open]') : null; if (!t) return;
+  ev.stopPropagation(); ev.preventDefault();
+  window.invOpenFromDash(t.dataset.stockBranch || '');
+}, true);
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const t = ev.target.closest ? ev.target.closest('[data-stock-branch], [data-stock-open]') : null; if (!t) return;
+  ev.stopPropagation(); ev.preventDefault();
+  window.invOpenFromDash(t.dataset.stockBranch || '');
+}, true);
+
+/* ---- Accounting: "Stock this month" (Manager only; follows the selected month and branch) ---- */
+const accStock = { items: [], loaded: false, loading: false, token: 0 };
+window.invAccLoad = async function(force){
+  const u = sessionUser(); if (!u || u.role !== 'Manager') return;
+  const token = ++accStock.token;
+  accStock.loading = true; window.invAccRender();
+  try{
+    const [rows, ok] = await Promise.all([fetchCloud('Order Items', !!force), quietLoad(!!force)]);
+    if (token !== accStock.token) return;
+    if (!ok) throw new Error('stock data');
+    accStock.items = parseOrderItems(rows); accStock.loaded = true;
+  }catch(e){
+    if (token === accStock.token){ accStock.loaded = false; console.warn('Stock section could not be loaded:', e); }
+  }finally{
+    if (token === accStock.token){ accStock.loading = false; window.invAccRender(); }
+  }
+};
+const qtyText = (pairs, singles, pieces) => {
+  const parts = [];
+  if (pairs) parts.push(pairs + (pairs === 1 ? ' pair' : ' pairs'));
+  if (singles) parts.push(singles + (singles === 1 ? ' single' : ' singles'));
+  if (pieces) parts.push(String(pieces));
+  return parts.join(' + ') || '0';
+};
+function accStockHtml(){
+  const start = new Date(acc.y, acc.m, 1).getTime(), end = new Date(acc.y, acc.m + 1, 1).getTime(), br = acc.branch;
+  const inM = d => { const x = accDate(d); return !!x && x.getTime() >= start && x.getTime() < end; };
+  const okB = v => !br || accStr(v) === br;
+  const items = accStock.items.filter(r => inM(r.date) && okB(r.branch));
+  const logM = inv.logRows.filter(r => inM(r.date) && okB(r.branch));
+  const wrap = inner => '<section class="card card-flush"><h2 class="acct-h">Stock this month</h2>' + inner + '</section>';
+  if (!items.length && !logM.length) return wrap('<div class="acct-empty">No inventory data for this month</div>');
+  const typeName = t => canon('Type', t);
+  const contactT = t => isContactType(t);
+  const table = (head, rows) => '<div class="acct-scroll"><table class="acct"><thead><tr>' + head + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  const fmtU = (t, n) => contactT(t) ? esc(fmtContact(n).main) + ' <span class="soft">' + esc(fmtContact(n).small) + '</span>' : String(n);
+  let h = '';
+
+  // Sold from stock (Order Items)
+  const sold = new Map();
+  items.forEach(r => {
+    const k = norm(r.type);
+    const e = sold.get(k) || { type: r.type, pairs: 0, singles: 0, pieces: 0, colours: new Map() };
+    const c = e.colours.get(norm(r.colour)) || { colour: r.colour, pairs: 0, singles: 0, pieces: 0 };
+    if (r.unit === 'Pair'){ e.pairs += r.qty; c.pairs += r.qty; } else if (r.unit === 'Single'){ e.singles += r.qty; c.singles += r.qty; } else { e.pieces += r.qty; c.pieces += r.qty; }
+    e.colours.set(norm(r.colour), c); sold.set(k, e);
+  });
+  h += '<h3 class="acct-h" style="font-size:14px;">Sold from stock</h3>';
+  h += sold.size ? table('<th>Type</th><th class="num">Quantity</th>', Array.from(sold.values()).sort((a, b) => a.type.localeCompare(b.type)).map(e => {
+    const cols = Array.from(e.colours.values()).filter(c => c.colour).sort((a, b) => a.colour.localeCompare(b.colour));
+    const name = esc(typeName(e.type));
+    const cell = cols.length
+      ? '<details><summary>' + name + ' <span class="soft">by colour</span></summary>' + cols.map(c => '<div class="acct-sub">' + esc(canon('Colour', c.colour)) + ': ' + esc(qtyText(c.pairs, c.singles, c.pieces)) + '</div>').join('') + '</details>'
+      : name;
+    return '<tr><td>' + cell + '</td><td class="num">' + esc(qtyText(e.pairs, e.singles, e.pieces)) + '</td></tr>';
+  }).join('')) : '<div class="acct-empty">Nothing sold from stock this month.</div>';
+
+  // Received / Opening / Corrections (Stock Log)
+  const byReason = (reason) => {
+    const m = new Map();
+    logM.filter(r => r.reason === reason).forEach(r => { const k = norm(r.type); const e = m.get(k) || { type: r.type, n: 0 }; e.n += r.change; m.set(k, e); });
+    return Array.from(m.values()).sort((a, b) => a.type.localeCompare(b.type));
+  };
+  const reasonTable = (title, list, signedFmt) => '<h3 class="acct-h" style="font-size:14px;">' + title + '</h3>' +
+    table('<th>Type</th><th class="num">' + (signedFmt ? 'Net change' : 'Quantity') + '</th>', list.map(e => '<tr><td>' + esc(typeName(e.type)) + '</td><td class="num">' +
+      (signedFmt ? (e.n > 0 ? '+' : '') + e.n + (contactT(e.type) ? ' singles' : '') : fmtU(e.type, e.n)) + '</td></tr>').join(''));
+  const rec = byReason('Received'), opn = byReason('Opening'), cor = byReason('Correction');
+  h += rec.length ? reasonTable('Received this month', rec, false) : '<h3 class="acct-h" style="font-size:14px;">Received this month</h3><div class="acct-empty">Nothing received this month.</div>';
+  if (opn.length) h += reasonTable('Opening stock entered', opn, false);
+  if (cor.length) h += reasonTable('Corrections', cor, true);
+
+  // Stock now (same totals as the Inventory cards; All branches = sum of the branches)
+  const branches = br ? [br] : Array.from(new Set(inv.logRows.map(r => r.branch).filter(Boolean)));
+  const combined = [].concat.apply([], branches.map(b => computeStock(inv.logRows, b)));
+  const now = typeSummaries(combined);
+  h += '<h3 class="acct-h" style="font-size:14px;">Stock now</h3>' + (now.length ? table('<th>Type</th><th class="num">In stock</th>', now.map(t =>
+    '<tr><td>' + esc(t.type) + (t.hidden ? ' <span class="soft">(hidden)</span>' : '') + '</td><td class="num' + (t.units < 0 ? ' neg' : '') + '">' + (t.contact ? fmtU(t.type, t.units) : t.units) + '</td></tr>').join('')) : '<div class="acct-empty">No stock yet.</div>');
+  h += '<div class="acct-note">Orders from before inventory started are not included.</div>';
+  return wrap(h);
+}
+window.invAccRender = function(){
+  const box = $('acc-stock-section'); if (!box) return;
+  const u = sessionUser();
+  if (!u || u.role !== 'Manager' || typeof acc === 'undefined'){ box.innerHTML = ''; return; }
+  if (accStock.loading && !accStock.loaded){ box.innerHTML = '<section class="card card-flush"><h2 class="acct-h">Stock this month</h2><div class="acct-empty">Loading stock data…</div></section>'; return; }
+  if (!accStock.loaded || !inv.ready || !inv.listRows.length){ box.innerHTML = ''; return; }   // failed or not set up: the section simply is not shown
+  box.innerHTML = accStockHtml();
+};
+
+/* a few pure helpers are exposed for the automated tests */
+window.INV = { fmtPower, parsePowerInput, fmtContact, computeStock, parseLog, parseLists, powerOrder, statusOf, consumption, netChanges, parseOrderItems, alertsFor, accStock, state: inv, ED };
+})();
 </script>
 </body>
 </html>
