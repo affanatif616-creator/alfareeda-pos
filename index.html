@@ -1299,6 +1299,12 @@ table.inv-log td.pos{ color:var(--positive); } table.inv-log td.neg{ color:var(-
       <div class="ov-body"></div>
     </div>
   </div>
+  <div id="inv-oldorder-overlay" class="inv-overlay">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="inv-oldorder-title">
+      <h2 id="inv-oldorder-title">Order before inventory started</h2>
+      <div class="ov-body"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ MODALS ============ -->
@@ -2496,6 +2502,14 @@ async function saveOrderToCloud(andPrint){
     if (lines.error) return showToast(lines.error, 'error');
     data.itemType = lines.itemType;
     if (lines.stockLines.length){ data.itemsText = data.items; data.items = lines.stockLines; }
+    // Order dated before inventory started (see invAskOldOrder): ask whether to take the stock lines out of stock.
+    // "No" saves like an order without stock lines: items stays the text, no `items` array, so the old no-cors path is used
+    // and nothing is written to Order Items or Stock Log. Column T (itemType) was already derived from ALL lines.
+    if (Array.isArray(data.items) && window.invAskOldOrder){
+      const ans = await window.invAskOldOrder(dateISO, lines.stockLines, data.branch, document.getElementById('order-date').value);
+      if (ans === 'cancel' || ans === 'busy') return;
+      if (ans === false){ data.items = data.itemsText; delete data.itemsText; }
+    }
 
     {
       try{
@@ -5351,7 +5365,7 @@ async function edCreate(ctx, i){
 
 /* ---- confirmation overlays (own class, so the app's Escape / Tab / backdrop handlers leave them alone) ---- */
 let ovResolve = null, ovLastFocus = null;
-const OVERLAYS = ['inv-preview-overlay', 'inv-delask-overlay'];
+const OVERLAYS = ['inv-preview-overlay', 'inv-delask-overlay', 'inv-oldorder-overlay'];
 function ovOpen(id, html, cancelValue){
   const o = $(id); if (!o) return Promise.resolve(cancelValue);
   o.querySelector('.ov-body').innerHTML = html;
@@ -5370,7 +5384,11 @@ function ovClose(id, val){
 const openOverlay = () => OVERLAYS.find(id => $(id) && $(id).style.display === 'flex');
 document.addEventListener('keydown', ev => {
   const id = openOverlay(); if (!id) return;
-  if (ev.key === 'Escape'){ ev.preventDefault(); ev.stopImmediatePropagation(); ovClose(id, id === 'inv-preview-overlay' ? false : 'cancel'); return; }
+  if (ev.key === 'Escape'){
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    if (id === 'inv-oldorder-overlay') return;                 // "old order" question: only its three buttons close it
+    ovClose(id, id === 'inv-preview-overlay' ? false : 'cancel'); return;
+  }
   if (ev.key === 'Tab'){
     const f = Array.from($(id).querySelectorAll('button:not([disabled])'));
     if (!f.length) return;
@@ -5380,6 +5398,37 @@ document.addEventListener('keydown', ev => {
     ev.stopImmediatePropagation();
   }
 }, true);
+
+/* ---- NEW ORDER: order dated before inventory started ----
+   RULE: "inventory started" for a branch = the date of its FIRST Stock Log row with Reason "Opening" (earliest date, date only).
+   A NEW order is "old" when its Order date (date only, time ignored) is earlier than that AND it has at least one stock line.
+   Then the cashier is asked, before anything is sent, whether to take the lines out of stock.
+   No Opening row for the branch, Stock Log not loaded, no stock lines, or no valid order date = no question (saves as before).
+   Resolves undefined (no question), true (Yes, take from stock), false (No, don't change stock), 'cancel', or 'busy' (a question is already open). */
+let oldAskOpen = false;
+const ymdLocal = v => { const d = new Date(v); if (isNaN(d)) return ''; return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+window.invAskOldOrder = async function(dateISO, stockLines, branch, shownDate){
+  if (oldAskOpen) return 'busy';
+  if (!inv.ready || !dateISO || !stockLines || !stockLines.length) return undefined;
+  const b = norm(branch);
+  let first = '';
+  inv.logRows.forEach(r => {
+    if (norm(r.branch) !== b || norm(r.reason) !== 'opening') return;
+    const d = ymdLocal(r.date);
+    if (d && (!first || d < first)) first = d;
+  });
+  if (!first || !(String(dateISO).slice(0, 10) < first)) return undefined;
+  oldAskOpen = true;
+  try{
+    const list = '<div class="card card-flush"><ul class="inv-list">' + stockLines.map(l => '<li><span>' + esc(describeLine(l)) + '</span></li>').join('') + '</ul></div>';
+    const body = '<p class="muted small" style="margin:-8px 0 12px;">This order is dated before inventory started (' + esc(shownDate || dateISO) + '). Take these items out of stock?</p>' + list +
+      '<div class="dialog-foot" style="flex-direction:column;">' +
+      '<button type="button" class="btn btn-ghost btn-block" data-sact="ov-no">No, don\'t change stock</button>' +
+      '<button type="button" class="btn btn-primary btn-block" data-sact="ov-yes">Yes, take from stock</button>' +
+      '<button type="button" class="btn btn-quiet btn-block" data-sact="ov-cancel">Cancel</button></div>';
+    return await ovOpen('inv-oldorder-overlay', body, 'cancel');
+  }finally{ oldAskOpen = false; }
+};
 
 /* ---- NEW ORDER ---- */
 window.invResetOrderLines = function(){ ED.order.lines = []; ED.order.err = ''; autoFrame = ''; edRender('order'); };
@@ -5592,6 +5641,7 @@ document.addEventListener('click', ev => {
   const act = el.dataset.sact, ctx = el.dataset.ctx, i = el.dataset.i === undefined ? -1 : Number(el.dataset.i);
   if (act === 'ov-yes' || act === 'ov-no' || act === 'ov-cancel'){
     const id = openOverlay(); if (!id) return;
+    if (id === 'inv-oldorder-overlay') $(id).querySelectorAll('button').forEach(b => { b.disabled = true; });   // one click only
     if (id === 'inv-preview-overlay') ovClose(id, act === 'ov-yes');
     else ovClose(id, act === 'ov-yes' ? true : act === 'ov-no' ? false : 'cancel');
     return;
